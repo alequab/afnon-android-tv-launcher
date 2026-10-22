@@ -55,6 +55,8 @@ final class Tokens {
     static int SCRIM_PANEL = 0xB8060D1A;
     /** color.pattern-line: Star lattice lines (gold-400 at 7%) */
     static int PATTERN_LINE = 0x12D8B46A;
+    /** color.app-icon-tint: Other apps' icons (Home's favourites, All apps) are multiplied by it in night mode; white by day, when no filter is applied */
+    static int APP_ICON_TINT = 0xFFFFFFFF;
     /** color.on-plaster.label: Approaching card: caps label on plaster */
     static int ON_PLASTER_LABEL = 0xFF5A4A22;
     /** color.on-plaster.secondary: Approaching card: secondary text on plaster */
@@ -301,6 +303,7 @@ final class Tokens {
         SCRIM_MENU = night ? 0xF00B0A08 : 0xEB0C1B33;
         SCRIM_PANEL = night ? 0xB8050403 : 0xB8060D1A;
         PATTERN_LINE = night ? 0x0F84703F : 0x12D8B46A;
+        APP_ICON_TINT = night ? 0xFFA0927A : 0xFFFFFFFF;
         ON_PLASTER_LABEL = night ? 0xFF84703F : 0xFF5A4A22;
         ON_PLASTER_SECONDARY = night ? 0xFF6A655C : 0xFF3D4A63;
         ON_PLASTER_BORDER = night ? 0x8084703F : 0x990C1B33;
