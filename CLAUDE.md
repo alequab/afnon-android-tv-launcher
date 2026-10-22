@@ -35,7 +35,7 @@ real TV over ADB, never just in the build.
 export TV=<ip>:5555                 # the tools refuse to run without it
 bash tools/install.sh               # fetch adhans (first time), assembleDebug, install, set HOME, grants, a11y service
 bash tools/shot.sh home             # screenshot -> state/shots/home.png (look at it)
-adb -s $TV shell am start -n tv.afnon.home/.MainActivity --es test friday   # ramadan|now|reminder|call|banner|radio
+adb -s $TV shell am start -n tv.afnon.home/.MainActivity --es test friday   # ramadan|now|reminder|call|banner|announce|radio
 ```
 
 `tools/env.sh` finds adb itself (PATH, then `local.properties` sdk.dir, ANDROID_HOME, default SDK folders);

@@ -38,7 +38,7 @@ const { t, lang } = ctx;
   import type { Ctx } from '../lib/ctx';
   import type { Lang } from '../lib/text';
   import {
-    VOICES, chooserHtml, citiesOf, commit, countries, methodItems, regionOf, moveDraft, pick, previewHtml, rowsFor, rowsHtml,
+    REMIND, VOICES, chooserHtml, citiesOf, commit, countries, methodItems, regionOf, moveDraft, pick, previewHtml, rowsFor, rowsHtml,
     savedDraft, sectionName, stationChoice, stationsOf, type Edit, type SPrefs,
   } from './settings';
 
@@ -219,6 +219,9 @@ const { t, lang } = ctx;
         if (r.id === 'city') openRegions();
         else if (r.id === 'method') {
           open(ctx.t.s('method'), methodItems(ctx.t, ctx.prefs), (k) => save({ ...p(), method: METHODS[k] }));
+        } else if (r.id === 'remind') {
+          open(ctx.t.s('remind'), ctx.t.list('remindChoices').map((s, k) => ({ label: ctx.t.d(s), chosen: k === r.selected })),
+            (k) => save({ ...p(), remind: REMIND[k] }));
         } else if (r.id === 'station') openStationGroups();
         else if (r.id === 'voice' || r.id === 'voiceFajr') openVoices(r.id === 'voiceFajr');
         else if (r.id === 'room') location.href = href('prayer-day', lang) + '#tv';

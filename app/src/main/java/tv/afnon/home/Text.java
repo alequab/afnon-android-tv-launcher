@@ -30,7 +30,8 @@ final class Text {
     /** The " · " between parts of a line; a comma where "·" would sit beside Eastern digits. */
     String sep() { return d(" · "); }
 
-    String ref() { return ar ? "النساء ١٠٣" : "An-Nisa 4:103"; }
+    /** The arch verse's reference (An-Nisa 4:103), in the screen's digits like every other number. */
+    String ref() { return ar ? d("النساء 103") : d("An-Nisa 4:103"); }
     String nextPrayer() { return ar ? "الصلاة القادمة" : "NEXT PRAYER"; }
     String today() { return ar ? "مواقيت اليوم والقبلة" : "Today & Qibla"; }
     String settings() { return ar ? "الإعدادات" : "Settings"; }
@@ -135,7 +136,18 @@ final class Text {
         return ar ? new String[] {"مع شاشة التوقف", "بعدها بـ 15 د", "أبدًا"} : new String[] {"With screensaver", "15 min later", "Never"};
     }
 
-    String nowHint() { return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد 10 دقائق" : "Back to dismiss · closes by itself after 10 min"); }
+    /** The call screen's hint: how it closes by itself (Settings → Reminders); 0 is when the adhan ends. */
+    String nowHint(int minutes) {
+        if (minutes == 0) return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد الأذان" : "Back to dismiss · closes by itself after the adhan");
+        return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد " + (minutes == 1 ? "دقيقة" : minutes + " دقائق")
+                    : "Back to dismiss · closes by itself after " + minutes + " min");
+    }
+    String callCloseRow() { return ar ? "إغلاق شاشة الأذان" : "Close the call screen"; }
+    String callCloseHelp() { return ar ? "ثم تعود إلى ما كنت تشاهده" : "Then back to what you were watching"; }
+    /** In the order of the row's minutes: 0 (after the adhan), 1, 5, 10. */
+    String[] callCloseChoices() {
+        return ar ? new String[] {"بعد الأذان", "1 د", "5 د", "10 د"} : new String[] {"After adhan", "1 min", "5 min", "10 min"};
+    }
     String voiceRow() { return ar ? "صوت الأذان" : "Adhan voice"; }
     String voiceHelp() { return ar ? "لكل الصلوات عدا الفجر · يُسمع عند التنقل في القائمة" : "Every prayer but Fajr · plays as you move through the list"; }
     String fajrVoiceRow() { return ar ? "أذان الفجر" : "Fajr adhan"; }
@@ -234,7 +246,16 @@ final class Text {
     String notSet() { return ar ? "لم يُحدَّد" : "Not set"; }
     String remind() { return ar ? "التنبيه قبل الصلاة" : "Remind me before prayer"; }
     String remindHelp() { return ar ? "على الرئيسية وفوق الفيديو" : "On Home and over video"; }
-    String[] remindChoices() { return ar ? new String[] {"10 د", "15 د", "إيقاف"} : new String[] {"10 min", "15 min", "Off"}; }
+    String[] remindChoices() {
+        return ar ? new String[] {"5 د", "10 د", "15 د", "20 د", "30 د", "إيقاف"}
+                  : new String[] {"5 min", "10 min", "15 min", "20 min", "30 min", "Off"};
+    }
+    String remindVoiceRow() { return ar ? "تذكير صوتي" : "Spoken reminder"; }
+    String remindVoiceHelp() { return ar ? "«اقترب موعد صلاة …» مع التذكير" : "Says «اقترب موعد صلاة …» with the reminder"; }
+    String announceRow() { return ar ? "إعلان دخول الوقت" : "Announce the time"; }
+    String announceHelp() {
+        return ar ? "«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف" : "Says «حان الآن موعد صلاة …» when a prayer's adhan is off";
+    }
     String adhanRow() { return ar ? "الأذان" : "Adhan"; }
     String adhanHelp() { return ar ? "يُشغَّل عند دخول الوقت · يمكن إيقافه لكل صلاة" : "Plays when the time begins · can be muted per prayer"; }
     String language() { return ar ? "اللغة" : "Language"; }

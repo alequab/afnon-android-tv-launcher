@@ -261,8 +261,10 @@ final class Tokens {
     static final long MOTION_BANNER_LIFETIME_MS = 12000;
     /** motion.saved-lifetime: Settings: how long ✓ Saved shows after a change */
     static final long MOTION_SAVED_LIFETIME_MS = 2000;
-    /** motion.call-auto-dismiss */
+    /** motion.call-auto-dismiss: The call screen closes by itself: the default of Settings → Reminders → Close the call screen */
     static final long MOTION_CALL_AUTO_DISMISS_MS = 600000;
+    /** motion.call-silent-dismiss: The call screen set to close when the adhan ends, with no adhan playing */
+    static final long MOTION_CALL_SILENT_DISMISS_MS = 60000;
     /** timing.approach: Before a prayer, the arch switches to its approaching outline */
     static final int APPROACH_MIN = 15;
 

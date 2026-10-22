@@ -110,8 +110,9 @@ public class MainActivity extends Screen {
     }
 
     /**
-     * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now;
-     * `banner` and `call` come from the remote buttons service 8 s later, time enough to open another app.
+     * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now, with
+     * the spoken reminder if it is on; `banner`, `call` and `announce` come from the remote buttons service 8 s
+     * later, time enough to open another app.
      * `--es station <id>` (ids in Radio.STATIONS) picks a radio station as Settings does, before any test runs.
      */
     private void runTest(Intent i) {
@@ -123,7 +124,10 @@ public class MainActivity extends Screen {
         String kind = i == null ? null : i.getStringExtra("test");
         if (kind == null) return;
         i.removeExtra("test");
-        if ("reminder".equals(kind)) root.post(this::showReminder);
+        if ("reminder".equals(kind)) root.post(() -> {
+            showReminder();
+            if (Prefs.remindVoice(this)) Announce.before(this, day.nextIndex, day.friday);
+        });
         else if ("friday".equals(kind) || "ramadan".equals(kind) || "now".equals(kind)) shiftTo(kind);
         else if ("radio".equals(kind)) Radio.toggle(this);
         else if (RemoteKeys.watch != null) RemoteKeys.watch.test(kind, 8000);
@@ -211,13 +215,14 @@ public class MainActivity extends Screen {
         clock.setIncludeFontPadding(false);
         clock.setTextDirection(rtl ? View.TEXT_DIRECTION_RTL : View.TEXT_DIRECTION_LTR);
         clock.setFontFeatureSettings("tnum");
-        gdate = text(ui400, 26, Tokens.PLASTER_100);
-        hdate = text(ui400, 24, Tokens.MIST_400);
+        // Under the clock the Hijri date (with the city) first, then the Gregorian, smaller and in mist.
+        hdate = text(ui400, 26, Tokens.PLASTER_100);
+        gdate = text(ui400, 24, Tokens.MIST_400);
         when.addView(clock);
-        when.addView(gdate);
         when.addView(hdate);
-        ((LinearLayout.LayoutParams) gdate.getLayoutParams()).topMargin = Ui.ipx(6);
+        when.addView(gdate);
         ((LinearLayout.LayoutParams) hdate.getLayoutParams()).topMargin = Ui.ipx(6);
+        ((LinearLayout.LayoutParams) gdate.getLayoutParams()).topMargin = Ui.ipx(6);
         lineHeight(clock, 1f);
         when.setClipChildren(false);
         place(when, Tokens.COURT_X, 56, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

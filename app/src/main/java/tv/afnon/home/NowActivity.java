@@ -17,12 +17,12 @@ import java.util.Date;
 /**
  * The call to prayer (design/Home.dc.html, mode "now"): over whatever was on, the arch, حي على الصلاة, the prayer
  * and its time, and the adhan, which starts by itself (Settings → Adhan). The focused button stops or plays it
- * again; Back or Dismiss closes, and so does leaving the screen; it closes by itself after 10 minutes. It runs in
+ * again; Back or Dismiss closes, and so does leaving the screen. It closes by itself 1, 5 or 10 minutes after it
+ * opens, or when the adhan ends (Settings → Reminders → Close the call screen; 10 minutes by default). It runs in
  * its own task, so closing returns to the app that was playing.
  */
 public class NowActivity extends Screen {
 
-    private static final long AUTO_CLOSE_MS = 10 * 60_000;
     /** A muted TV (or one at 0) still calls the adhan, at this volume on the TV's own 0–100 scale. */
     private static final int MUTED_VOLUME = 13;
 
@@ -82,6 +82,9 @@ public class NowActivity extends Screen {
         playButton.setOnClickListener(v -> {
             if (player != null) stopAdhan();
             else startAdhan();
+            // "When the adhan ends": stopped by hand it ends now, so the silent close takes over; played again,
+            // its end closes the screen.
+            if (Prefs.callCloseMinutes(this) == 0) scheduleClose();
         });
         dismissButton = pill(0, 2);
         ((TextView) dismissButton.getChildAt(0)).setText(t.dismiss());
@@ -95,7 +98,7 @@ public class NowActivity extends Screen {
         col.addView(dismissButton, dlp);
 
         TextView hint = text(ui400, 22, Tokens.MIST_400);
-        hint.setText(t.nowHint());
+        hint.setText(t.nowHint(Prefs.callCloseMinutes(this)));
         LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(-2, -2);
         hlp.topMargin = Ui.ipx(20 - r);
         col.addView(hint, hlp);
@@ -108,8 +111,19 @@ public class NowActivity extends Screen {
         if (!started) {
             started = true;
             if (Prefs.adhan(this)) startAdhan();
-            tick.postDelayed(autoClose, AUTO_CLOSE_MS);
+            scheduleClose();
         }
+    }
+
+    /**
+     * The auto-close from Settings: so many minutes after the screen opened, or as the adhan ends (the player's
+     * completion closes it); with no adhan playing then, after {@link Tokens#MOTION_CALL_SILENT_DISMISS_MS}.
+     */
+    private void scheduleClose() {
+        tick.removeCallbacks(autoClose);
+        int minutes = Prefs.callCloseMinutes(this);
+        if (minutes > 0) tick.postDelayed(autoClose, minutes * 60_000L);
+        else if (player == null) tick.postDelayed(autoClose, Tokens.MOTION_CALL_SILENT_DISMISS_MS);
     }
 
     /** A 420×76 pill: gold when focused; at rest the given fill, or a soft outline. */
@@ -148,7 +162,10 @@ public class NowActivity extends Screen {
             unmuteForAdhan(am);
         }
         player = Adhans.play(this, Prefs.voice(this, prayer == PrayerDay.FAJR));
-        if (player != null) player.setOnCompletionListener(mp -> stopAdhan());
+        if (player != null) player.setOnCompletionListener(mp -> {
+            stopAdhan();
+            if (Prefs.callCloseMinutes(this) == 0) finish();
+        });
         updatePlayLabel();
     }
 
