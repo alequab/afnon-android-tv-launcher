@@ -40,6 +40,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
   seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
   the way back. Not yet checked on the TV.
+- Home's radio card has a Station button («المحطة», with the radio-waves icon) between Play and Screen off, as in
+  the LG version. It opens the same list as Settings → Radio → Station, over Home: the Quran radio stations or
+  the reciters, then one of them. Playing radio moves to the pick at once and the card shows it; Back steps back
+  through the list, and focus returns to Station. ◀▶ move along the three buttons (mirrored in Arabic).
 
 ### Changed
 - The Hijri date comes first: on Home it is the line under the clock (with the city) and the Gregorian date is
