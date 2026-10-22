@@ -28,6 +28,8 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
     and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
 
 ### Changed
+- The Hijri date comes first: on Home it is the line under the clock (with the city) and the Gregorian date is
+  the smaller line below it; on Prayer day the date line starts with it.
 - The verse reference under the arch («النساء 103») follows the digits setting like every other number; it was
   always Eastern Arabic (١٠٣), even with Western digits chosen. It is the only surah:ayah reference on screen:
   Friday, Ramadan, the call screen and the screensaver show none.

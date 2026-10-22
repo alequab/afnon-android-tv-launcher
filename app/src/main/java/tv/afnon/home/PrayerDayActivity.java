@@ -335,7 +335,8 @@ public class PrayerDayActivity extends Screen {
 
     private void renderMinute(Date now) {
         readClockFormat();
-        dates.setText(gregorian(now) + t.sep() + hijri(day) + t.sep() + t.city());
+        // The Hijri date first, as on Home.
+        dates.setText(hijri(day) + t.sep() + gregorian(now) + t.sep() + t.city());
 
         String[] names = t.prayerNames();
         if (day.friday) names[PrayerDay.DHUHR] = t.jumuah();

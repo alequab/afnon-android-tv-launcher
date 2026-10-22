@@ -35,8 +35,8 @@ const W = { site: ar ? 'على التلفاز يفتح هذا' : 'On the TV this
 
 <div class="when">
   <div class="clock display num" data-k="clock" set:html={m.html.clock} />
-  <div class="gdate" data-k="gdate" set:html={m.html.gdate} />
   <div class="hdate" data-k="hdate" set:html={m.html.hdate} />
+  <div class="gdate" data-k="gdate" set:html={m.html.gdate} />
 </div>
 
 <div class="pills">
@@ -213,8 +213,9 @@ const W = { site: ar ? 'على التلفاز يفتح هذا' : 'On the TV this
   }
   .when { position: absolute; inset-inline-start: var(--layout-courtyard-inset-inline-start); top: 56px; display: flex; flex-direction: column; gap: 6px; }
   .clock { font-size: var(--font-size-display-l); line-height: var(--font-line-height-display); }
-  .gdate { font-size: var(--font-size-body); margin-top: 4px; }
-  .hdate { font-size: 24px; color: var(--color-mist-400); margin-top: 14px; }
+  /* The Hijri date (with the city) first, then the Gregorian, smaller and in mist. */
+  .hdate { font-size: var(--font-size-body); margin-top: 4px; }
+  .gdate { font-size: 24px; color: var(--color-mist-400); margin-top: 14px; }
 
   .pills { position: absolute; top: 56px; inset-inline-end: calc(1920px - var(--layout-courtyard-inset-inline-start) - var(--layout-courtyard-width) + 72px + 20px); display: flex; gap: 20px; }
   .pill { position: relative; height: 72px; padding: 0 28px; border-radius: 36px; align-items: center; gap: 14px; font-size: 24px; --rest-border: var(--color-line-soft); --rest-border-width: var(--border-chip-width); }
