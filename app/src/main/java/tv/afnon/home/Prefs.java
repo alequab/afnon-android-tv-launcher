@@ -401,6 +401,18 @@ final class Prefs {
         of(c).edit().putInt("radio_dark", minutes).apply();
     }
 
+    /**
+     * The live video's quality (local only), as a picture height: the stream's rendition of that height, or the
+     * nearest below it. 480 until one is picked in full screen.
+     */
+    static int liveQuality(Context c) {
+        return of(c).getInt("live_quality", 480);
+    }
+
+    static void setLiveQuality(Context c, int height) {
+        of(c).edit().putInt("live_quality", height).apply();
+    }
+
     // ---------------------------------------------------------------- display
 
     /** "system" (the TV's own Date & time setting, the default), "12" or "24". */
