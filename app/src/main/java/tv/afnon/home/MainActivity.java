@@ -381,6 +381,8 @@ public class MainActivity extends Screen {
         b.setOnClickListener(v -> {
             Prefs.setNight(this, !Tokens.night);
             loadSettings(null);
+            // Back to day: the icons kept for the rebuild drop night mode's filter (each was mutated for it).
+            if (!Tokens.night) for (Drawable d : icons.values()) if (d != null) d.setColorFilter(null);
             sameApps = true;
             build();
             nodes[NIGHT].requestFocus();
@@ -398,8 +400,7 @@ public class MainActivity extends Screen {
         ImageView icon = new ImageView(this);
         icon.setScaleType(ImageView.ScaleType.FIT_START);
         if (!icons.containsKey(pkg)) icons.put(pkg, Apps.icon(this, pkg));
-        Drawable d = icons.get(pkg);
-        if (d != null) icon.setImageDrawable(d);
+        Apps.showIcon(icon, icons.get(pkg));
         String name = appName(pkg);
         TextView label = text(ui500, Apps.isLatin(name) ? 28 : 30, Tokens.PLASTER_100);
         label.setText(name);
