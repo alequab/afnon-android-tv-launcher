@@ -7,6 +7,17 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ### Added
 - Albany, NY in the location list (ISNA method), now 137 cities. New York's times are up to 15 minutes off in
   Albany, NY over the year (Maghrib and Isha early in summer).
+- Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
+  apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
+  Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current
+  prayer dark instead of plaster; focus a dim amber fill with light text and a clear ring. A round button beside
+  Home's Settings gear switches it at once (a full moon with a star while off, a sun while on; focus stays on
+  it), and so does Settings → Display → Night mode. Off by default.
+  - The colours are tokens: `afnon-mihrab/tokens.night.json` overrides `tokens.json` by the same paths, and
+    `npm run tokens` generates both palettes into `Tokens.java` (colour fields that `Tokens.use(night)` switches)
+    and `colors.xml` (`night_*`). Nothing is overlaid, filtered or layered; screens are built in the palette.
+  - New tokens `color.current.*` (the current prayer, a chosen segment) and `color.card.*` (the reminder card),
+    and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
 
 ## [0.6.1] - 2026-10-25
 
