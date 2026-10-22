@@ -26,6 +26,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Two Quran radio stations from the Saudi Broadcasting Authority, its own audio streams as Saudi Radio+ plays
   them (`live.kwikmotion.com`, HLS, AAC): إذاعة القرآن الكريم · السعودية and إذاعة نداء الإسلام, with the
   Quran radios in both Station lists (Settings and the radio card).
+- Settings → What's new («ما الجديد», the last section): the latest releases, newest first, each a few short
+  lines in Arabic (or English) under its version, read-only and built only while it is open. OK or toward the
+  end goes into it, ▲▼ scroll it, Back or toward the start returns to the sections. It starts with 0.5 and this
+  release; the lines are `Text.news()`, and each release adds its own on top.
 
 ### Changed
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That

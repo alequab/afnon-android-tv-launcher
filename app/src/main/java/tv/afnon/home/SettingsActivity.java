@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.batoulapps.adhan.CalculationMethod;
@@ -38,7 +39,8 @@ import java.util.Locale;
  */
 public class SettingsActivity extends Screen {
 
-    private static final int PRAYER = 0, REMINDERS = 1, RADIO = 2, DISPLAY = 3, NETWORK = 4, DEVICE = 5, SECTIONS = 6;
+    private static final int PRAYER = 0, REMINDERS = 1, RADIO = 2, DISPLAY = 3, NETWORK = 4, DEVICE = 5, NEWS = 6,
+        SECTIONS = 7;
     private static final int VALUE = 0, SEG = 1, STEP = 2, TOGGLE = 3;
     private static final float ROWS_TOP = 112, ROW_H = 88, ROW_GAP = 10;
     private static final float NAV_TOP = 152, NAV_H = 76, NAV_GAP = 10;
@@ -103,6 +105,8 @@ public class SettingsActivity extends Screen {
     /** The SEG or STEP row being edited (null: none) and its unsaved choice or amount. */
     private Row editing;
     private int draft;
+    /** What's new: its page, in the rows' place while that section is open. */
+    private ScrollView newsPage;
     /** The voice being previewed in the adhan list. */
     private android.media.MediaPlayer previewPlayer;
     private PrayerDay day;
@@ -185,6 +189,7 @@ public class SettingsActivity extends Screen {
             case RADIO: return t.sectionRadio();
             case DISPLAY: return t.sectionDisplay();
             case NETWORK: return t.sectionNetwork(ssid());
+            case NEWS: return t.sectionNews();
             default: return t.sectionDevice();
         }
     }
@@ -220,12 +225,62 @@ public class SettingsActivity extends Screen {
         for (int i = 0; i < SECTIONS; i++) styleNav(i);
         rows.addAll(rowsFor(section));
         for (int i = 0; i < rows.size(); i++) addRow(rows.get(i), i);
+        if (newsPage != null) root.removeView(newsPage);
+        newsPage = section == NEWS ? newsPage() : null;
         refresh();
+    }
+
+    /**
+     * What's new: the latest releases, newest first, each its version and a few short lines (Text.news), in Arabic
+     * or English. Read-only, built only while its section is open. OK or toward the end goes into it; ▲▼ scroll
+     * it, toward the start or Back returns to the sections.
+     */
+    private ScrollView newsPage() {
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        for (String[] group : t.news()) {
+            TextView head = text(ui500, 26, Tokens.GOLD_400);
+            head.setText(t.newsVersion(group[0]));
+            LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(-1, -2);
+            if (list.getChildCount() > 0) hlp.topMargin = Ui.ipx(28);
+            list.addView(head, hlp);
+            for (int i = 1; i < group.length; i++) {
+                TextView line = text(ui400, 24, Tokens.PLASTER_100);
+                line.setText("•  " + t.d(group[i]));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+                lp.topMargin = Ui.ipx(10);
+                list.addView(line, lp);
+            }
+        }
+        ScrollView page = new ScrollView(this);
+        page.setVerticalScrollBarEnabled(false);
+        page.setVerticalFadingEdgeEnabled(false);
+        page.setFocusable(true);
+        page.setPadding(Ui.ipx(36), Ui.ipx(28), Ui.ipx(36), Ui.ipx(28));
+        page.addView(list);
+        GradientDrawable bg = round(Tokens.LAPIS_800, Tokens.RADIUS_ROW);
+        page.setBackground(bg);
+        // In the page: a soft gold outline, while the open section keeps its own ring.
+        page.setOnFocusChangeListener((v, has) -> bg.setStroke(has ? Ui.ipx(2) : 0, Tokens.GOLD_400_60));
+        float top = ROWS_TOP + FocusTile.REACH;
+        place(page, 640, top, Tokens.LAYOUT_SETTINGS_ROW_WIDTH, 976 - 24 - top);
+        return page;
+    }
+
+    private void focusNews() {
+        onNav = false;
+        newsPage.requestFocus();
+        List<String> h = new ArrayList<>();
+        h.add(t.hintMove());
+        h.add(t.hintBackMenu());
+        setHints(hints, h);
+        styleNav(section);
     }
 
     private List<Row> rowsFor(int s) {
         Context c = this;
         switch (s) {
+            case NEWS: return Collections.emptyList();
             case PRAYER: return Arrays.asList(
                 new Row(VALUE) {
                     String label() { return t.location(); }
@@ -667,7 +722,15 @@ public class SettingsActivity extends Screen {
             if (vertical) navTo(section + up);
             else if (ok && section == NETWORK) startSafely(new Intent(Settings.ACTION_WIFI_SETTINGS));
             else if (ok && section == DEVICE) startSafely(new Intent(Settings.ACTION_SETTINGS));
+            else if ((ok || toEnd) && newsPage != null) focusNews();
             else if ((ok || toEnd) && !rows.isEmpty()) focusRow(0);
+            return true;
+        }
+
+        if (newsPage != null) {
+            // What's new: ▲▼ scroll it, toward the start returns to the sections (as Back does).
+            if (vertical) newsPage.smoothScrollBy(0, up * Ui.ipx(240));
+            else if (horizontal && !toEnd) focusNav();
             return true;
         }
 
