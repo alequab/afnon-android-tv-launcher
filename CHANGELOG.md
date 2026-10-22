@@ -44,6 +44,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   the LG version. It opens the same list as Settings → Radio → Station, over Home: the Quran radio stations or
   the reciters, then one of them. Playing radio moves to the pick at once and the card shows it; Back steps back
   through the list, and focus returns to Station. ◀▶ move along the three buttons (mirrored in Arabic).
+- Two Quran radio stations from the Saudi Broadcasting Authority, its own audio streams as Saudi Radio+ plays
+  them (`live.kwikmotion.com`, HLS, AAC): إذاعة القرآن الكريم · السعودية and إذاعة نداء الإسلام, with the
+  Quran radios in both Station lists (Settings and the radio card).
 - Local only, not for upstream (its rules have no video and no extra network): live Makkah and Madinah on Home.
   A «مباشر» / Live pill starts the header row; its card offers «مكة المكرمة» and «المدينة المنورة» (and Stop
   while one is on). The video, from Aloula (aloula.sba.sa, the Saudi Broadcasting Authority: its Quran and
