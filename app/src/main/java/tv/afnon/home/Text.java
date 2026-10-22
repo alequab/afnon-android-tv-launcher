@@ -30,7 +30,8 @@ final class Text {
     /** The " · " between parts of a line; a comma where "·" would sit beside Eastern digits. */
     String sep() { return d(" · "); }
 
-    String ref() { return ar ? "النساء ١٠٣" : "An-Nisa 4:103"; }
+    /** The arch verse's reference (An-Nisa 4:103), in the screen's digits like every other number. */
+    String ref() { return ar ? d("النساء 103") : d("An-Nisa 4:103"); }
     String nextPrayer() { return ar ? "الصلاة القادمة" : "NEXT PRAYER"; }
     String today() { return ar ? "مواقيت اليوم والقبلة" : "Today & Qibla"; }
     String settings() { return ar ? "الإعدادات" : "Settings"; }

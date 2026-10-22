@@ -28,6 +28,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
     and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
 
 ### Changed
+- The verse reference under the arch («النساء 103») follows the digits setting like every other number; it was
+  always Eastern Arabic (١٠٣), even with Western digits chosen. It is the only surah:ayah reference on screen:
+  Friday, Ramadan, the call screen and the screensaver show none.
 - The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →
   Remind me before prayer is now a list, like the adhan voices; 15 is still the default.
 
