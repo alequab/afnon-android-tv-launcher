@@ -63,7 +63,7 @@ export function prayerDayModel(c: Ctx): Model {
 
   const html: Record<string, string> = {
     ...arch.html,
-    dates: gregorian(t, now) + t.sep() + hijri(t, day) + t.sep() + day.city[t.lang],
+    dates: hijri(t, day) + t.sep() + gregorian(t, now) + t.sep() + day.city[t.lang],
     deg: t.d(Math.round(qibla) + '°'),
     roomLabel: t.roomButton(facing >= 0),
   };

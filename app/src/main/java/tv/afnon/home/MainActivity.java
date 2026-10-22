@@ -215,13 +215,14 @@ public class MainActivity extends Screen {
         clock.setIncludeFontPadding(false);
         clock.setTextDirection(rtl ? View.TEXT_DIRECTION_RTL : View.TEXT_DIRECTION_LTR);
         clock.setFontFeatureSettings("tnum");
-        gdate = text(ui400, 26, Tokens.PLASTER_100);
-        hdate = text(ui400, 24, Tokens.MIST_400);
+        // Under the clock the Hijri date (with the city) first, then the Gregorian, smaller and in mist.
+        hdate = text(ui400, 26, Tokens.PLASTER_100);
+        gdate = text(ui400, 24, Tokens.MIST_400);
         when.addView(clock);
-        when.addView(gdate);
         when.addView(hdate);
-        ((LinearLayout.LayoutParams) gdate.getLayoutParams()).topMargin = Ui.ipx(6);
+        when.addView(gdate);
         ((LinearLayout.LayoutParams) hdate.getLayoutParams()).topMargin = Ui.ipx(6);
+        ((LinearLayout.LayoutParams) gdate.getLayoutParams()).topMargin = Ui.ipx(6);
         lineHeight(clock, 1f);
         when.setClipChildren(false);
         place(when, Tokens.COURT_X, 56, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
