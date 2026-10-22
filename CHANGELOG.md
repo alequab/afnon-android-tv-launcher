@@ -21,6 +21,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Night mode dims other apps' icons too, on Home's favourites and in All apps: a little warm and about 60% as
   bright, so a red YouTube logo doesn't glare. Each icon takes one colour filter that multiplies it by the new
   token `color.app-icon-tint` (no extra view or layer); by day there is no filter.
+- Home's radio card has a Station button («المحطة», with the radio-waves icon) between Play and Screen off, as in
+  the LG version. It opens the same list as Settings → Radio → Station, over Home: the Quran radio stations or
+  the reciters, then one of them. Playing radio moves to the pick at once and the card shows it; Back steps back
+  through the list, and focus returns to Station. ◀▶ move along the three buttons (mirrored in Arabic).
 
 ## [0.6.1] - 2026-10-25
 
