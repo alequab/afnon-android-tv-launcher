@@ -259,6 +259,56 @@ final class Text {
     String sectionDisplay() { return ar ? "العرض واللغة" : "Display & language"; }
     String sectionNetwork(String ssid) { return ssid == null ? (ar ? "الشبكة" : "Network") : (ar ? "الشبكة · " : "Network · ") + ssid; }
     String sectionDevice() { return ar ? "إعدادات الجهاز" : "Device settings"; }
+    String sectionNews() { return ar ? "ما الجديد" : "What's new"; }
+    /**
+     * Settings → What's new: what this TV's Afnon has on top of 0.4, as groups whose first entry is the heading.
+     * Each line goes through d(), so its numbers follow the digits setting.
+     */
+    String[][] news() {
+        if (ar) return new String[][] {
+            {"الوضع الليلي",
+                "ألوان أهدأ وأخفت للمشاهدة ليلًا: الزر بجانب الإعدادات في الرئيسية، أو الإعدادات ← العرض واللغة",
+                "أيقونات التطبيقات أخفت ودافئة قليلًا في الليل"},
+            {"التنبيهات والأذان",
+                "التنبيه قبل الصلاة بـ 5 أو 10 أو 15 أو 20 أو 30 دقيقة",
+                "تذكير صوتي: «اقترب موعد صلاة …»",
+                "«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف",
+                "تُغلق شاشة الأذان عند انتهائه، أو بعد 1 أو 5 أو 10 دقائق",
+                "تشغيل التلفاز للأذان للصلوات التي تختارها (متوقف في البداية)"},
+            {"الرئيسية",
+                "التاريخ الهجري أولًا، ومرجع الآية «النساء 103» بالأرقام المختارة",
+                "الأرقام الكبيرة بخط الإنجليزية (Marcellus) مع الأرقام اللاتينية",
+                "مباشر من مكة المكرمة والمدينة المنورة، مع ملء الشاشة واختيار الجودة"},
+            {"الإذاعة",
+                "زر «المحطة» في بطاقة الإذاعة",
+                "من السعودية: إذاعة القرآن الكريم وإذاعة نداء الإسلام"},
+            {"إصلاحات",
+                "لا شاشة زرقاء قبل الإعدادات",
+                "القوائم لم تعد تقطع العنصر المحدد"},
+        };
+        return new String[][] {
+            {"Night mode",
+                "Calmer, dimmer colours for watching at night: the button beside Home's Settings, or Settings → "
+                    + "Display & language",
+                "App icons dimmer and a little warm at night"},
+            {"Reminders & adhan",
+                "Reminders 5, 10, 15, 20 or 30 minutes before each prayer",
+                "Spoken reminder: «اقترب موعد صلاة …»",
+                "«حان الآن موعد صلاة …» when a prayer's adhan is off",
+                "The call screen closes when the adhan ends, or after 1, 5 or 10 minutes",
+                "Turn the TV on for the adhan, for the prayers you pick (off at first)"},
+            {"Home",
+                "The Hijri date first, and the verse reference «النساء 103» in the digits you chose",
+                "The big numbers in the English font (Marcellus) with Latin digits",
+                "Live from Makkah and Madinah, with full screen and a choice of quality"},
+            {"Radio",
+                "A Station button on the radio card",
+                "From Saudi Arabia: Holy Quran Radio and Nida Al-Islam Radio"},
+            {"Fixes",
+                "No blue screen before Settings",
+                "Lists no longer cut off the selected item"},
+        };
+    }
     String preview() { return ar ? "العصر اليوم بهذه الإعدادات" : "Asr today with these settings"; }
     String location() { return ar ? "الموقع" : "Location"; }
     String country() { return ar ? "الدولة" : "Country"; }
