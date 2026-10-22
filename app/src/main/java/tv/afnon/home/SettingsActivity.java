@@ -281,23 +281,51 @@ public class SettingsActivity extends Screen {
                     void open() { startSafely(new Intent(c, PrayerDayActivity.class).putExtra("room", true)); }
                 });
             case REMINDERS: return Arrays.asList(
-                new Row(SEG) {
-                    final int[] minutes = {10, 15, 0};
+                new Row(VALUE) {
+                    // Six choices are too many for a segmented control: a list, like the adhan voices.
+                    final int[] minutes = {5, 10, 15, 20, 30, 0};
                     String label() { return t.remind(); }
                     String help() { return t.remindHelp(); }
-                    String[] segs() { return digits(t.remindChoices()); }
                     int selected() {
                         int m = Prefs.remindMinutes(c);
                         for (int i = 0; i < minutes.length; i++) if (minutes[i] == m) return i;
-                        return 1;
+                        return 2;
                     }
-                    void select(int i) { Prefs.setRemindMinutes(c, minutes[i]); }
+                    String value() { return digits(t.remindChoices())[selected()]; }
+                    void open() {
+                        openChooser(t.remind(), digits(t.remindChoices()), selected(),
+                            i -> { Prefs.setRemindMinutes(c, minutes[i]); showSaved(); });
+                    }
+                },
+                new Row(TOGGLE) {
+                    String label() { return t.remindVoiceRow(); }
+                    String help() { return t.remindVoiceHelp(); }
+                    boolean on() { return Prefs.remindVoice(c); }
+                    void set(boolean on) { Prefs.setRemindVoice(c, on); }
                 },
                 new Row(TOGGLE) {
                     String label() { return t.adhanRow(); }
                     String help() { return t.adhanHelp(); }
                     boolean on() { return Prefs.adhan(c); }
                     void set(boolean on) { Prefs.setAdhan(c, on); }
+                },
+                new Row(TOGGLE) {
+                    String label() { return t.announceRow(); }
+                    String help() { return t.announceHelp(); }
+                    boolean on() { return Prefs.announce(c); }
+                    void set(boolean on) { Prefs.setAnnounce(c, on); }
+                },
+                new Row(SEG) {
+                    final int[] minutes = {0, 1, 5, 10};
+                    String label() { return t.callCloseRow(); }
+                    String help() { return t.callCloseHelp(); }
+                    String[] segs() { return digits(t.callCloseChoices()); }
+                    int selected() {
+                        int m = Prefs.callCloseMinutes(c);
+                        for (int i = 0; i < minutes.length; i++) if (minutes[i] == m) return i;
+                        return minutes.length - 1;
+                    }
+                    void select(int i) { Prefs.setCallCloseMinutes(c, minutes[i]); }
                 },
                 voiceRow(false),
                 voiceRow(true));

@@ -306,6 +306,36 @@ final class Prefs {
         of(c).edit().putInt("remind", minutes).apply();
     }
 
+    /** Say «اقترب موعد صلاة …» with the reminder card or banner (Announce, on by default). */
+    static boolean remindVoice(Context c) {
+        return of(c).getBoolean("remind_voice", true);
+    }
+
+    static void setRemindVoice(Context c, boolean on) {
+        of(c).edit().putBoolean("remind_voice", on).apply();
+    }
+
+    /** Say «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off (Announce, on by default). */
+    static boolean announce(Context c) {
+        return of(c).getBoolean("announce", true);
+    }
+
+    static void setAnnounce(Context c, boolean on) {
+        of(c).edit().putBoolean("announce", on).apply();
+    }
+
+    /**
+     * When the call screen closes by itself: 1, 5 or 10 minutes after it opens ({@link Tokens#MOTION_CALL_AUTO_DISMISS_MS}
+     * by default), or 0 when the adhan ends.
+     */
+    static int callCloseMinutes(Context c) {
+        return of(c).getInt("call_close", (int) (Tokens.MOTION_CALL_AUTO_DISMISS_MS / 60_000));
+    }
+
+    static void setCallCloseMinutes(Context c, int minutes) {
+        of(c).edit().putInt("call_close", minutes).apply();
+    }
+
     /** The adhan as a whole; each prayer's bell (Prayer day) still applies under it. */
     static boolean adhan(Context c) {
         return of(c).getBoolean("adhan", true);

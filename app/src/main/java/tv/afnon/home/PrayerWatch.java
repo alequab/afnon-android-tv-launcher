@@ -31,10 +31,10 @@ final class PrayerWatch {
     private final AccessibilityService service;
     private final Handler handler = new Handler(Looper.getMainLooper());
     /**
-     * "prayer index:time" of the last reminder and call shown, so each happens once. Saved, because the system
-     * restarts this service (low memory, TCL's background manager) and a fresh one would show them again.
+     * "prayer index:time" of the last reminder, call and spoken announcement, so each happens once. Saved, because
+     * the system restarts this service (low memory, TCL's background manager) and a fresh one would repeat them.
      */
-    private String reminded, called;
+    private String reminded, called, announced;
     private View banner;
 
     private final Runnable check = new Runnable() {
@@ -49,6 +49,7 @@ final class PrayerWatch {
         this.service = service;
         reminded = Prefs.of(service).getString("reminded", "");
         called = Prefs.of(service).getString("called", "");
+        announced = Prefs.of(service).getString("announced", "");
     }
 
     void start() {
@@ -81,6 +82,16 @@ final class PrayerWatch {
             }
             return;
         }
+        // No call for a prayer whose adhan is off: just say that its time has begun (also with the screen off).
+        int quiet = Reminders.dueAnnounce(service, day, now);
+        if (quiet >= 0) {
+            String key = quiet + ":" + day.times[quiet].getTime();
+            if (!key.equals(announced)) {
+                announced = key;
+                Prefs.of(service).edit().putString("announced", key).apply();
+                Announce.now(service, quiet, day.friday);
+            }
+        }
         if (asleep) return;
         if (Reminders.dueReminder(service, day, now)) {
             String key = day.nextIndex + ":" + day.nextTime.getTime();
@@ -89,6 +100,7 @@ final class PrayerWatch {
             Prefs.of(service).edit().putString("reminded", key).apply();
             if (Reminders.home != null) Reminders.home.showReminder();
             else showBanner(day, now);
+            if (Prefs.remindVoice(service)) Announce.before(service, day.nextIndex, day.friday);
         }
     }
 
@@ -227,16 +239,22 @@ final class PrayerWatch {
     // ---------------------------------------------------------------- testing
 
     /**
-     * For checking on the TV without waiting for a prayer: the banner or the call screen for the next prayer,
-     * after a delay to switch to another app first. From Home: `am start -n tv.afnon.home/.MainActivity --es test
-     * banner|call`.
+     * For checking on the TV without waiting for a prayer: the banner (with the spoken reminder, if on), the call
+     * screen, or the spoken «حان الآن موعد صلاة …» for the next prayer, after a delay to switch to another app
+     * first. From Home: `am start -n tv.afnon.home/.MainActivity --es test banner|call|announce`.
      */
     void test(String kind, long delayMs) {
         handler.postDelayed(() -> {
             Date now = new Date();
             PrayerDay day = new PrayerDay(service, now);
-            if ("call".equals(kind)) openCall(day.nextIndex, day.nextTime);
-            else showBanner(day, now);
+            if ("call".equals(kind)) {
+                openCall(day.nextIndex, day.nextTime);
+            } else if ("announce".equals(kind)) {
+                Announce.now(service, day.nextIndex, day.friday);
+            } else {
+                showBanner(day, now);
+                if (Prefs.remindVoice(service)) Announce.before(service, day.nextIndex, day.friday);
+            }
         }, delayMs);
     }
 }

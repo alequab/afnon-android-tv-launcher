@@ -17,6 +17,30 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   - New tokens `color.current.*` (the current prayer, a chosen segment) and `color.card.*` (the reminder card),
     and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
 
+## [0.5] - 2026-10-22
+
+### Added
+- Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
+  as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
+  the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
+- Spoken reminder: «اقترب موعد صلاة …» with the reminder card or banner (Settings → Reminders, on by default).
+- Announce the time: «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off, either for all prayers
+  or by that prayer's bell (on by default). Friday says الجمعة. Both lower whatever is playing for a moment
+  instead of pausing it, and each is said once per prayer, also across a restart of the remote buttons service.
+  The 12 clips are not in the repo: `tools/fetch-announce.sh` (run by `install.sh` the first time) records
+  them with a Microsoft neural Arabic voice through edge-tts into `app/src/main/assets/announce/`; without them
+  both stay silent. Release APKs include them. `--es test announce` tries it; `--es test banner` and
+  `--es test reminder` now say the reminder too.
+
+### Changed
+- The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →
+  Remind me before prayer is now a list, like the adhan voices; 15 is still the default.
+- The Hijri date comes first: on Home it is the line under the clock (with the city) and the Gregorian date is
+  the smaller line below it; on Prayer day the date line starts with it.
+- The verse reference under the arch («النساء 103») follows the digits setting like every other number; it was
+  always Eastern Arabic (١٠٣), even with Western digits chosen. It is the only surah:ayah reference on screen:
+  Friday, Ramadan, the call screen and the screensaver show none.
+
 ## [0.4] - 2026-10-22
 
 ### Added
@@ -141,7 +165,8 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.4...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.5...HEAD
+[0.5]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.4...v0.5
 [0.4]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.3.1...v0.4
 [0.3.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.3...v0.3.1
 [0.3]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.2.1...v0.3
