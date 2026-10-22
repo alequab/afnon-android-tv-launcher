@@ -9,7 +9,7 @@ import android.view.View;
 /** Stroke icons on a 24px grid in the current colour, so they follow focus (README: Iconography). */
 final class Icon extends View {
     static final int WIFI = 0, GEAR = 1, COMPASS = 2, BELL = 3, BACK = 4, STAR = 5, MIHRAB = 6, RADIO = 7, PLAY = 8, STOP = 9, MOON = 10,
-        NIGHT = 11, SUN = 12;
+        NIGHT = 11, SUN = 12, LIVE = 13, EXPAND = 14;
 
     private int kind;
     private final float strokeOn24;
@@ -140,6 +140,18 @@ final class Icon extends View {
             float[][] rays = {{12, 2.5f, 12, 5}, {12, 19, 12, 21.5f}, {2.5f, 12, 5, 12}, {19, 12, 21.5f, 12},
                     {5.3f, 5.3f, 7, 7}, {17, 17, 18.7f, 18.7f}, {5.3f, 18.7f, 7, 17}, {17, 7, 18.7f, 5.3f}};
             for (float[] s : rays) c.drawLine(s[0] * k, s[1] * k, s[2] * k, s[3] * k, p);
+        } else if (kind == LIVE) {
+            // Live video (local only): a screen on its stand with a filled dot.
+            r.set(3 * k, 4.5f * k, 21 * k, 16.5f * k);
+            c.drawRoundRect(r, 2 * k, 2 * k, p);
+            c.drawLine(8.5f * k, 20 * k, 15.5f * k, 20 * k, p);
+            p.setStyle(Paint.Style.FILL);
+            c.drawCircle(12 * k, 10.5f * k, 2.2f * k, p);
+        } else if (kind == EXPAND) {
+            // Full screen: four corners opening outward. M4 9V4h5 · M15 4h5v5 · M20 15v5h-5 · M9 20H4v-5
+            float[][] lines = {{4, 9, 4, 4}, {4, 4, 9, 4}, {15, 4, 20, 4}, {20, 4, 20, 9},
+                    {20, 15, 20, 20}, {20, 20, 15, 20}, {9, 20, 4, 20}, {4, 20, 4, 15}};
+            for (float[] s : lines) c.drawLine(s[0] * k, s[1] * k, s[2] * k, s[3] * k, p);
         } else if (kind == BACK) {
             // M15 5l-7 7 7 7: points to the start side, so it mirrors in Arabic.
             boolean flip = getLayoutDirection() == LAYOUT_DIRECTION_RTL;

@@ -122,6 +122,38 @@ final class Text {
         return d(ar ? "الشاشة مطفأة والإذاعة تعمل · اضغط أي زر للعودة" : "Screen off, radio playing · press any key to come back");
     }
     String hintClose() { return ar ? "رجوع  إغلاق" : "Back  Close"; }
+    // Live from Makkah and Madinah (local only): Home's Live pill, its card and the video panel.
+    String live() { return ar ? "مباشر" : "Live"; }
+    String liveTitle() { return ar ? "الحرمان الشريفان" : "Makkah & Madinah"; }
+    /** In the order of Live.MAKKAH, Live.MADINAH. */
+    String[] livePlaces() { return ar ? new String[] {"مكة المكرمة", "المدينة المنورة"} : new String[] {"Makkah", "Madinah"}; }
+    String liveStatus(int s) {
+        switch (s) {
+            case Live.PLAYING: return ar ? "على الهواء" : "On air";
+            case Live.FAILED: return ar ? "تعذّر تشغيل البث" : "Couldn't play the live stream";
+            default: return ar ? "جارٍ الاتصال…" : "Connecting…";
+        }
+    }
+    String liveNote() {
+        return d(ar ? "بث مباشر من قناتي القرآن الكريم والسنة النبوية على منصة الأولى · يتوقف عند مغادرة الرئيسية"
+                    : "Live from the Quran and Sunnah channels on Aloula · stops when you leave Home");
+    }
+    String hintStop() { return ar ? "رجوع  إيقاف" : "Back  Stop"; }
+    String fullScreen() { return ar ? "ملء الشاشة" : "Full screen"; }
+    String fullScreenHint() {
+        return ar ? "رجوع للخروج من ملء الشاشة     ▲  الجودة" : "Back to exit full screen     ▲  Quality";
+    }
+    String quality() { return ar ? "الجودة" : "Quality"; }
+    /** A rendition by its picture height: "480p". */
+    String quality(int height) { return d(height + "p"); }
+    /** What an hour of a rendition costs in data, from its bits per second: "~650 MB/h", "~3.4 GB/h". */
+    String perHour(long bitsPerSecond) {
+        double mb = bitsPerSecond * 3600.0 / 8 / 1_000_000;
+        boolean gb = mb >= 1000;
+        String n = gb ? String.format(java.util.Locale.US, "%.1f", mb / 1000) : String.valueOf(Math.round(mb / 10) * 10);
+        if (eastern) n = n.replace('.', '٫');
+        return d("~" + n + (gb ? (ar ? " جيجا/ساعة" : " GB/h") : (ar ? " ميجا/ساعة" : " MB/h")));
+    }
     String sectionRadio() { return ar ? "الإذاعة" : "Radio"; }
     String radioRowHelp(Radio.Station s) { return stationWhere(s) + (ar ? " · تحتاج إلى الإنترنت" : " · needs the internet"); }
     String afterAdhanRow() { return ar ? "بعد الأذان" : "After the adhan"; }

@@ -44,6 +44,18 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   the LG version. It opens the same list as Settings → Radio → Station, over Home: the Quran radio stations or
   the reciters, then one of them. Playing radio moves to the pick at once and the card shows it; Back steps back
   through the list, and focus returns to Station. ◀▶ move along the three buttons (mirrored in Arabic).
+- Local only, not for upstream (its rules have no video and no extra network): live Makkah and Madinah on Home.
+  A «مباشر» / Live pill starts the header row; its card offers «مكة المكرمة» and «المدينة المنورة» (and Stop
+  while one is on). The video, from Aloula (aloula.sba.sa, the Saudi Broadcasting Authority: its Quran and
+  Sunnah channels), plays in a 16:9 panel across the courtyard where the prayer strip and the favourites and More
+  rows were; the arch with the next prayer and its countdown, the clock and the dates stay, and the strip and
+  rows come back when it stops. Under the panel, «ملء الشاشة» / Full screen lays the same player over the whole
+  screen; ▲▼ there open the quality bar: the renditions the stream offers (Makkah and Madinah: 360p, 480p, 1080p)
+  with what an hour costs in data, 480p at first, the choice remembered. Back closes the bar, then full screen,
+  then stops the video. It plays only when chosen: leaving Home, the call, the screensaver or the radio stop it
+  and release everything; starting it stops the radio; the volume is left alone. Android's own MediaPlayer, no
+  new library. `--es live makkah|madinah|off` (with `--ei quality 1080`, `--ez full true`, `--ez bar true`)
+  tries it.
 
 ### Changed
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
