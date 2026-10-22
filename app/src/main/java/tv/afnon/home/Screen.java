@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,10 +18,12 @@ import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -28,6 +31,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.IntConsumer;
 
 /**
  * What every Afnon screen shares: language and digit settings, fonts, design-px placement, the clock format,
@@ -174,6 +178,9 @@ abstract class Screen extends Activity {
         displayBold = t.ar ? getResources().getFont(R.font.amiri_bold) : display;
         sacred = getResources().getFont(R.font.amiri_regular);
 
+        // A chooser open over the old root goes with it; left set, it would swallow every key while nothing shows.
+        chooser = null;
+        chooserBack = null;
         root = new FrameLayout(this);
         root.setLayoutDirection(rtl ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         root.setBackground(Ui.starLattice(this));
@@ -407,5 +414,173 @@ abstract class Screen extends Activity {
 
     static int size(float designPx) {
         return designPx < 0 ? (int) designPx : Ui.ipx(designPx);
+    }
+
+    // ---------------------------------------------------------------- list chooser
+
+    /** The list open over the screen (Settings' lists, the station from Home's radio card), or null. */
+    FrameLayout chooser;
+    /** What Back in the open chooser goes back to (the city list returns to the countries); null closes it. */
+    Runnable chooserBack;
+
+    /** The screen's key hints, which an open chooser takes over; null for none. */
+    LinearLayout hintLine() {
+        return null;
+    }
+
+    /** A chooser opened (the screen's own buttons step aside) or closed (they come back, and focus with them). */
+    void onChooser(boolean open) {}
+
+    /** A list over the screen (cities, methods, stations): OK picks, Back cancels. Up/Down are the system's own. */
+    void openChooser(String title, String[] items, int selected, IntConsumer pick) {
+        openChooser(title, items, selected, pick, null);
+    }
+
+    /** onFocus, if given, hears each item as focus reaches it (the adhan list plays that voice). */
+    void openChooser(String title, String[] items, int selected, IntConsumer pick, IntConsumer onFocus) {
+        openChooser(title, items, selected, pick, onFocus, null);
+    }
+
+    /**
+     * checks, if given, makes it a list of switches showing those values (Turn the TV on: the prayers): OK hands
+     * the focused item to pick, which flips and saves it, and the list stays open; Back closes it.
+     */
+    void openChooser(String title, String[] items, int selected, IntConsumer pick, IntConsumer onFocus,
+                     boolean[] checks) {
+        chooser = new FrameLayout(this);
+        chooser.setBackgroundColor(Tokens.SCRIM_MENU);
+        chooser.setClickable(true);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(Ui.ipx(48), Ui.ipx(40), Ui.ipx(48), Ui.ipx(32));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Tokens.LAPIS_800);
+        bg.setCornerRadius(Ui.px(24));
+        bg.setStroke(Ui.ipx(2), Tokens.GOLD_400_60);
+        card.setBackground(bg);
+        card.setClipChildren(true);
+
+        TextView head = text(displayBold, Tokens.FONT_SIZE_DISPLAY_S, Tokens.GOLD_400);
+        head.setText(title);
+        card.addView(head);
+        lineHeight(head, 1.2f);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setVerticalScrollBarEnabled(false);
+        int reach = Ui.ipx(FocusTile.REACH);
+        scroll.setPadding(reach, reach, reach, reach);
+        scroll.setClipToPadding(true);
+        scroll.setClipChildren(true);
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setClipChildren(false);
+        FocusTile first = null;
+        for (int i = 0; i < items.length; i++) {
+            final int index = i;
+            boolean chosen = i == selected;
+            FocusTile item = new FocusTile(this, 14);
+            item.setFocusScale(1f);   // the list scrolls, so a grown tile would be clipped at its edges
+            item.setRest(chosen ? Tokens.LAPIS_700 : 0, 0, 0);
+            TextView v = text(chosen ? ui500 : ui400, 26, Tokens.PLASTER_100);
+            v.setText(items[i]);
+            v.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            v.setPadding(Ui.ipx(24), 0, Ui.ipx(24), 0);
+            item.addView(v, new FrameLayout.LayoutParams(-1, -1));
+            Switch box = null;
+            if (checks != null) {
+                box = new Switch(this, checks[i], false);
+                FrameLayout.LayoutParams blp = new FrameLayout.LayoutParams(Ui.ipx(88), Ui.ipx(48),
+                    Gravity.CENTER_VERTICAL | Gravity.END);
+                blp.setMarginEnd(Ui.ipx(24));
+                item.addView(box, blp);
+            }
+            Switch sw = box;
+            item.setLook(f -> {
+                v.setTextColor(f ? Tokens.FOCUS_TEXT : (chosen ? Tokens.GOLD_400 : Tokens.PLASTER_100));
+                if (sw != null) sw.set(checks[index], f);
+                if (f && onFocus != null) onFocus.accept(index);
+            });
+            item.setOnClickListener(x -> {
+                pick.accept(index);
+                if (sw != null) sw.set(checks[index], item.isFocused());
+                else closeChooser();
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, Ui.ipx(68 + 2 * FocusTile.REACH));
+            if (i > 0) lp.topMargin = Ui.ipx(6 - 2 * FocusTile.REACH);
+            list.addView(item, lp);
+            if (chosen || first == null) first = item;
+        }
+        scroll.addView(list);
+        float listH = Math.min(items.length, 8) * 74 + 2 * FocusTile.REACH;
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, Ui.ipx(listH));
+        slp.topMargin = Ui.ipx(20 - FocusTile.REACH);
+        slp.setMarginStart(-reach);
+        slp.setMarginEnd(-reach);
+        card.addView(scroll, slp);
+
+        chooser.addView(card, new FrameLayout.LayoutParams(Ui.ipx(900), -2, Gravity.CENTER));
+        onChooser(true);
+        root.addView(chooser, new FrameLayout.LayoutParams(-1, -1));
+        FocusTile start = first;
+        if (start != null) root.post(start::requestFocus);
+        LinearLayout hints = hintLine();
+        if (hints == null) return;
+        List<String> h = new java.util.ArrayList<>();
+        h.add(t.hintMove());
+        h.add(checks != null ? t.hintSwitch() : t.hintChoose());
+        h.add(checks != null ? t.hintClose() : t.hintBackCancel());
+        setHints(hints, h);
+    }
+
+    void closeChooser() {
+        root.removeView(chooser);
+        chooser = null;
+        chooserBack = null;
+        onChooser(false);
+    }
+
+    /** Keys while a chooser is open: Back goes back a step (or closes it), ◀▶ do nothing, the rest are the system's. */
+    boolean chooserKey(KeyEvent e) {
+        int k = e.getKeyCode();
+        if (k == KeyEvent.KEYCODE_BACK) {
+            if (e.getAction() != KeyEvent.ACTION_DOWN) {
+                Runnable back = chooserBack;
+                closeChooser();
+                if (back != null) back.run();
+            }
+            return true;
+        }
+        if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT) return true;
+        return super.dispatchKeyEvent(e);
+    }
+
+    /**
+     * Station (Settings → Radio, and Home's radio card): the broadcast stations or the reciters, then one of them.
+     * Playing radio moves to the pick at once (Radio.switchTo); picked runs after it.
+     */
+    void chooseStation(Runnable picked) {
+        int sel = Radio.station(this).reciter ? 1 : 0;
+        // The station list opens once this chooser has closed (closeChooser runs after the pick).
+        openChooser(t.stationRow(), t.stationGroups(), sel, i -> root.post(() -> openStations(i == 1, picked)));
+    }
+
+    /** Station's second step: one group's stations. Back returns to the groups. */
+    private void openStations(boolean reciters, Runnable picked) {
+        List<Integer> found = new java.util.ArrayList<>();
+        for (int i = 0; i < Radio.STATIONS.length; i++) if (Radio.STATIONS[i].reciter == reciters) found.add(i);
+        String[] names = new String[found.size()];
+        int current = Radio.stationIndex(this);
+        // -1 when the station is in the other group: nothing is marked, focus starts on the first one.
+        int sel = -1;
+        for (int k = 0; k < names.length; k++) {
+            names[k] = t.stationChoice(Radio.STATIONS[found.get(k)]);
+            if (found.get(k) == current) sel = k;
+        }
+        openChooser(t.stationGroups()[reciters ? 1 : 0], names, sel, k -> {
+            Radio.switchTo(this, found.get(k));
+            picked.run();
+        });
+        chooserBack = () -> chooseStation(picked);
     }
 }
