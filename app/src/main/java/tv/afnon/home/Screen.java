@@ -493,10 +493,15 @@ abstract class Screen extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setVerticalScrollBarEnabled(false);
+        // No fading edges: focus then scrolls by whole items, so none is ever cut at the top or bottom.
+        scroll.setVerticalFadingEdgeEnabled(false);
         int reach = Ui.ipx(FocusTile.REACH);
-        scroll.setPadding(reach, reach, reach, reach);
+        // Padding at the sides only: ScrollView's focus scrolling ignores its own padding, so a focused tile could
+        // stop under a bottom padding and be clipped. Each tile already holds its focus ring (its reach) inside.
+        scroll.setPadding(reach, 0, reach, 0);
         scroll.setClipToPadding(true);
         scroll.setClipChildren(true);
+        int itemH = Ui.ipx(68 + 2 * FocusTile.REACH), gap = Ui.ipx(6 - 2 * FocusTile.REACH);
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         list.setClipChildren(false);
@@ -520,15 +525,16 @@ abstract class Screen extends Activity {
                 pick.accept(index);
                 closeChooser();
             });
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, Ui.ipx(68 + 2 * FocusTile.REACH));
-            if (i > 0) lp.topMargin = Ui.ipx(6 - 2 * FocusTile.REACH);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, itemH);
+            if (i > 0) lp.topMargin = gap;
             list.addView(item, lp);
             if (chosen || first == null) first = item;
         }
         scroll.addView(list);
-        float listH = Math.min(items.length, 8) * 74 + 2 * FocusTile.REACH;
-        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, Ui.ipx(listH));
-        slp.topMargin = Ui.ipx(20 - FocusTile.REACH);
+        // Up to eight whole tiles, rings included, in the same screen px as the tiles (no rounding gap).
+        int shown = Math.max(1, Math.min(items.length, 8));
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, shown * itemH + (shown - 1) * gap);
+        slp.topMargin = Ui.ipx(20);
         slp.setMarginStart(-reach);
         slp.setMarginEnd(-reach);
         card.addView(scroll, slp);
