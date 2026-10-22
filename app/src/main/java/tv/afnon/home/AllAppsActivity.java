@@ -1,7 +1,6 @@
 package tv.afnon.home;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -166,8 +165,7 @@ public class AllAppsActivity extends Screen {
         FrameLayout mono = new FrameLayout(this);
         ImageView icon = new ImageView(this);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        Drawable d = Apps.icon(this, pkg);
-        if (d != null) icon.setImageDrawable(d);
+        Apps.showIcon(icon, Apps.icon(this, pkg));
         mono.addView(icon, new FrameLayout.LayoutParams(Ui.ipx(40), Ui.ipx(40), Gravity.CENTER));
         top.addView(mono, new FrameLayout.LayoutParams(Ui.ipx(56), Ui.ipx(56), Gravity.START | Gravity.TOP));
         int favAt = favs.indexOf(pkg);

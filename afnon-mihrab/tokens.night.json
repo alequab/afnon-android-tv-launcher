@@ -24,6 +24,7 @@
     "scrim-menu": { "$type": "color", "$value": "rgba(11,10,8,0.94)" },
     "scrim-panel": { "$type": "color", "$value": "rgba(5,4,3,0.72)" },
     "pattern-line": { "$type": "color", "$value": "rgba(132,112,63,0.06)" },
+    "app-icon-tint": { "$type": "color", "$value": "#A0927A" },
     "on-plaster": {
       "label": { "$type": "color", "$value": "#84703F" },
       "secondary": { "$type": "color", "$value": "#6A655C" },

@@ -24,6 +24,7 @@
     <color name="scrim_menu">#eb0c1b33</color>
     <color name="scrim_panel">#b8060d1a</color>
     <color name="pattern_line">#12d8b46a</color>
+    <color name="app_icon_tint">#ffffffff</color>
     <color name="on_plaster_label">#ff5a4a22</color>
     <color name="on_plaster_secondary">#ff3d4a63</color>
     <color name="on_plaster_border">#990c1b33</color>
@@ -61,6 +62,7 @@
     <color name="night_scrim_menu">#f00b0a08</color>
     <color name="night_scrim_panel">#b8050403</color>
     <color name="night_pattern_line">#0f84703f</color>
+    <color name="night_app_icon_tint">#ffa0927a</color>
     <color name="night_on_plaster_label">#ff84703f</color>
     <color name="night_on_plaster_secondary">#ff6a655c</color>
     <color name="night_on_plaster_border">#8084703f</color>
