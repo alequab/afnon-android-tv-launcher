@@ -6,7 +6,7 @@
 
 <p dir="rtl"><b>أفنون: شاشة رئيسية لتلفاز أندرويد، تدور حول يوم الصلاة: المواقيت والقبلة والأذان وإذاعة القرآن الكريم.</b></p>
 
-Arabic first (RTL) and English · Offline prayer times for 137 cities · 14 adhan voices · Qibla · 16 Quran radio stations and reciters
+Arabic first (RTL) and English · Offline prayer times for 137 cities · 14 adhan voices · Qibla · 18 Quran radio stations and reciters
 
 **[⬇ Download the APK](https://github.com/egyjs/afnon-android-tv-launcher/releases/latest/download/afnon.apk)** · [Releases](https://github.com/egyjs/afnon-android-tv-launcher/releases) · **[Try it in your browser](https://egyjs.github.io/afnon-android-tv-launcher/)**
 
@@ -69,7 +69,8 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
 - **Friday and Ramadan.** Both modes switch themselves on from the date.
 - **Quran Radio.** إذاعة القرآن الكريم from Cairo (98.2 FM) by default, streamed live. Station, on Home's
   radio card or in Settings → Radio, picks another:
-  - Quran radios: Nablus, Shabab FM Quran (Nablus), Qatar 1 and 2, Jordan.
+  - Quran radios: Nablus, Shabab FM Quran (Nablus), Qatar 1 and 2, Jordan, and from the Saudi Broadcasting
+    Authority (Saudi Radio+) its Holy Quran Radio and Nida Al-Islam Radio.
   - Ten reciters' 24/7 channels from mp3quran.net (Alafasy, Abdul Basit, Al-Minshawi, Al-Husary, Al-Muaiqly,
     Al-Ghamdi, Al-Sudais, Al-Dosari, Al-Qatami, Mohammad Rashad Al-Shareef).
   - Live level bars, from the audio itself.
@@ -89,7 +90,8 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
 
 Afnon has **no accounts, no analytics and no ads**. The radio is the only feature that uses the
 internet, and it connects only to the chosen station's stream, one at a time: `stream.radiojar.com` (Cairo),
-`quran-radio.org` (Nablus), `streaming.zaytonatube.com` (Shabab FM), `live.kwikmotion.com` (Qatar),
+`quran-radio.org` (Nablus), `streaming.zaytonatube.com` (Shabab FM), `live.kwikmotion.com` (Qatar and the Saudi
+Quran stations),
 `jrtv-live.ercdn.net` (Jordan) or `backup.qurango.net` (the reciters). The list is in `Radio.STATIONS`. Afnon
 makes no other network requests, and its [network security config](app/src/main/res/xml/network_security.xml)
 allows plain HTTP for the Cairo stream only.
