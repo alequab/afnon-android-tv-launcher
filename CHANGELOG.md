@@ -18,6 +18,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
     and `colors.xml` (`night_*`). Nothing is overlaid, filtered or layered; screens are built in the palette.
   - New tokens `color.current.*` (the current prayer, a chosen segment) and `color.card.*` (the reminder card),
     and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
+- Night mode dims other apps' icons too, on Home's favourites and in All apps: a little warm and about 60% as
+  bright, so a red YouTube logo doesn't glare. Each icon takes one colour filter that multiplies it by the new
+  token `color.app-icon-tint` (no extra view or layer); by day there is no filter.
 
 ## [0.6.1] - 2026-10-25
 
