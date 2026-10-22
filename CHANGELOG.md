@@ -9,6 +9,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
   the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
 
+### Changed
+- The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →
+  Remind me before prayer is now a list, like the adhan voices; 15 is still the default.
+
 ## [0.4] - 2026-10-22
 
 ### Added

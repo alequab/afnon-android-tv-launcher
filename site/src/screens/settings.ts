@@ -54,7 +54,9 @@ export const placeOf = (t: Text, c: (typeof CITIES)[number]) => (t.ar ? t.place(
 
 // ---------------------------------------------------------------- rows
 
-const REMIND = [10, 15, 0];
+/** Settings → Reminders, in the order of Text.remindChoices (a list on the TV: six are too many for a seg). */
+export const REMIND = [5, 10, 15, 20, 30, 0];
+const remindIndex = (p: SPrefs) => (REMIND.indexOf(p.remind) < 0 ? 2 : REMIND.indexOf(p.remind));
 const DARK = [0, 15, -1];
 const CLOCKS = ['system', '12', '24'] as const;
 
@@ -73,7 +75,7 @@ export function rowsFor(c: Ctx, section: number, radioOn = false): Row[] {
       { id: 'room', kind: 'value', label: t.s('roomTitle'), help: t.s('roomHelp'), value: facing < 0 ? t.s('notSet') : t.bearingLabel(facing) },
     ];
     case REMINDERS: return [
-      { id: 'remind', kind: 'seg', label: t.s('remind'), help: t.s('remindHelp'), segs: t.list('remindChoices').map(t.d), selected: Math.max(0, REMIND.indexOf(p.remind)) },
+      { id: 'remind', kind: 'value', label: t.s('remind'), help: t.s('remindHelp'), value: t.d(t.list('remindChoices')[remindIndex(p)]), selected: remindIndex(p) },
       { id: 'adhan', kind: 'toggle', label: t.s('adhanRow'), help: t.s('adhanHelp'), on: p.adhan },
       { id: 'voice', kind: 'value', label: t.s('voiceRow'), help: t.s('voiceHelp'), value: voiceName(t, p.voice, 'alafasy') },
       { id: 'voiceFajr', kind: 'value', label: t.s('fajrVoiceRow'), help: t.s('fajrVoiceHelp'), value: voiceName(t, p.voiceFajr, 'chebae_fajr') },
