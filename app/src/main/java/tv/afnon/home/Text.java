@@ -245,7 +245,10 @@ final class Text {
     String notSet() { return ar ? "لم يُحدَّد" : "Not set"; }
     String remind() { return ar ? "التنبيه قبل الصلاة" : "Remind me before prayer"; }
     String remindHelp() { return ar ? "على الرئيسية وفوق الفيديو" : "On Home and over video"; }
-    String[] remindChoices() { return ar ? new String[] {"10 د", "15 د", "إيقاف"} : new String[] {"10 min", "15 min", "Off"}; }
+    String[] remindChoices() {
+        return ar ? new String[] {"5 د", "10 د", "15 د", "20 د", "30 د", "إيقاف"}
+                  : new String[] {"5 min", "10 min", "15 min", "20 min", "30 min", "Off"};
+    }
     String adhanRow() { return ar ? "الأذان" : "Adhan"; }
     String adhanHelp() { return ar ? "يُشغَّل عند دخول الوقت · يمكن إيقافه لكل صلاة" : "Plays when the time begins · can be muted per prayer"; }
     String language() { return ar ? "اللغة" : "Language"; }

@@ -282,17 +282,21 @@ public class SettingsActivity extends Screen {
                     void open() { startSafely(new Intent(c, PrayerDayActivity.class).putExtra("room", true)); }
                 });
             case REMINDERS: return Arrays.asList(
-                new Row(SEG) {
-                    final int[] minutes = {10, 15, 0};
+                new Row(VALUE) {
+                    // Six choices are too many for a segmented control: a list, like the adhan voices.
+                    final int[] minutes = {5, 10, 15, 20, 30, 0};
                     String label() { return t.remind(); }
                     String help() { return t.remindHelp(); }
-                    String[] segs() { return digits(t.remindChoices()); }
                     int selected() {
                         int m = Prefs.remindMinutes(c);
                         for (int i = 0; i < minutes.length; i++) if (minutes[i] == m) return i;
-                        return 1;
+                        return 2;
                     }
-                    void select(int i) { Prefs.setRemindMinutes(c, minutes[i]); }
+                    String value() { return digits(t.remindChoices())[selected()]; }
+                    void open() {
+                        openChooser(t.remind(), digits(t.remindChoices()), selected(),
+                            i -> { Prefs.setRemindMinutes(c, minutes[i]); showSaved(); });
+                    }
                 },
                 new Row(TOGGLE) {
                     String label() { return t.adhanRow(); }

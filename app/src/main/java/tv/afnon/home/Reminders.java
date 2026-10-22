@@ -32,7 +32,7 @@ final class Reminders {
         return -1;
     }
 
-    /** Whether the next prayer is inside the reminder window (Settings: 10 or 15 minutes before, or off). */
+    /** Whether the next prayer is inside the reminder window (Settings: 5 to 30 minutes before, or off). */
     static boolean dueReminder(Context c, PrayerDay day, Date now) {
         int minutes = Prefs.remindMinutes(c);
         if (minutes <= 0) return false;
