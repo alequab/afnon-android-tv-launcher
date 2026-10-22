@@ -85,9 +85,10 @@ public class MainActivity extends Screen {
     /** The radio's header pill and, while open, its card. */
     private Icon radioIcon, playIcon;
     private RadioBars pillBars, cardBars;
-    private TextView radioLabel, cardStatus, playLabel;
+    private TextView radioLabel, cardTitle, cardStatus, playLabel;
     private LinearLayout radioCard;
-    private FocusTile cardPlay, cardDark;
+    /** The card's buttons from the start side: Play/Stop, Station, Screen off. */
+    private FocusTile cardPlay, cardStation, cardDark;
     private final Radio.Listener onRadio = state -> styleRadio();
     /** Test only (shiftTo): how far Home's clock is moved. */
     private long shift;
@@ -615,6 +616,7 @@ public class MainActivity extends Screen {
         pillBars.setColor(focused ? Tokens.FOCUS_TEXT : Tokens.GOLD_400);
         ((FocusTile) nodes[RADIO]).setRest(Tokens.LAPIS_800, on ? Tokens.GOLD_400_60 : Tokens.LINE_SOFT, 2);
         if (radioCard != null) {
+            cardTitle.setText(t.station(Radio.station(this)));
             cardStatus.setText(t.stationWhere(Radio.station(this)) + t.sep() + t.radioStatus(state));
             cardBars.setLive(playing);
             playLabel.setText(on ? t.radioStop() : t.radioPlay());
@@ -623,8 +625,9 @@ public class MainActivity extends Screen {
     }
 
     /**
-     * The card under the pill: the station, its state and live bars; Play/Stop (focused) and Screen off. Back
-     * closes it and the radio carries on. Built like the reminder card, in the lapis of the header.
+     * The card under the pill: the station, its state and live bars; Play/Stop (focused), Station and Screen off.
+     * Station opens Settings' station list over Home (groups, then stations); playing radio moves to the pick. Back
+     * closes the card and the radio carries on. Built like the reminder card, in the lapis of the header.
      */
     private void showRadioCard() {
         if (radioCard != null || card != null) return;
@@ -648,13 +651,13 @@ public class MainActivity extends Screen {
         words.setOrientation(LinearLayout.VERTICAL);
         TextView label = caps(text(ui400, 20, Tokens.MIST_400));
         label.setText(t.radio());
-        TextView title = text(displayBold, 48, Tokens.PLASTER_100);
-        title.setText(t.station(Radio.station(this)));
+        cardTitle = text(displayBold, 48, Tokens.PLASTER_100);
+        cardTitle.setText(t.station(Radio.station(this)));
         cardStatus = text(ui400, 24, Tokens.GOLD_400);
         words.addView(label);
-        words.addView(title);
+        words.addView(cardTitle);
         words.addView(cardStatus);
-        lineHeight(title, 1.15f);
+        lineHeight(cardTitle, 1.15f);
         LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(0, -2, 1);
         wlp.setMarginStart(Ui.ipx(28));
         top.addView(words, wlp);
@@ -666,6 +669,8 @@ public class MainActivity extends Screen {
         playLabel = text(ui400, 24, Tokens.PLASTER_100);
         cardPlay = radioButton(playIcon, playLabel, t.radioPlay());
         cardPlay.setOnClickListener(v -> Radio.toggle(this));
+        cardStation = radioButton(new Icon(this, Icon.RADIO, 2f), text(ui400, 24, Tokens.PLASTER_100), t.stationRow());
+        cardStation.setOnClickListener(v -> chooseStation(this::styleRadio));
         cardDark = radioButton(new Icon(this, Icon.MOON, 2f), text(ui400, 24, Tokens.PLASTER_100), t.screenOff());
         cardDark.setOnClickListener(v -> {
             closeRadioCard(true);
@@ -673,9 +678,11 @@ public class MainActivity extends Screen {
         });
         float r = FocusTile.REACH;
         buttons.addView(cardPlay, new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r)));
-        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r));
-        dlp.setMarginStart(Ui.ipx(16 - 2 * r));
-        buttons.addView(cardDark, dlp);
+        for (FocusTile b : new FocusTile[] {cardStation, cardDark}) {
+            LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r));
+            blp.setMarginStart(Ui.ipx(16 - 2 * r));
+            buttons.addView(b, blp);
+        }
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, -2);
         blp.topMargin = Ui.ipx(28 - r);
         blp.setMarginStart(-Ui.ipx(r));
@@ -701,9 +708,23 @@ public class MainActivity extends Screen {
     private void cardHints(View focused) {
         if (radioCard == null || hints == null) return;
         List<String> h = new ArrayList<>();
-        h.add(t.hintOk(focused == cardDark ? t.screenOff() : (Radio.on() ? t.radioStop() : t.radioPlay())));
+        h.add(t.hintOk(focused == cardDark ? t.screenOff() : focused == cardStation ? t.stationRow()
+            : (Radio.on() ? t.radioStop() : t.radioPlay())));
         h.add(t.hintClose());
         setHints(hints, h);
+    }
+
+    @Override
+    LinearLayout hintLine() {
+        return hints;
+    }
+
+    /** The station list over the card: the card's buttons step aside, then Station takes focus back. */
+    @Override
+    void onChooser(boolean open) {
+        if (radioCard == null) return;
+        for (View b : new View[] {cardPlay, cardStation, cardDark}) b.setFocusable(!open);
+        if (!open) cardStation.requestFocus();
     }
 
     /** A 68px pill on the card with an icon: lapis at rest, gold when focused. */
@@ -730,6 +751,7 @@ public class MainActivity extends Screen {
 
     private void closeRadioCard(boolean focusPill) {
         if (radioCard == null) return;
+        if (chooser != null) closeChooser();
         root.removeView(radioCard);
         radioCard = null;
         for (View n : nodes) if (n != null) n.setFocusable(true);
@@ -841,14 +863,21 @@ public class MainActivity extends Screen {
                 return true;
             }
         }
+        // The station list (from the radio card): Back steps back, Up/Down move through it.
+        if (chooser != null) return chooserKey(e);
         if (radioCard != null) {
             if (k == KeyEvent.KEYCODE_BACK) {
                 if (e.getAction() == KeyEvent.ACTION_UP) closeRadioCard(true);
                 return true;
             }
             if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                // Play, Station, Screen off from the start side; toward the end is Left in Arabic.
                 boolean toEnd = (k == KeyEvent.KEYCODE_DPAD_RIGHT) != rtl;
-                if (e.getAction() == KeyEvent.ACTION_DOWN) (toEnd ? cardDark : cardPlay).requestFocus();
+                if (e.getAction() == KeyEvent.ACTION_DOWN) {
+                    View[] row = {cardPlay, cardStation, cardDark};
+                    int i = java.util.Arrays.asList(row).indexOf(getCurrentFocus());
+                    row[i < 0 ? 0 : Math.max(0, Math.min(row.length - 1, i + (toEnd ? 1 : -1)))].requestFocus();
+                }
                 return true;
             }
             if (k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN) return true;

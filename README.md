@@ -67,8 +67,8 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
   also say «اقترب موعد صلاة …», and when a prayer's adhan is off, «حان الآن موعد صلاة …» as its time begins
   (both lower whatever is playing for a moment instead of pausing it; see `tools/fetch-announce.sh` below).
 - **Friday and Ramadan.** Both modes switch themselves on from the date.
-- **Quran Radio.** إذاعة القرآن الكريم from Cairo (98.2 FM) by default, streamed live. Settings → Radio
-  → Station picks another:
+- **Quran Radio.** إذاعة القرآن الكريم from Cairo (98.2 FM) by default, streamed live. Station, on Home's
+  radio card or in Settings → Radio, picks another:
   - Quran radios: Nablus, Shabab FM Quran (Nablus), Qatar 1 and 2, Jordan.
   - Ten reciters' 24/7 channels from mp3quran.net (Alafasy, Abdul Basit, Al-Minshawi, Al-Husary, Al-Muaiqly,
     Al-Ghamdi, Al-Sudais, Al-Dosari, Al-Qatami, Mohammad Rashad Al-Shareef).
