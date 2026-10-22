@@ -4,6 +4,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 
 ## [Unreleased]
 
+### Added
+- Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
+  as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
+  the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
+
 ## [0.4] - 2026-10-22
 
 ### Added
