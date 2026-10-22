@@ -27,6 +27,17 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   - New tokens `color.current.*` (the current prayer, a chosen segment) and `color.card.*` (the reminder card),
     and the focused-text colour is now `focus.text` everywhere. By day every colour is unchanged.
 
+- Settings → Reminders → Turn the TV on for the adhan: the prayers picked in its list (Fajr, Dhuhr/Jumu'ah, Asr,
+  Maghrib, Isha; none, so off, by default) wake the TV from standby for their call. One alarm is armed at a time,
+  for the next picked prayer (`setAlarmClock`), and armed again after it rings, on boot, and when the picks, the
+  adhan, a bell, the city, the method or the Asr school change; with nothing picked nothing is armed. The call
+  opens as usual and only once, and the adhan switch and each prayer's bell still decide. If Afnon turned the TV
+  on, closing the call screen (by itself, Back or Dismiss) asks Android for standby again through the remote
+  buttons service; leaving it for another app keeps the TV on. Needs the exact-alarm permission
+  (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
+  seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
+  the way back. Not yet checked on the TV.
+
 ### Changed
 - The Hijri date comes first: on Home it is the line under the clock (with the city) and the Gregorian date is
   the smaller line below it; on Prayer day the date line starts with it.
