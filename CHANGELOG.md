@@ -68,6 +68,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   starting window in the theme's ground colour, shown for the quarter second the screen takes to draw, and blue
   even in night mode. Afnon's screens now have none (`windowDisablePreview`), and open and close with no
   transition: the screen in front stays until the next one is ready.
+- Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
+  ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
+  whole tiles, rings included, and moves a whole item at a time when it scrolls.
 
 ## [0.4] - 2026-10-22
 
