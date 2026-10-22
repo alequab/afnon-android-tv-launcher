@@ -300,6 +300,18 @@ public class SettingsActivity extends Screen {
                     boolean on() { return Prefs.adhan(c); }
                     void set(boolean on) { Prefs.setAdhan(c, on); }
                 },
+                new Row(SEG) {
+                    final int[] minutes = {0, 1, 5, 10};
+                    String label() { return t.callCloseRow(); }
+                    String help() { return t.callCloseHelp(); }
+                    String[] segs() { return digits(t.callCloseChoices()); }
+                    int selected() {
+                        int m = Prefs.callCloseMinutes(c);
+                        for (int i = 0; i < minutes.length; i++) if (minutes[i] == m) return i;
+                        return minutes.length - 1;
+                    }
+                    void select(int i) { Prefs.setCallCloseMinutes(c, minutes[i]); }
+                },
                 voiceRow(false),
                 voiceRow(true));
             case RADIO: return Arrays.asList(

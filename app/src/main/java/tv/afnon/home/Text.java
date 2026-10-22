@@ -135,7 +135,18 @@ final class Text {
         return ar ? new String[] {"مع شاشة التوقف", "بعدها بـ 15 د", "أبدًا"} : new String[] {"With screensaver", "15 min later", "Never"};
     }
 
-    String nowHint() { return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد 10 دقائق" : "Back to dismiss · closes by itself after 10 min"); }
+    /** The call screen's hint: how it closes by itself (Settings → Reminders); 0 is when the adhan ends. */
+    String nowHint(int minutes) {
+        if (minutes == 0) return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد الأذان" : "Back to dismiss · closes by itself after the adhan");
+        return d(ar ? "رجوع للإغلاق · يُغلق تلقائيًا بعد " + (minutes == 1 ? "دقيقة" : minutes + " دقائق")
+                    : "Back to dismiss · closes by itself after " + minutes + " min");
+    }
+    String callCloseRow() { return ar ? "إغلاق شاشة الأذان" : "Close the call screen"; }
+    String callCloseHelp() { return ar ? "ثم تعود إلى ما كنت تشاهده" : "Then back to what you were watching"; }
+    /** In the order of the row's minutes: 0 (after the adhan), 1, 5, 10. */
+    String[] callCloseChoices() {
+        return ar ? new String[] {"بعد الأذان", "1 د", "5 د", "10 د"} : new String[] {"After adhan", "1 min", "5 min", "10 min"};
+    }
     String voiceRow() { return ar ? "صوت الأذان" : "Adhan voice"; }
     String voiceHelp() { return ar ? "لكل الصلوات عدا الفجر · يُسمع عند التنقل في القائمة" : "Every prayer but Fajr · plays as you move through the list"; }
     String fajrVoiceRow() { return ar ? "أذان الفجر" : "Fajr adhan"; }
