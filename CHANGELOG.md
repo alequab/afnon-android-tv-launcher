@@ -35,6 +35,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
   changing never moves. The view also no longer asks for a new layout every second.
 
+### Fixed
+- Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
+  ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
+  whole tiles, rings included, and moves a whole item at a time when it scrolls.
+
 ## [0.5] - 2026-10-22
 
 ### Added
