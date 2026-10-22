@@ -8,6 +8,13 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
   as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
   the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
+- Spoken reminder: «اقترب موعد صلاة …» with the reminder card or banner (Settings → Reminders, on by default).
+- Announce the time: «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off, either for all prayers
+  or by that prayer's bell (on by default). Friday says الجمعة. Both lower whatever is playing for a moment
+  instead of pausing it, and each is said once per prayer, also across a restart of the remote buttons service.
+  The 12 clips are not in the repo: `tools/make-voice.ps1` records them on Windows with its Arabic voice (e.g.
+  Microsoft Naayf) into `app/src/main/assets/announce/`; without them both stay silent. `--es test announce`
+  tries it; `--es test banner` and `--es test reminder` now say the reminder too.
 
 ### Changed
 - The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →

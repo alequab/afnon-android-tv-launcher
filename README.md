@@ -63,7 +63,9 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
   the TV face" setting, so the screen can say *"Qibla is behind you"*.
 - **The adhan.** 14 voices to choose from, plus a separate Fajr adhan. If the TV is muted or at
   zero, the volume comes up for the adhan and goes back afterwards.
-- **Reminders.** A card on Home, or a banner over other apps, before each prayer.
+- **Reminders.** A card on Home, or a banner over other apps, 5 to 30 minutes before each prayer. It can
+  also say «اقترب موعد صلاة …», and when a prayer's adhan is off, «حان الآن موعد صلاة …» as its time begins
+  (both lower whatever is playing for a moment instead of pausing it; see `tools/make-voice.ps1` below).
 - **Friday and Ramadan.** Both modes switch themselves on from the date.
 - **Quran Radio.** إذاعة القرآن الكريم from Cairo (98.2 FM) by default, streamed live. Settings → Radio
   → Station picks another:
@@ -138,6 +140,12 @@ bash tools/install.sh                # fetches the adhans, builds, installs, set
 from [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3). They aren't in this repo because
 that collection has no licence.
 
+The spoken reminder and «حان الآن موعد صلاة …» are 12 short clips that you record yourself on Windows 10/11 with
+its Arabic voice (Settings → Time & language → Speech → Add voices): `powershell -ExecutionPolicy Bypass -File
+tools\make-voice.ps1` writes them to `app/src/main/assets/announce/` from `tools/voice-lines.txt`, then build as
+above. They aren't in this repo either (the voice is licensed for your own use); without them those two stay
+silent and everything else works.
+
 **Close network debugging when you're done.** Port 5555 is plain text, and on some firmware any
 device on your network can get a shell through it. Switch USB debugging and Network debugging off
 in Developer options, revoke the USB debugging authorisations, reboot, and check that
@@ -159,9 +167,10 @@ in Developer options, revoke the USB debugging authorisations, reboot, and check
 
 ```bash
 adb shell am start -n tv.afnon.home/.MainActivity --es test friday    # or ramadan, now (back to today)
-adb shell am start -n tv.afnon.home/.MainActivity --es test reminder  # Home's reminder card
+adb shell am start -n tv.afnon.home/.MainActivity --es test reminder  # Home's reminder card, spoken
 adb shell am start -n tv.afnon.home/.MainActivity --es test call      # the call screen, 8 s later
-adb shell am start -n tv.afnon.home/.MainActivity --es test banner    # the banner, 8 s later (open another app)
+adb shell am start -n tv.afnon.home/.MainActivity --es test banner    # the banner and its voice, 8 s later (open another app)
+adb shell am start -n tv.afnon.home/.MainActivity --es test announce  # «حان الآن موعد صلاة …», 8 s later
 adb shell am start -n tv.afnon.home/.MainActivity --es test radio     # radio on / off
 adb shell am start -n tv.afnon.home/.MainActivity --es station nablus # pick a station (ids in Radio.STATIONS)
 bash tools/shot.sh home                                               # screenshot to state/shots/
@@ -210,8 +219,9 @@ app/src/main/java/tv/afnon/home/
   TclKeys             The same buttons through TCL's own remapping, so held keys still repeat
   Radio, RadioBars    Quran Radio player and its level bars
   ScreenOffActivity   Screen off while listening (TCL Audio Only, or a black fallback)
+  Announce            The spoken reminder and «حان الآن موعد صلاة …»
   PrayerDay, Prefs, Reminders, Adhans, Text, Tokens, Ui …
-tools/                install, restore, disable/enable, fetch-adhans, screenshot
+tools/                install, restore, disable/enable, fetch-adhans, make-voice, screenshot
 docs/screenshots/     the images above, all from the real TV
 ```
 

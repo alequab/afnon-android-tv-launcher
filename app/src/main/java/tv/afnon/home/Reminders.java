@@ -32,6 +32,21 @@ final class Reminders {
         return -1;
     }
 
+    /**
+     * The prayer whose time began within the last two minutes with its adhan off (all of them, or that prayer's
+     * bell), for the spoken «حان الآن موعد صلاة …»; -1 if none, or if that announcement is turned off.
+     */
+    static int dueAnnounce(Context c, PrayerDay day, Date now) {
+        if (!Prefs.announce(c)) return -1;
+        boolean adhan = Prefs.adhan(c);
+        for (int i = 0; i < 6; i++) {
+            if (i == PrayerDay.SUNRISE) continue;
+            long since = now.getTime() - day.times[i].getTime();
+            if (since >= 0 && since < CALL_WINDOW_MS && !(adhan && Prefs.bell(c, i))) return i;
+        }
+        return -1;
+    }
+
     /** Whether the next prayer is inside the reminder window (Settings: 5 to 30 minutes before, or off). */
     static boolean dueReminder(Context c, PrayerDay day, Date now) {
         int minutes = Prefs.remindMinutes(c);
