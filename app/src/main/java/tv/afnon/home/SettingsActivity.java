@@ -299,10 +299,22 @@ public class SettingsActivity extends Screen {
                     }
                 },
                 new Row(TOGGLE) {
+                    String label() { return t.remindVoiceRow(); }
+                    String help() { return t.remindVoiceHelp(); }
+                    boolean on() { return Prefs.remindVoice(c); }
+                    void set(boolean on) { Prefs.setRemindVoice(c, on); }
+                },
+                new Row(TOGGLE) {
                     String label() { return t.adhanRow(); }
                     String help() { return t.adhanHelp(); }
                     boolean on() { return Prefs.adhan(c); }
                     void set(boolean on) { Prefs.setAdhan(c, on); }
+                },
+                new Row(TOGGLE) {
+                    String label() { return t.announceRow(); }
+                    String help() { return t.announceHelp(); }
+                    boolean on() { return Prefs.announce(c); }
+                    void set(boolean on) { Prefs.setAnnounce(c, on); }
                 },
                 new Row(SEG) {
                     final int[] minutes = {0, 1, 5, 10};

@@ -101,8 +101,9 @@ public class MainActivity extends Screen {
     }
 
     /**
-     * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now;
-     * `banner` and `call` come from the remote buttons service 8 s later, time enough to open another app.
+     * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now, with
+     * the spoken reminder if it is on; `banner`, `call` and `announce` come from the remote buttons service 8 s
+     * later, time enough to open another app.
      * `--es station <id>` (ids in Radio.STATIONS) picks a radio station as Settings does, before any test runs.
      */
     private void runTest(Intent i) {
@@ -114,7 +115,10 @@ public class MainActivity extends Screen {
         String kind = i == null ? null : i.getStringExtra("test");
         if (kind == null) return;
         i.removeExtra("test");
-        if ("reminder".equals(kind)) root.post(this::showReminder);
+        if ("reminder".equals(kind)) root.post(() -> {
+            showReminder();
+            if (Prefs.remindVoice(this)) Announce.before(this, day.nextIndex, day.friday);
+        });
         else if ("friday".equals(kind) || "ramadan".equals(kind) || "now".equals(kind)) shiftTo(kind);
         else if ("radio".equals(kind)) Radio.toggle(this);
         else if (RemoteKeys.watch != null) RemoteKeys.watch.test(kind, 8000);

@@ -249,6 +249,12 @@ final class Text {
         return ar ? new String[] {"5 د", "10 د", "15 د", "20 د", "30 د", "إيقاف"}
                   : new String[] {"5 min", "10 min", "15 min", "20 min", "30 min", "Off"};
     }
+    String remindVoiceRow() { return ar ? "تذكير صوتي" : "Spoken reminder"; }
+    String remindVoiceHelp() { return ar ? "«اقترب موعد صلاة …» مع التذكير" : "Says «اقترب موعد صلاة …» with the reminder"; }
+    String announceRow() { return ar ? "إعلان دخول الوقت" : "Announce the time"; }
+    String announceHelp() {
+        return ar ? "«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف" : "Says «حان الآن موعد صلاة …» when a prayer's adhan is off";
+    }
     String adhanRow() { return ar ? "الأذان" : "Adhan"; }
     String adhanHelp() { return ar ? "يُشغَّل عند دخول الوقت · يمكن إيقافه لكل صلاة" : "Plays when the time begins · can be muted per prayer"; }
     String language() { return ar ? "اللغة" : "Language"; }

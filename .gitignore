@@ -7,6 +7,8 @@ local.properties
 *.iml
 # Downloaded by tools/fetch-adhans.sh (no licence to redistribute)
 app/src/main/assets/adhan/*.mp3
+# Recorded locally by tools/make-voice.ps1 with Windows' Arabic voice (not ours to redistribute)
+app/src/main/assets/announce/*.wav
 # Per-TV state: disabled.log, screenshots, backups
 state/
 # Machine-specific notes for Claude
