@@ -210,6 +210,14 @@ final class Text {
 
     // Settings (design/Settings.dc.html)
     String sectionPrayer() { return ar ? "مواقيت الصلاة" : "Prayer times"; }
+    String sectionAdjust() { return ar ? "تعديل المواقيت" : "Adjust the times"; }
+    /** A time's adjustment between its − and + buttons: "+2", "0", "-3" (minutes). */
+    String minutesSigned(int n) { return d(n > 0 ? "+" + n : String.valueOf(n)); }
+    /** Under each time's name: what it is today with the adjustment, and what the buttons do. */
+    String adjustTimeHelp(String time) {
+        return d(ar ? "اليوم " + time + " · بالدقائق، حتى 30 قبله أو بعده"
+                    : "Today " + time + " · in minutes, up to 30 earlier or later");
+    }
     String sectionReminders() { return ar ? "التنبيهات والأذان" : "Reminders & adhan"; }
     String sectionDisplay() { return ar ? "العرض واللغة" : "Display & language"; }
     String sectionNetwork(String ssid) { return ssid == null ? (ar ? "الشبكة" : "Network") : (ar ? "الشبكة · " : "Network · ") + ssid; }
@@ -226,7 +234,12 @@ final class Text {
      */
     String[][] news() {
         if (ar) return new String[][] {
-            {"0.6",
+            {"0.7",
+                "تعديل المواقيت: كل وقت حتى 30 دقيقة قبله أو بعده، لمطابقة تقويم مسجدك",
+                "التاريخ الهجري ويومه يتغيّران عند المغرب، ومعهما رمضان وتذكير سورة الكهف",
+                "أم القرى: العشاء بعد المغرب بساعتين في رمضان",
+                "المدن فوق خط العرض 48: الفجر والعشاء بسُبع الليل في ليالي الصيف",
+                "أذانان جديدان: المسجد النبوي، وراغب مصطفى غلوش",
                 "الوضع الليلي: ألوان أهدأ وأخفت للمشاهدة ليلًا، من الزر بجانب الإعدادات في الرئيسية "
                     + "أو من الإعدادات ← العرض واللغة",
                 "أيقونات التطبيقات الأخرى أخفت ودافئة قليلًا في الوضع الليلي",
@@ -243,7 +256,12 @@ final class Text {
                 "مرجع الآية «النساء 103» بالأرقام المختارة"},
         };
         return new String[][] {
-            {"0.6",
+            {"0.7",
+                "Adjust the times: each up to 30 minutes earlier or later, to match your mosque's timetable",
+                "The Hijri date and its weekday turn at Maghrib, and Ramadan and the Al-Kahf reminder with them",
+                "Umm al-Qura: Isha 2 hours after Maghrib in Ramadan",
+                "Cities above 48°: Fajr and Isha by a seventh of the night on summer nights",
+                "Two new adhans: Al-Masjid an-Nabawi and Ragheb Mustafa Ghalwash",
                 "Night mode: calmer, dimmer colours for watching at night, from the button beside Home's Settings or "
                     + "Settings → Display & language",
                 "Other apps' icons dimmer and a little warm in night mode",
