@@ -39,8 +39,8 @@ import java.util.Locale;
  */
 public class SettingsActivity extends Screen {
 
-    private static final int PRAYER = 0, REMINDERS = 1, RADIO = 2, DISPLAY = 3, NETWORK = 4, DEVICE = 5, NEWS = 6,
-        SECTIONS = 7;
+    private static final int PRAYER = 0, ADJUST = 1, REMINDERS = 2, RADIO = 3, DISPLAY = 4, NETWORK = 5, DEVICE = 6,
+        NEWS = 7, SECTIONS = 8;
     private static final int VALUE = 0, SEG = 1, STEP = 2, TOGGLE = 3;
     private static final float ROWS_TOP = 112, ROW_H = 88, ROW_GAP = 10;
     private static final float NAV_TOP = 152, NAV_H = 76, NAV_GAP = 10;
@@ -185,6 +185,7 @@ public class SettingsActivity extends Screen {
     private String sectionName(int i) {
         switch (i) {
             case PRAYER: return t.sectionPrayer();
+            case ADJUST: return t.sectionAdjust();
             case REMINDERS: return t.sectionReminders();
             case RADIO: return t.sectionRadio();
             case DISPLAY: return t.sectionDisplay();
@@ -281,6 +282,11 @@ public class SettingsActivity extends Screen {
         Context c = this;
         switch (s) {
             case NEWS: return Collections.emptyList();
+            case ADJUST: {
+                List<Row> list = new ArrayList<>();
+                for (int i = 0; i < 6; i++) list.add(adjustRow(i));
+                return list;
+            }
             case PRAYER: return Arrays.asList(
                 new Row(VALUE) {
                     String label() { return t.location(); }
@@ -454,6 +460,22 @@ public class SettingsActivity extends Screen {
                     void open() { startSafely(new Intent(Settings.ACTION_SETTINGS)); }
                 });
         }
+    }
+
+    /**
+     * Adjust the times (as in meypod/al-azan): one of the six times, up to 30 minutes earlier or later, with what it
+     * is today under its name. Home, Prayer day, the reminders, the adhan and the wake alarm all use it.
+     */
+    private Row adjustRow(int prayer) {
+        return new Row(STEP) {
+            String label() { return t.prayerNames()[prayer]; }
+            String help() { return t.adjustTimeHelp(time(day.times[prayer], 1f).toString()); }
+            int amount() { return Prefs.adjustments(SettingsActivity.this)[prayer]; }
+            void setAmount(int n) { Prefs.setAdjustment(SettingsActivity.this, prayer, n); }
+            int lowest() { return -30; }
+            int highest() { return 30; }
+            String valueOf(int n) { return t.minutesSigned(n); }
+        };
     }
 
     /** The adhan recording for every prayer but Fajr, or for Fajr: a list that plays each voice as focus reaches it. */
