@@ -28,9 +28,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Announce the time: «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off, either for all prayers
   or by that prayer's bell (on by default). Friday says الجمعة. Both lower whatever is playing for a moment
   instead of pausing it, and each is said once per prayer, also across a restart of the remote buttons service.
-  The 12 clips are not in the repo: `tools/make-voice.ps1` records them on Windows with its Arabic voice (e.g.
-  Microsoft Naayf) into `app/src/main/assets/announce/`; without them both stay silent. `--es test announce`
-  tries it; `--es test banner` and `--es test reminder` now say the reminder too.
+  The 12 clips are not in the repo: `tools/fetch-announce.sh` (run by `install.sh` the first time) records
+  them with a Microsoft neural Arabic voice through edge-tts into `app/src/main/assets/announce/`; without them
+  both stay silent. Release APKs include them. `--es test announce` tries it; `--es test banner` and
+  `--es test reminder` now say the reminder too.
 - Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
   apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
   Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current
@@ -45,7 +46,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Night mode dims other apps' icons too, on Home's favourites and in All apps: a little warm and about 60% as
   bright, so a red YouTube logo doesn't glare. Each icon takes one colour filter that multiplies it by the new
   token `color.app-icon-tint` (no extra view or layer); by day there is no filter.
-
 - Settings → Reminders → Turn the TV on for the adhan: the prayers picked in its list (Fajr, Dhuhr/Jumu'ah, Asr,
   Maghrib, Isha; none, so off, by default) wake the TV from standby for their call. One alarm is armed at a time,
   for the next picked prayer (`setAlarmClock`), and armed again after it rings, on boot, and when the picks, the
@@ -55,7 +55,7 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   buttons service; leaving it for another app keeps the TV on. Needs the exact-alarm permission
   (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
   seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
-  the way back. Not yet checked on the TV.
+  the way back.
 - Home's radio card has a Station button («المحطة», with the radio-waves icon) between Play and Screen off, as in
   the LG version. It opens the same list as Settings → Radio → Station, over Home: the Quran radio stations or
   the reciters, then one of them. Playing radio moves to the pick at once and the card shows it; Back steps back
@@ -66,18 +66,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Two Quran radio stations from the Saudi Broadcasting Authority, its own audio streams as Saudi Radio+ plays
   them (`live.kwikmotion.com`, HLS, AAC): إذاعة القرآن الكريم · السعودية and إذاعة نداء الإسلام, with the
   Quran radios in both Station lists (Settings and the radio card).
-- Local only, not for upstream (its rules have no video and no extra network): live Makkah and Madinah on Home.
-  A «مباشر» / Live pill starts the header row; its card offers «مكة المكرمة» and «المدينة المنورة» (and Stop
-  while one is on). The video, from Aloula (aloula.sba.sa, the Saudi Broadcasting Authority: its Quran and
-  Sunnah channels), plays in a 16:9 panel across the courtyard where the prayer strip and the favourites and More
-  rows were; the arch with the next prayer and its countdown, the clock and the dates stay, and the strip and
-  rows come back when it stops. Under the panel, «ملء الشاشة» / Full screen lays the same player over the whole
-  screen; ▲▼ there open the quality bar: the renditions the stream offers (Makkah and Madinah: 360p, 480p, 1080p)
-  with what an hour costs in data, 480p at first, the choice remembered. Back closes the bar, then full screen,
-  then stops the video. It plays only when chosen: leaving Home, the call, the screensaver or the radio stop it
-  and release everything; starting it stops the radio; the volume is left alone. Android's own MediaPlayer, no
-  new library. `--es live makkah|madinah|off` (with `--ei quality 1080`, `--ez full true`, `--ez bar true`)
-  tries it.
 
 ### Changed
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
@@ -105,6 +93,29 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
   ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
   whole tiles, rings included, and moves a whole item at a time when it scrolls.
+
+## [0.5] - 2026-10-22
+
+### Added
+- Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
+  as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
+  the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
+- Spoken reminder: «اقترب موعد صلاة …» with the reminder card or banner (Settings → Reminders, on by default).
+- Announce the time: «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off, either for all prayers
+  or by that prayer's bell (on by default). Friday says الجمعة. Both lower whatever is playing for a moment
+  instead of pausing it, and each is said once per prayer, also across a restart of the remote buttons service.
+  The 12 clips are not in the repo: `tools/fetch-announce.sh` (run by `install.sh` the first time) records
+  them with a Microsoft neural Arabic voice through edge-tts into `app/src/main/assets/announce/`; without them
+  both stay silent. Release APKs include them. `--es test announce` tries it; `--es test banner` and
+  `--es test reminder` now say the reminder too.
+
+### Changed
+- The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →
+  Remind me before prayer is now a list, like the adhan voices; 15 is still the default.
+- The Hijri date comes first: on Home it is the line under the clock (with the city) and the Gregorian date is
+  the smaller line below it; on Prayer day the date line starts with it.
+- The verse reference under the arch («النساء 103») follows the digits setting like every other number; it was
+  always Eastern Arabic (١٠٣), even with Western digits chosen.
 
 ## [0.4] - 2026-10-22
 
@@ -230,7 +241,8 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.4...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.5...HEAD
+[0.5]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.4...v0.5
 [0.4]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.3.1...v0.4
 [0.3.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.3...v0.3.1
 [0.3]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.2.1...v0.3

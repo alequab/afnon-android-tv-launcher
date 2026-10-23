@@ -5,6 +5,7 @@
 set -e
 . "$(dirname "$0")/env.sh"
 [ -n "$(ls "$ROOT/app/src/main/assets/adhan/"*.mp3 2>/dev/null)" ] || bash "$ROOT/tools/fetch-adhans.sh"
+[ -n "$(ls "$ROOT/app/src/main/assets/announce/"*.mp3 2>/dev/null)" ] || bash "$ROOT/tools/fetch-announce.sh" || true
 (cd "$ROOT" && ./gradlew assembleDebug -q)
 adb install -r "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | tail -1
 adb shell cmd package set-home-activity tv.afnon.home/.MainActivity >/dev/null

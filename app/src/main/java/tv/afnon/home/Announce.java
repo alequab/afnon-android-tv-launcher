@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Short spoken lines in assets/announce: «اقترب موعد صلاة …» with the reminder (Settings → Reminders → Spoken
  * reminder), and «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off (Announce the time). The
- * clips are recorded on the maintainer's PC by tools/make-voice.ps1 and never committed; a missing one plays
+ * clips are recorded on the maintainer's PC by tools/fetch-announce.sh and never committed; a missing one plays
  * nothing. Whatever is playing is lowered for the three seconds, not paused.
  */
 final class Announce {
@@ -24,12 +24,12 @@ final class Announce {
     private static MediaPlayer player;
     private static AudioFocusRequest focus;
 
-    /** «اقترب موعد صلاة …»: before_&lt;prayer&gt;.wav. */
+    /** «اقترب موعد صلاة …»: before_&lt;prayer&gt;.mp3. */
     static void before(Context c, int prayer, boolean friday) {
         play(c, "before_", prayer, friday);
     }
 
-    /** «حان الآن موعد صلاة …»: now_&lt;prayer&gt;.wav. */
+    /** «حان الآن موعد صلاة …»: now_&lt;prayer&gt;.mp3. */
     static void now(Context c, int prayer, boolean friday) {
         play(c, "now_", prayer, friday);
     }
@@ -44,12 +44,12 @@ final class Announce {
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
             .build();
         MediaPlayer mp = new MediaPlayer();
-        try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ".wav")) {
+        try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ".mp3")) {
             mp.setAudioAttributes(attrs);
             mp.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
             mp.prepare();
         } catch (IOException | RuntimeException e) {
-            // Not recorded on this build (tools/make-voice.ps1), or unreadable: say nothing.
+            // Not recorded on this build (tools/fetch-announce.sh), or unreadable: say nothing.
             mp.release();
             return;
         }
