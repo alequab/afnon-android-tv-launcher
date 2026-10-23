@@ -298,6 +298,19 @@ final class Prefs {
         of(c).edit().putInt("hijri_offset", Math.max(-2, Math.min(2, days))).apply();
     }
 
+    /** Minutes added to Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha (Settings → Adjust the times): −30 to +30. */
+    static int[] adjustments(Context c) {
+        SharedPreferences p = of(c);
+        int[] a = new int[6];
+        for (int i = 0; i < 6; i++) a[i] = p.getInt("adjust_" + i, 0);
+        return a;
+    }
+
+    static void setAdjustment(Context c, int prayer, int minutes) {
+        of(c).edit().putInt("adjust_" + prayer, Math.max(-30, Math.min(30, minutes))).apply();
+        Wake.schedule(c);
+    }
+
     // ---------------------------------------------------------------- reminders
 
     /** Minutes before each prayer to show the reminder; 0 is off. */
@@ -440,6 +453,7 @@ final class Prefs {
     static String key(Context c) {
         SharedPreferences p = of(c);
         return p.getString("locale", "") + "|" + p.getString("digits", "") + "|" + clock24(c) + "|" + cityIndex(c)
-            + "|" + method(c) + "|" + madhab(c) + "|" + hijriOffset(c) + "|" + p.getInt("facing", -1) + "|" + night(c);
+            + "|" + method(c) + "|" + madhab(c) + "|" + java.util.Arrays.toString(adjustments(c)) + "|" + hijriOffset(c)
+            + "|" + p.getInt("facing", -1) + "|" + night(c);
     }
 }

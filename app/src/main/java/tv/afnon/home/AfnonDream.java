@@ -15,9 +15,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -171,9 +169,7 @@ public class AfnonDream extends DreamService {
             day = new PrayerDay(this, arrived ? new Date(now.getTime() + 1000) : now);
             boolean h24 = Prefs.clock24(this);
             clock.setText(Screen.clock(t, now, h24, 0.35f, marker));
-            Locale loc = t.ar ? Locale.forLanguageTag("ar-EG-u-nu-latn") : Locale.UK;
-            String weekday = new SimpleDateFormat("EEEE", loc).format(now);
-            date.setText(t.d(weekday + t.sep() + day.hijriDay + " " + t.hijriMonths()[day.hijriMonth]));
+            date.setText(t.d(Screen.weekday(t, day) + t.sep() + day.hijriDay + " " + t.hijriMonths()[day.hijriMonth]));
             String[] names = t.prayerNames();
             if (day.friday) names[PrayerDay.DHUHR] = t.jumuah();
             next.setText(names[day.nextIndex] + " " + Screen.clock(t, day.nextTime, h24, 1f));

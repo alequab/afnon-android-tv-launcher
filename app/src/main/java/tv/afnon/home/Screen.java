@@ -305,15 +305,24 @@ abstract class Screen extends Activity {
         return withSeconds ? String.format(Locale.US, "%d:%02d:%02d", h, m, s) : String.format(Locale.US, "%d:%02d", h, m);
     }
 
-    /** "Wednesday 21 October 2026" in the screen's language and digits. */
+    /** "21 October 2026" in the screen's language and digits; the weekday goes with the Hijri date. */
     String gregorian(Date now) {
-        Locale dateLocale = t.ar ? Locale.forLanguageTag("ar-EG-u-nu-latn") : Locale.UK;
-        return t.d(new SimpleDateFormat("EEEE d MMMM yyyy", dateLocale).format(now));
+        return t.d(new SimpleDateFormat("d MMMM yyyy", dateLocale(t)).format(now));
     }
 
-    /** "10 Jumada al-Ula 1448 AH". */
+    /** "Saturday 10 Jumada al-Ula 1448 AH": the weekday turns at Maghrib with the Hijri date. */
     String hijri(PrayerDay day) {
-        return t.d(day.hijriDay + " " + t.hijriMonths()[day.hijriMonth] + " " + day.hijriYear + t.hijriSuffix());
+        return t.d(weekday(t, day) + " " + day.hijriDay + " " + t.hijriMonths()[day.hijriMonth] + " " + day.hijriYear
+            + t.hijriSuffix());
+    }
+
+    /** The Hijri day's weekday name ("السبت" from Friday's Maghrib). */
+    static String weekday(Text t, PrayerDay day) {
+        return new java.text.DateFormatSymbols(dateLocale(t)).getWeekdays()[day.weekday];
+    }
+
+    private static Locale dateLocale(Text t) {
+        return t.ar ? Locale.forLanguageTag("ar-EG-u-nu-latn") : Locale.UK;
     }
 
     /**

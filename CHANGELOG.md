@@ -5,6 +5,22 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ## [Unreleased]
 
 ### Added
+- **Settings → Adjust the times** («تعديل المواقيت», its own section), as in meypod/al-azan and the LG launcher:
+  Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha each a stepper of minutes («+2», «0», «-3»), up to 30 earlier or
+  later, with today's adjusted time under the name. Home, Prayer day, the reminders, the adhan and the wake alarm
+  all use the adjusted times.
+- The Hijri date turns at Maghrib, as the Islamic day does: from Maghrib to midnight it shows the next day's date,
+  and its weekday with it (Friday evening reads السبت). The weekday moved from the Gregorian line to the Hijri one
+  (Home, Prayer day, the screensaver). Ramadan follows the Hijri day, so its first night shows the suhoor and the
+  night of Eid doesn't; «سورة الكهف اليوم» shows from Thursday's Maghrib to Friday's. Jumu'ah still replaces Dhuhr
+  on the calendar Friday.
+- Umm al-Qura (the Saudi cities): Isha is 2 hours after Maghrib in Ramadan instead of 1½, from the first night of
+  Ramadan to the last, as Saudi Arabia's calendar and meypod/al-azan have it.
+- Cities above 48° (London, Paris, Berlin, Amsterdam…): where summer nights never get dark enough for Fajr's and
+  Isha's angles, they are now a seventh of the night from Maghrib and before sunrise, as al-azan has it, instead of
+  both near 1 a.m.
+- Two more adhan voices: «المسجد النبوي» and «راغب مصطفى غلوش», the recordings meypod/al-azan uses
+  (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
 - Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
   as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
   the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
