@@ -559,7 +559,7 @@ public class MainActivity extends Screen {
         String label = t.nextPrayer(), name = names[day.nextIndex];
         String sub = t.adhanAt() + " " + nextTime + t.sep() + t.city(), sub2 = "";
         if (day.friday && day.nextIndex == PrayerDay.DHUHR) label = t.jumuahLabel();
-        if (day.friday) sub2 = t.kahf();
+        if (day.kahf) sub2 = t.kahf();
         if (day.ramadan) {
             sub2 = t.suhoorEnds(time(day.suhoorEnd, 1f).toString());
             if (day.nextIndex == PrayerDay.MAGHRIB) {

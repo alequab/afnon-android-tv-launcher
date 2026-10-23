@@ -6,7 +6,7 @@
 
 <p dir="rtl"><b>أفنون: شاشة رئيسية لتلفاز أندرويد، تدور حول يوم الصلاة: المواقيت والقبلة والأذان وإذاعة القرآن الكريم.</b></p>
 
-Arabic first (RTL) and English · Offline prayer times for 136 cities · 14 adhan voices · Qibla · 18 Quran radio stations and reciters
+Arabic first (RTL) and English · Offline prayer times for 136 cities · 16 adhan voices · Qibla · 18 Quran radio stations and reciters
 
 **[⬇ Download the APK](https://github.com/egyjs/afnon-android-tv-launcher/releases/latest/download/afnon.apk)** · [Releases](https://github.com/egyjs/afnon-android-tv-launcher/releases) · **[Try it in your browser](https://egyjs.github.io/afnon-android-tv-launcher/)**
 
@@ -61,7 +61,7 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
   Umm al-Qura calendar, so where local moon sighting differs (the United States, for one) set the offset.
 - **Qibla and room direction.** The Qibla bearing from your city, and a one-time "which way does
   the TV face" setting, so the screen can say *"Qibla is behind you"*.
-- **The adhan.** 14 voices to choose from, plus a separate Fajr adhan. If the TV is muted or at
+- **The adhan.** 16 voices to choose from, plus a separate Fajr adhan. If the TV is muted or at
   zero, the volume comes up for the adhan and goes back afterwards. For the prayers you pick (none by
   default), it can turn the TV on from standby and put it back after.
 - **Reminders.** A card on Home, or a banner over other apps, 5 to 30 minutes before each prayer. It can
@@ -142,9 +142,10 @@ adb connect $TV                      # accept the prompt on the TV
 bash tools/install.sh                # fetches the adhans, builds, installs, sets Afnon as home
 ```
 
-`install.sh` runs `tools/fetch-adhans.sh` the first time. That script downloads the 14 recordings
-from [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3). They aren't in this repo because
-that collection has no licence.
+`install.sh` runs `tools/fetch-adhans.sh` the first time. That script downloads the 16 recordings
+from [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3) (and two from
+[meypod/audio_files](https://github.com/meypod/audio_files)). They aren't in this repo because
+those collections have no licence.
 
 The spoken reminder and «حان الآن موعد صلاة …» are 12 short clips that you record yourself on Windows 10/11 with
 its Arabic voice (Settings → Time & language → Speech → Add voices): `powershell -ExecutionPolicy Bypass -File
@@ -249,7 +250,7 @@ docs/screenshots/     the images above, all from the real TV
   المحلية (كما في الولايات المتحدة) فاضبط التعديل.
 - **القبلة واتجاه الغرفة**: اتجاه القبلة من مدينتك، وإعداد لمرة واحدة لاتجاه التلفاز، فتقول لك الشاشة
   «القبلة خلفك».
-- **الأذان**: ١٤ صوتًا وأذان خاص للفجر. إن كان الصوت مكتومًا يرتفع للأذان ثم يعود كما كان.
+- **الأذان**: ١٦ صوتًا وأذان خاص للفجر. إن كان الصوت مكتومًا يرتفع للأذان ثم يعود كما كان.
 - **التنبيهات**: بطاقة على الرئيسية، أو شريط فوق التطبيقات الأخرى، قبل كل صلاة.
 - **الجمعة ورمضان**: تتغير الشاشة وحدها؛ الجمعة مكان الظهر مع تذكير بسورة الكهف، والإفطار والسحور في رمضان.
 - **إذاعة القرآن الكريم**: من القاهرة (٩٨٫٢ إف إم) افتراضيًا، بث مباشر، وأعمدة تتحرك مع صوت التلاوة نفسه. تتوقف
