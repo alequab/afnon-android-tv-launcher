@@ -212,7 +212,10 @@ final class Text {
     String sectionPrayer() { return ar ? "مواقيت الصلاة" : "Prayer times"; }
     String sectionAdjust() { return ar ? "تعديل المواقيت" : "Adjust the times"; }
     /** A time's adjustment between its − and + buttons: "+2", "0", "-3" (minutes). */
-    String minutesSigned(int n) { return d(n > 0 ? "+" + n : String.valueOf(n)); }
+    String minutesSigned(int n) {
+        // Left-to-right embedding: in an Arabic line the sign would otherwise land after the number ("2+").
+        return "‪" + d(n > 0 ? "+" + n : String.valueOf(n)) + "‬";
+    }
     /** Under each time's name: what it is today with the adjustment, and what the buttons do. */
     String adjustTimeHelp(String time) {
         return d(ar ? "اليوم " + time + " · بالدقائق، حتى 30 قبله أو بعده"
