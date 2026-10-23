@@ -29,7 +29,7 @@ final class PrayerDay {
     final Date nextTime;
     /** The Fajr that ends tonight's Suhoor: today's before dawn, otherwise tomorrow's. */
     final Date suhoorEnd;
-    /** Jumu'ah: the calendar Friday, since it is the Friday noon prayer. */
+    /** Jumu'ah in Dhuhr's place: Friday until its Maghrib, when the Hijri day turns to Saturday. */
     final boolean friday;
     /** Surat al-Kahf: the Hijri Friday, from Thursday's Maghrib to Friday's. */
     final boolean kahf;
@@ -90,11 +90,12 @@ final class PrayerDay {
 
         c.setTime(now);
         int dow = c.get(Calendar.DAY_OF_WEEK);
-        friday = dow == Calendar.FRIDAY;
         // The Hijri day begins at Maghrib: from then until midnight its date and weekday are the next day's
         // (Friday evening is ليلة السبت). Ramadan follows it, so its first night has a suhoor and Eid's night none.
         int eve = now.before(times[MAGHRIB]) ? 0 : 1;
         weekday = (dow - 1 + eve) % 7 + 1;
+        // Jumu'ah ends with Friday at its Maghrib, and doesn't start on Thursday evening (that Dhuhr has passed).
+        friday = dow == Calendar.FRIDAY && eve == 0;
         kahf = weekday == Calendar.FRIDAY;
 
         IslamicCalendar h = new IslamicCalendar();
