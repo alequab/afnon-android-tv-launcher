@@ -56,8 +56,8 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - The Hijri date turns at Maghrib, as the Islamic day does: from Maghrib to midnight it shows the next day's date,
   and its weekday with it (Friday evening reads السبت). The weekday moved from the Gregorian line to the Hijri one
   (Home, Prayer day, the screensaver). Ramadan follows the Hijri day, so its first night shows the suhoor and the
-  night of Eid doesn't; «سورة الكهف اليوم» shows from Thursday's Maghrib to Friday's. Jumu'ah still replaces Dhuhr
-  on the calendar Friday.
+  night of Eid doesn't; «سورة الكهف اليوم» shows from Thursday's Maghrib to Friday's. Jumu'ah replaces Dhuhr on
+  Friday until its Maghrib, then the strip says الظهر again.
 - Umm al-Qura (the Saudi cities): Isha is 2 hours after Maghrib in Ramadan instead of 1½, from the first night of
   Ramadan to the last, as Saudi Arabia's calendar and meypod/al-azan have it.
 - Cities above 48° (London, Paris, Berlin, Amsterdam…): where summer nights never get dark enough for Fajr's and
