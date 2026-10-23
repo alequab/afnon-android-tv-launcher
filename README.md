@@ -66,7 +66,7 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
   default), it can turn the TV on from standby and put it back after.
 - **Reminders.** A card on Home, or a banner over other apps, 5 to 30 minutes before each prayer. It can
   also say «اقترب موعد صلاة …», and when a prayer's adhan is off, «حان الآن موعد صلاة …» as its time begins
-  (both lower whatever is playing for a moment instead of pausing it; see `tools/make-voice.ps1` below).
+  (both lower whatever is playing for a moment instead of pausing it; see `tools/fetch-announce.sh` below).
 - **Friday and Ramadan.** Both modes switch themselves on from the date.
 - **Quran Radio.** إذاعة القرآن الكريم from Cairo (98.2 FM) by default, streamed live. Station, on Home's
   radio card or in Settings → Radio, picks another:
@@ -147,11 +147,11 @@ from [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3) (and two from
 [meypod/audio_files](https://github.com/meypod/audio_files)). They aren't in this repo because
 those collections have no licence.
 
-The spoken reminder and «حان الآن موعد صلاة …» are 12 short clips that you record yourself on Windows 10/11 with
-its Arabic voice (Settings → Time & language → Speech → Add voices): `powershell -ExecutionPolicy Bypass -File
-tools\make-voice.ps1` writes them to `app/src/main/assets/announce/` from `tools/voice-lines.txt`, then build as
-above. They aren't in this repo either (the voice is licensed for your own use); without them those two stay
-silent and everything else works.
+The spoken reminder and «حان الآن موعد صلاة …» are 12 short clips made on your machine: `install.sh` runs
+`tools/fetch-announce.sh` the first time, which reads `tools/announce-lines.txt` with a Microsoft neural Arabic voice
+through [edge-tts](https://github.com/rany2/edge-tts) (`pip install edge-tts`; `VOICE=` picks another) into
+`app/src/main/assets/announce/`. They aren't in this repo; the release APK includes them. Without them
+those two stay silent and everything else works.
 
 **Close network debugging when you're done.** Port 5555 is plain text, and on some firmware any
 device on your network can get a shell through it. Switch USB debugging and Network debugging off
@@ -232,7 +232,7 @@ app/src/main/java/tv/afnon/home/
   Announce            The spoken reminder and «حان الآن موعد صلاة …»
   Wake, WakeReceiver  Turning the TV on from standby for the adhan (one alarm, for the next picked prayer)
   PrayerDay, Prefs, Reminders, Adhans, Text, Tokens, Ui …
-tools/                install, restore, disable/enable, fetch-adhans, make-voice, screenshot
+tools/                install, restore, disable/enable, fetch-adhans, fetch-announce, screenshot
 docs/screenshots/     the images above, all from the real TV
 ```
 
