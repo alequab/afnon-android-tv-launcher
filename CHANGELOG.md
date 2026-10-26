@@ -32,6 +32,12 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   lines in Arabic (or English) under its version, read-only and built only while it is open. OK or toward the
   end goes into it, ▲▼ scroll it, Back or toward the start returns to the sections. It starts with 0.5 and this
   release; the lines are `Text.news()`, and each release adds its own on top.
+- Settings → Adjust the times («تعديل المواقيت», its own section), as in meypod/al-azan and the LG launcher:
+  Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha each a stepper of minutes («+2», «0», «-3»), up to 30 earlier or
+  later, with today's adjusted time under the name. Home, Prayer day, the reminders and the adhan all
+  use the adjusted times.
+- Two more adhan voices: «المسجد النبوي» and «راغب مصطفى غلوش», the recordings meypod/al-azan uses
+  (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
 
 ### Changed
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
@@ -43,16 +49,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   tabular figures, so the centred countdown slid sideways every second, in English too. It now starts at a
   fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
   changing never moves. The view also no longer asks for a new layout every second.
-
-### Fixed
-- Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
-  ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
-  whole tiles, rings included, and moves a whole item at a time when it scrolls.
-
-- **Settings → Adjust the times** («تعديل المواقيت», its own section), as in meypod/al-azan and the LG launcher:
-  Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha each a stepper of minutes («+2», «0», «-3»), up to 30 earlier or
-  later, with today's adjusted time under the name. Home, Prayer day, the reminders, the adhan and the wake alarm
-  all use the adjusted times.
 - The Hijri date turns at Maghrib, as the Islamic day does: from Maghrib to midnight it shows the next day's date,
   and its weekday with it (Friday evening reads السبت). The weekday moved from the Gregorian line to the Hijri one
   (Home, Prayer day, the screensaver). Ramadan follows the Hijri day, so its first night shows the suhoor and the
@@ -63,18 +59,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Cities above 48° (London, Paris, Berlin, Amsterdam…): where summer nights never get dark enough for Fajr's and
   Isha's angles, they are now a seventh of the night from Maghrib and before sunrise, as al-azan has it, instead of
   both near 1 a.m.
-- Two more adhan voices: «المسجد النبوي» and «راغب مصطفى غلوش», the recordings meypod/al-azan uses
-  (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
-- Settings → Reminders → Close the call screen: when the adhan ends, or 1, 5 or 10 minutes after it appears (10,
-  as before, by default). Then it's back to what was playing. With no adhan playing (turned off, or stopped with
-  the button), "when the adhan ends" closes it after a minute. The call screen's hint says which.
-- Spoken reminder: «اقترب موعد صلاة …» with the reminder card or banner (Settings → Reminders, on by default).
-- Announce the time: «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off, either for all prayers
-  or by that prayer's bell (on by default). Friday says الجمعة. Both lower whatever is playing for a moment
-  instead of pausing it, and each is said once per prayer, also across a restart of the remote buttons service.
-  The 12 clips are not in the repo: `tools/make-voice.ps1` records them on Windows with its Arabic voice (e.g.
-  Microsoft Naayf) into `app/src/main/assets/announce/`; without them both stay silent. `--es test announce`
-  tries it; `--es test banner` and `--es test reminder` now say the reminder too.
+
+### Fixed
+- Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
+  ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
+  whole tiles, rings included, and moves a whole item at a time when it scrolls.
 
 ## [0.6.1] - 2026-10-25
 

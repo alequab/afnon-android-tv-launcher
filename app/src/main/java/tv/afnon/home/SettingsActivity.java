@@ -464,7 +464,7 @@ public class SettingsActivity extends Screen {
 
     /**
      * Adjust the times (as in meypod/al-azan): one of the six times, up to 30 minutes earlier or later, with what it
-     * is today under its name. Home, Prayer day, the reminders, the adhan and the wake alarm all use it.
+     * is today under its name. Home, Prayer day, the reminders and the adhan all use it.
      */
     private Row adjustRow(int prayer) {
         return new Row(STEP) {
