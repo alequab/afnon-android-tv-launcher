@@ -49,6 +49,8 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
 
 ### Changed
+- Calculation methods are `Method` objects (`Method.java`) instead of adhan-java's enum, so Afnon can define its own;
+  the saved ids are unchanged. The web preview mirrors the new method.
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
   is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
   Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
@@ -75,10 +77,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   whole tiles, rings included, and moves a whole item at a time when it scrolls.
 - The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
   arch: it stays on one line and gets a little smaller until it fits.
-
-### Changed
-- Calculation methods are `Method` objects (`Method.java`) instead of adhan-java's enum, so Afnon can define its own;
-  the saved ids are unchanged. The web preview mirrors the new method.
 
 ## [0.6.1] - 2026-10-25
 
