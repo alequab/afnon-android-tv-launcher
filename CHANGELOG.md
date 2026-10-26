@@ -77,6 +77,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   whole tiles, rings included, and moves a whole item at a time when it scrolls.
 - The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
   arch: it stays on one line and gets a little smaller until it fits.
+- Home's More row no longer repeats the favourites. It left out only the saved favourites, so when one of them
+  wasn't installed and another app filled its slot, that app showed in both rows. It now leaves out what the
+  favourites row shows.
+- TCL's remote pairing service (`com.tcl.tcl_bt_rcu_service`, "TCL_BT_RCU_Service") is no longer listed as an app:
+  its launcher entry is only a test screen.
 
 ## [0.6.1] - 2026-10-25
 
