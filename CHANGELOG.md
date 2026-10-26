@@ -7,6 +7,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ### Added
 - Albany, NY in the location list (ISNA method), now 137 cities. New York's times are up to 15 minutes off in
   Albany, NY over the year (Maghrib and Isha early in summer).
+- Indonesia: 44 more cities, 48 in all, largest first: the province capitals (for South and North Kalimantan and
+  North Maluku, their largest city: Banjarmasin, Tarakan, Ternate) and the other big cities, Bekasi, Depok and
+  Tangerang among them. Now 181 cities.
 - Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
   apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
   Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current
