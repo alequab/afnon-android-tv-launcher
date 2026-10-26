@@ -57,7 +57,7 @@ public class MainActivity extends Screen {
     private static final int LABEL_ABOVE_FAV = 468, LABEL_ABOVE_MORE = 712;
 
     private static final int ARCH = 0, WIFI = 1, SETTINGS = 2, F0 = 3, M0 = 7, ALL = 12, RADIO = 13, NIGHT = 14, LIVE = 15,
-        PANEL = 16, FULL = 17, NODES = 18;
+        PANEL = 16, FULL = 17, OTHER = 18, STOP = 19, NODES = 20;
     /**
      * The live panel (local only): the courtyard's whole width at 16:9, from the prayer strip's top, over the
      * strip and the favourites and More rows; the clock and dates stay above it.
@@ -104,10 +104,9 @@ public class MainActivity extends Screen {
      */
     private final Live live = new Live(state -> styleLive());
     private Icon liveIcon;
-    private TextView liveLabel, panelName, panelStatus;
-    private LinearLayout liveCard, panelSide;
-    /** The live card's buttons from the start side: Makkah, Madinah, and Stop while one is on. */
-    private FocusTile[] liveButtons;
+    private TextView liveLabel, panelName, panelStatus, otherLabel;
+    /** Under the panel's end corner: Full screen, the other mosque and Stop (nodes FULL, OTHER, STOP). */
+    private LinearLayout panelSide, panelButtons;
     private View favLabel, moreLabel;
     /** The panel filling the screen (nodes[FULL] toggles it), where it sits otherwise, and the fading hint. */
     private boolean fullScreen;
@@ -251,9 +250,11 @@ public class MainActivity extends Screen {
         newRoot();
         card = null;   // a reminder card went with the old root
         radioCard = null;
-        liveCard = null;
         nodes[PANEL] = null;   // and the live panel, put back at the end while it plays
         nodes[FULL] = null;
+        nodes[OTHER] = null;
+        nodes[STOP] = null;
+        panelButtons = null;
         fullScreen = false;
         fullHint = null;
         // The package manager is slow on this TV; a palette switch keeps the apps (and icons) it already has.
@@ -625,9 +626,11 @@ public class MainActivity extends Screen {
             h.add(t.hintApps());
         } else if (n == RADIO || n == NIGHT || n == LIVE) {
             h.add(t.hintOk(nodeLabel[n]));
-        } else if (n == PANEL || n == FULL) {
-            h.add(t.hintOk(n == FULL ? t.fullScreen() : t.liveTitle()));
+        } else if (n == PANEL || n == FULL || n == OTHER) {
+            h.add(t.hintOk(n == OTHER ? otherLabel.getText().toString() : t.fullScreen()));
             h.add(t.hintStop());
+        } else if (n == STOP) {
+            h.add(t.hintOk(t.radioStop()));
         } else if (n >= F0 && n < M0) {
             h.add(t.hintOk(t.open(nodeLabel[n])));
             h.add(t.hintMore());
@@ -781,16 +784,13 @@ public class MainActivity extends Screen {
         cardHints(cardPlay);
     }
 
-    /** The hints for the radio or the live card's focused button. */
+    /** The hints for the radio card's focused button. */
     private void cardHints(View focused) {
         if (hints == null) return;
         List<String> h = new ArrayList<>();
         if (radioCard != null) {
             h.add(t.hintOk(focused == cardDark ? t.screenOff() : focused == cardStation ? t.stationRow()
                 : (Radio.on() ? t.radioStop() : t.radioPlay())));
-        } else if (liveCard != null && liveButtons != null) {
-            int i = java.util.Arrays.asList(liveButtons).indexOf(focused);
-            h.add(t.hintOk(i == 2 ? t.radioStop() : t.livePlaces()[Math.max(0, i)]));
         } else {
             return;
         }
@@ -811,7 +811,7 @@ public class MainActivity extends Screen {
         if (!open) cardStation.requestFocus();
     }
 
-    /** A 68px pill on the radio or the live card, with an icon: lapis at rest, gold when focused. */
+    /** A 68px pill on the radio card, with an icon: lapis at rest, gold when focused. */
     private FocusTile cardPill(Icon icon, TextView v, String label) {
         FocusTile b = new FocusTile(this, 34);
         b.setRest(Tokens.LAPIS_900, Tokens.LINE_SOFT, 2);
@@ -844,7 +844,7 @@ public class MainActivity extends Screen {
 
     // ---------------------------------------------------------------- live from Makkah and Madinah (local only)
 
-    /** The header pill: «مباشر» with a screen icon; a gold outline while the video is on. OK opens its card. */
+    /** The header pill: «مباشر» with a screen icon; a gold outline while the video is on. OK plays Makkah, or goes to the buttons under the panel. */
     private View livePill() {
         FocusTile b = new FocusTile(this, 36);
         b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
@@ -865,101 +865,27 @@ public class MainActivity extends Screen {
             liveLabel.setTextColor(c);
             liveIcon.setColor(c);
         });
-        b.setOnClickListener(v -> showLiveCard());
+        b.setOnClickListener(v -> onLivePill());
         nodeLabel[LIVE] = t.live();
         return b;
     }
 
     /**
-     * The live card, hanging from the header like the radio card: Makkah and Madinah (the one on has a gold
-     * outline), and Stop while one is on. A choice plays on the panel and focus goes there; Back closes the card.
+     * The pill's OK: Makkah on the panel when nothing plays (the other mosque and Stop are under it); while one
+     * plays, focus goes down to the other mosque's button. The radio stops.
      */
-    private void showLiveCard() {
-        if (liveCard != null || radioCard != null || card != null) return;
-        liveCard = new LinearLayout(this);
-        liveCard.setOrientation(LinearLayout.VERTICAL);
-        liveCard.setPadding(Ui.ipx(36), Ui.ipx(30), Ui.ipx(36), Ui.ipx(30));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Tokens.LAPIS_700);
-        bg.setCornerRadius(Ui.px(24));
-        bg.setStroke(Ui.ipx(2), Tokens.GOLD_400_60);
-        liveCard.setBackground(bg);
-        liveCard.setClipChildren(false);
-        liveCard.setClipToPadding(false);
-
-        TextView label = caps(text(ui400, 20, Tokens.MIST_400));
-        label.setText(t.live());
-        TextView title = text(displayBold, 48, Tokens.PLASTER_100);
-        title.setText(t.liveTitle());
-        liveCard.addView(label);
-        liveCard.addView(title);
-        lineHeight(title, 1.15f);
-
-        LinearLayout buttons = new LinearLayout(this);
-        buttons.setClipChildren(false);
-        String[] places = t.livePlaces();
-        int on = live.state() == Live.OFF ? -1 : live.place();
-        liveButtons = new FocusTile[on < 0 ? 2 : 3];
-        float r = FocusTile.REACH;
-        for (int i = 0; i < liveButtons.length; i++) {
-            final int which = i;
-            boolean stop = i == 2;
-            FocusTile b = cardPill(new Icon(this, stop ? Icon.STOP : Icon.PLAY, 2f), text(ui400, 24, Tokens.PLASTER_100),
-                stop ? t.radioStop() : places[i]);
-            if (i == on) b.setRest(Tokens.LAPIS_900, Tokens.GOLD_400, 2);
-            b.setOnClickListener(v -> {
-                if (stop) {
-                    closeLiveCard(false);
-                    live.stop();
-                    nodes[LIVE].requestFocus();
-                } else {
-                    startLive(which);
-                }
-            });
-            LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r));
-            if (i > 0) blp.setMarginStart(Ui.ipx(16 - 2 * r));
-            buttons.addView(b, blp);
-            liveButtons[i] = b;
-        }
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, -2);
-        blp.topMargin = Ui.ipx(28 - r);
-        blp.setMarginStart(-Ui.ipx(r));
-        liveCard.addView(buttons, blp);
-
-        TextView note = text(ui400, 20, Tokens.MIST_400);
-        note.setText(t.liveNote());
-        LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(-1, -2);
-        nlp.topMargin = Ui.ipx(20 - r);
-        liveCard.addView(note, nlp);
-
-        // Where the radio card hangs: end-aligned with the Settings button, over the dates and the prayer strip.
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.ipx(720), -2, Gravity.TOP | Gravity.END);
-        lp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W)));
-        lp.topMargin = Ui.ipx(56 + 72 + 24);
-        root.addView(liveCard, lp);
-        for (View n : nodes) if (n != null) n.setFocusable(false);
-        liveButtons[0].requestFocus();
-        cardHints(liveButtons[0]);
-    }
-
-    /** Closes the live card; refocus puts focus back where it was opened (the panel, or the pill). */
-    private void closeLiveCard(boolean refocus) {
-        if (liveCard == null) return;
-        root.removeView(liveCard);
-        liveCard = null;
-        liveButtons = null;
-        for (View n : nodes) if (n != null) n.setFocusable(true);
-        if (refocus) nodes[nodes[PANEL] != null ? PANEL : LIVE].requestFocus();
+    private void onLivePill() {
+        if (card != null || radioCard != null) return;
+        if (live.state() == Live.OFF) live.start(this, Live.MAKKAH);
+        else if (nodes[OTHER] != null) nodes[OTHER].requestFocus();
     }
 
     /** Makkah or Madinah on the panel (the radio stops); focus goes to the panel. */
     private void startLive(int which) {
-        closeLiveCard(false);
         if (card != null || radioCard != null) return;
         live.start(this, which);
         if (nodes[PANEL] != null) nodes[PANEL].requestFocus();
     }
-
     /** Puts the pill and the panel in step with the live video: OFF takes the panel away. */
     private void styleLive() {
         int s = live.state();
@@ -972,6 +898,8 @@ public class MainActivity extends Screen {
         }
         if (nodes[PANEL] == null) showLivePanel();
         panelName.setText(t.livePlaces()[live.place()]);
+        otherLabel.setText(t.livePlaces()[1 - live.place()]);
+        if (nodes[OTHER].isFocused()) onNodeFocused(OTHER);   // its hint names the other mosque too
         panelStatus.setText(t.liveStatus(s));
         panelStatus.setTextColor(s == Live.FAILED ? Tokens.PLASTER_100 : Tokens.MIST_400);
         // Couldn't play: the message shows on the panel, and there is nothing to fill the screen with.
@@ -1014,9 +942,9 @@ public class MainActivity extends Screen {
             }
         });
         b.addView(video, new FrameLayout.LayoutParams(-1, -1));
-        b.setOnClickListener(v -> showLiveCard());
+        b.setOnClickListener(v -> enterFullScreen());
         b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(PANEL); });
-        b.setFocusable(liveCard == null && radioCard == null && card == null && chooser == null);
+        b.setFocusable(radioCard == null && card == null && chooser == null);
         nodes[PANEL] = b;
         placeTile(b, Tokens.COURT_X, PANEL_Y, PANEL_W, PANEL_H);
 
@@ -1035,35 +963,53 @@ public class MainActivity extends Screen {
         // Under the panel: the words at its start corner, Full screen at its end corner, centred on one line.
         float under = PANEL_Y + PANEL_H + 14;
         place(panelSide, Tokens.COURT_X, under, ViewGroup.LayoutParams.WRAP_CONTENT, 56);
-        nodes[FULL] = fullScreenButton(under);
+
+        // Under the panel's end corner, as on LG: Full screen, the other mosque (switched here, without the card)
+        // and Stop, a round button.
+        otherLabel = text(ui400, 22, Tokens.PLASTER_100);
+        TextView fullLabel = text(ui400, 22, Tokens.PLASTER_100);
+        fullLabel.setText(t.fullScreen());
+        nodes[FULL] = panelPill(FULL, Icon.EXPAND, fullLabel, v -> enterFullScreen());
+        nodes[OTHER] = panelPill(OTHER, Icon.LIVE, otherLabel, v -> {
+            if (live.place() >= 0) live.start(this, 1 - live.place());
+        });
+        nodes[STOP] = panelPill(STOP, Icon.STOP, null, v -> live.stop());
+        nodes[STOP].setContentDescription(t.radioStop());
+        panelButtons = new LinearLayout(this);
+        panelButtons.setClipChildren(false);
+        for (int n : new int[] {FULL, OTHER, STOP}) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(n == STOP ? Ui.ipx(56) : -2, -1);
+            if (n != FULL) lp.setMarginStart(Ui.ipx(16));
+            panelButtons.addView(nodes[n], lp);
+        }
+        placeEnd(panelButtons, 1920 - (Tokens.COURT_X + Tokens.COURT_W), under, ViewGroup.LayoutParams.WRAP_CONTENT, 56);
 
         rowsShown(false);
     }
 
-    /** «ملء الشاشة» with the expand icon, a 56px pill like the header's: OK fills the screen with the panel. */
-    private View fullScreenButton(float y) {
+    /** A 56px pill like the header's under the panel: its icon, and its words unless label is null (round). */
+    private FocusTile panelPill(int node, int glyph, TextView label, View.OnClickListener ok) {
         FocusTile b = new FocusTile(this, 28);
         b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
         LinearLayout row = new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(Ui.ipx(24), 0, Ui.ipx(28), 0);
-        Icon icon = new Icon(this, Icon.EXPAND, 2f);
-        TextView label = text(ui400, 22, Tokens.PLASTER_100);
-        label.setText(t.fullScreen());
+        row.setGravity(Gravity.CENTER);
+        if (label != null) row.setPadding(Ui.ipx(24), 0, Ui.ipx(28), 0);
+        Icon icon = new Icon(this, glyph, 2f);
         row.addView(icon, new LinearLayout.LayoutParams(Ui.ipx(24), Ui.ipx(24)));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-        lp.setMarginStart(Ui.ipx(12));
-        row.addView(label, lp);
-        b.addView(row, new FrameLayout.LayoutParams(-2, -1));
+        if (label != null) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
+            lp.setMarginStart(Ui.ipx(12));
+            row.addView(label, lp);
+        }
+        b.addView(row, new FrameLayout.LayoutParams(label != null ? -2 : -1, -1));
         b.setLook(f -> {
             int c = f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100;
-            label.setTextColor(c);
+            if (label != null) label.setTextColor(c);
             icon.setColor(c);
         });
-        b.setOnClickListener(v -> enterFullScreen());
-        b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(FULL); });
+        b.setOnClickListener(ok);
+        b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(node); });
         b.setFocusable(nodes[PANEL].isFocusable());
-        placeEnd(b, 1920 - (Tokens.COURT_X + Tokens.COURT_W), y, ViewGroup.LayoutParams.WRAP_CONTENT, 56);
         return b;
     }
 
@@ -1080,7 +1026,7 @@ public class MainActivity extends Screen {
         panel.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
         // Its video covers whatever was drawn before it; the two views added after it step aside, so only the
         // hint and the quality bar (added after these) draw over the video.
-        nodes[FULL].setVisibility(View.INVISIBLE);
+        panelButtons.setVisibility(View.INVISIBLE);
         panelSide.setVisibility(View.INVISIBLE);
         fullHint = text(ui400, 24, Tokens.PLASTER_100);
         fullHint.setPadding(Ui.ipx(28), Ui.ipx(12), Ui.ipx(28), Ui.ipx(12));
@@ -1094,14 +1040,19 @@ public class MainActivity extends Screen {
         flash(t.fullScreenHint(), 4000);
     }
 
-    /** Full screen's hint, or the quality just picked, for a moment. */
+    /** Full screen's hint, or the quality just picked, for a moment (a post waits, as for the quality bar). */
     private void flash(String s, long ms) {
         if (fullHint == null) return;
         fullHint.setText(s);
+        fullHint.removeCallbacks(fadeHint);
         fullHint.animate().cancel();
         fullHint.setAlpha(1);
-        fullHint.animate().alpha(0).setStartDelay(ms).setDuration(Tokens.MOTION_OVERLAY_FADE_MS);
+        fullHint.postDelayed(fadeHint, ms);
     }
+
+    private final Runnable fadeHint = () -> {
+        if (fullHint != null) fullHint.animate().alpha(0).setDuration(Tokens.MOTION_OVERLAY_FADE_MS);
+    };
 
     /**
      * Full screen's quality bar at the bottom, over the video: «الجودة», then each rendition the stream's master
@@ -1167,18 +1118,30 @@ public class MainActivity extends Screen {
         keepQualityBar();
     }
 
-    /** The bar fades away after a few seconds without a key; each key starts the wait again. */
+    /**
+     * The bar fades away after a few seconds without a key; each key starts the wait again. The wait is a post, not
+     * the fade's start delay: with the TV's animations off (animator duration scale 0) a delay is skipped too, and
+     * the bar closed as it opened.
+     */
     private void keepQualityBar() {
         LinearLayout bar = qualityBar;
         if (bar == null) return;
+        bar.removeCallbacks(fadeQualityBar);
         bar.animate().cancel();
         bar.setAlpha(1);
-        bar.animate().alpha(0).setStartDelay(5000).setDuration(Tokens.MOTION_OVERLAY_FADE_MS)
-            .withEndAction(() -> { if (qualityBar == bar) closeQualityBar(); });
+        bar.postDelayed(fadeQualityBar, 5000);
     }
+
+    private final Runnable fadeQualityBar = () -> {
+        LinearLayout bar = qualityBar;
+        if (bar == null) return;
+        bar.animate().alpha(0).setDuration(Tokens.MOTION_OVERLAY_FADE_MS)
+            .withEndAction(() -> { if (qualityBar == bar) closeQualityBar(); });
+    };
 
     private void closeQualityBar() {
         if (qualityBar == null) return;
+        qualityBar.removeCallbacks(fadeQualityBar);
         qualityBar.animate().cancel();
         root.removeView(qualityBar);
         qualityBar = null;
@@ -1211,6 +1174,7 @@ public class MainActivity extends Screen {
         panel.setPadding(r, r, r, r);
         panel.setLayoutParams(panelPlace);
         panelSide.setVisibility(View.VISIBLE);
+        panelButtons.setVisibility(View.VISIBLE);
         boolean failed = live.state() == Live.FAILED;
         nodes[FULL].setVisibility(failed ? View.INVISIBLE : View.VISIBLE);
         nodes[failed ? PANEL : FULL].requestFocus();
@@ -1229,8 +1193,8 @@ public class MainActivity extends Screen {
     private void closeLivePanel() {
         View panel = nodes[PANEL];
         if (panel == null) return;
-        boolean focused = panel.isFocused() || nodes[FULL].isFocused()
-            || (qualityButtons != null && java.util.Arrays.asList(qualityButtons).contains(getCurrentFocus()));
+        boolean focused = panel.isFocused() || nodes[FULL].isFocused() || nodes[OTHER].isFocused()
+            || nodes[STOP].isFocused() || (qualityButtons != null && java.util.Arrays.asList(qualityButtons).contains(getCurrentFocus()));
         if (fullScreen) {
             fullScreen = false;
             if (fullHint != null) root.removeView(fullHint);
@@ -1243,8 +1207,11 @@ public class MainActivity extends Screen {
             qualityButtons = null;
             qualityHeights = null;
         }
-        root.removeView(nodes[FULL]);
+        root.removeView(panelButtons);
+        panelButtons = null;
         nodes[FULL] = null;
+        nodes[OTHER] = null;
+        nodes[STOP] = null;
         nodes[PANEL] = null;
         rowsShown(true);
         root.removeView(panel);
@@ -1260,7 +1227,6 @@ public class MainActivity extends Screen {
         if (card != null) dismissReminder();
         exitFullScreen();
         closeRadioCard(false);
-        closeLiveCard(false);
         Date now = new Date();
         day = new PrayerDay(this, now);
         cardFor = day.nextTime;
@@ -1413,23 +1379,6 @@ public class MainActivity extends Screen {
             if (k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN) return true;
             return super.dispatchKeyEvent(e);
         }
-        if (liveCard != null) {
-            if (k == KeyEvent.KEYCODE_BACK) {
-                if (e.getAction() == KeyEvent.ACTION_UP) closeLiveCard(true);
-                return true;
-            }
-            if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                // Makkah, Madinah (and Stop) from the start side; toward the end is Left in Arabic.
-                boolean toEnd = (k == KeyEvent.KEYCODE_DPAD_RIGHT) != rtl;
-                if (e.getAction() == KeyEvent.ACTION_DOWN) {
-                    int i = java.util.Arrays.asList(liveButtons).indexOf(getCurrentFocus());
-                    liveButtons[i < 0 ? 0 : Math.max(0, Math.min(liveButtons.length - 1, i + (toEnd ? 1 : -1)))].requestFocus();
-                }
-                return true;
-            }
-            if (k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN) return true;
-            return super.dispatchKeyEvent(e);
-        }
         if (card != null) {
             if (k == KeyEvent.KEYCODE_BACK) {
                 if (e.getAction() == KeyEvent.ACTION_UP) dismissReminder();
@@ -1472,6 +1421,7 @@ public class MainActivity extends Screen {
         int to = -1;
         // While the live panel shows it stands for the favourites and More rows it covers.
         boolean panel = nodes[PANEL] != null;
+        boolean fullShown = panel && nodes[FULL].getVisibility() == View.VISIBLE;
         switch (from) {
             case ARCH: to = right ? (panel ? PANEL : F0) : up ? LIVE : -1; break;
             case LIVE: to = left ? ARCH : right ? RADIO : down ? (panel ? PANEL : F0) : -1; break;
@@ -1479,9 +1429,12 @@ public class MainActivity extends Screen {
             case WIFI: to = left ? RADIO : right ? NIGHT : down ? (panel ? PANEL : F0 + 2) : -1; break;
             case NIGHT: to = left ? WIFI : right ? SETTINGS : down ? (panel ? PANEL : F0 + 3) : -1; break;
             case SETTINGS: to = left ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case PANEL: to = left ? ARCH : up ? LIVE : down ? FULL : -1; break;
-            // Full screen sits under the panel's end corner, in the row of the arch's foot button.
-            case FULL: to = left ? ARCH : up ? PANEL : -1; break;
+            case PANEL: to = left ? ARCH : up ? LIVE : down ? (fullShown ? FULL : OTHER) : -1; break;
+            // Full screen, the other mosque and Stop sit under the panel's end corner, in the row of the arch's
+            // foot button. Full screen is hidden while the video couldn't play.
+            case FULL: to = left ? ARCH : right ? OTHER : up ? PANEL : -1; break;
+            case OTHER: to = left ? (fullShown ? FULL : ARCH) : right ? STOP : up ? PANEL : -1; break;
+            case STOP: to = left ? OTHER : up ? PANEL : -1; break;
             default:
                 if (from >= F0 && from < M0) {
                     int i = from - F0;

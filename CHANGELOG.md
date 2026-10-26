@@ -84,8 +84,15 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   Friday, Ramadan, the call screen and the screensaver show none.
 - The reminder can come 5, 10, 15, 20 or 30 minutes before each prayer (or not at all). Settings → Reminders →
   Remind me before prayer is now a list, like the adhan voices; 15 is still the default.
+- Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
+  card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
+  OK on the panel fills the screen.
 
 ### Fixed
+- The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
+  arch: it stays on one line and gets a little smaller until it fits.
+- Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
+  (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
 - Opening Settings (and Prayer day or All apps) no longer flashes a plain blue screen first. That was Android's
   starting window in the theme's ground colour, shown for the quarter second the screen takes to draw, and blue
   even in night mode. Afnon's screens now have none (`windowDisablePreview`), and open and close with no
