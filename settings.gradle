@@ -10,7 +10,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Only for :installer's ADB library and its SPAKE2 dependency.
+        maven {
+            url 'https://jitpack.io'
+            content { includeGroupByRegex 'com\\.github\\.MuntashirAkon.*' }
+        }
     }
 }
 rootProject.name = "afnon"
 include ':app'
+include ':installer'

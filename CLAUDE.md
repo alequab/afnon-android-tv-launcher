@@ -70,12 +70,23 @@ service. So filtering is off on TCL:
   3 broadcast, "intent":"<intent: URI>", "appnotinstall":{...}}]}`). It runs before apps see the key and swallows it.
 - `RemoteKeys.onServiceConnected` rewrites the mappings and turns key filtering on only where TCL remapping is
   unavailable (no feature `com.tcl.software.tinput_shortcut_config`, or no WRITE_SECURE_SETTINGS grant). The
-  button table is `APP_KEYS` plus `targets()` in `RemoteKeys.java`.
+  button table is pref `keys` (else `APP_KEYS`) plus `targets()` in `RemoteKeys.java`.
 - **TCL's code has no error handling; mistakes restart the TV's UI.** Changing `CustomKey_<n>` while n is not in
   `CustomKeyList` crashes it (this happened once). So: write the list first, keys a second later, never drop codes
   from the list (empty them). Every intent must name its package (TCL checks it is installed and otherwise runs
   `appnotinstall`, which must be a broadcast). Removing: delete keys before the list (`restore.sh` does), then reboot.
 - After any change here: `logcat -b crash -d | grep "SYSTEM PROCESS"` must stay empty, and hold-volume must work.
+
+## Phone installer (`installer/`)
+
+A separate phone app (plain Java, libadb-android, Conscrypt) that installs and sets up Afnon over ADB. It keeps no
+copies of what changes: the APK and `tools/setup-steps.txt` come from the latest release's tag (so a new setup step
+goes in that file, which `tools/install.sh` also runs, with a `?|` check line that exits 0 once it is in place on
+the TV; both tools skip a step whose check passes and require it to pass after the command), the cleanup list from `tools/clean-catalog.tsv` on main, and
+cities, apps, icons and buttons from the TV through `SetupProvider` (`content query/read/insert`, guarded by DUMP).
+That provider is a contract: add to it, bump `SetupProvider.API`, never break what's there. Remote buttons are pref
+`keys` (`KEY=package`, KEY a keycode name or number), defaulting to `RemoteKeys.APP_KEYS`.
+`--es screen <name>` opens any installer screen with sample data (debug builds); CI screenshots them.
 
 ## TCL specifics
 

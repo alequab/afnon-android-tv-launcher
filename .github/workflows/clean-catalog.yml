@@ -1,0 +1,29 @@
+# Refreshes tools/clean-catalog.tsv from cleanyourtv's per-TV lists every week. The phone installer reads the file
+# from main, so the refresh reaches every installer without updating it.
+name: Clean catalogue
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild from cleanyourtv
+        run: |
+          git clone -q --depth 1 https://github.com/Gathin23/cleanyourtv /tmp/cleanyourtv
+          python3 tools/gen-clean-catalog.py /tmp/cleanyourtv > tools/clean-catalog.tsv
+      - name: Commit if changed
+        run: |
+          # Only the header's source commit changed: nothing to publish.
+          if git diff --quiet -I '^# Generated' -- tools/clean-catalog.tsv; then exit 0; fi
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git commit -qam "Clean catalogue: refresh from cleanyourtv"
+          git push

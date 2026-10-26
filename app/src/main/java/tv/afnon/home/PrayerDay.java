@@ -3,7 +3,6 @@ package tv.afnon.home;
 import android.content.Context;
 import android.icu.util.IslamicCalendar;
 
-import com.batoulapps.adhan.CalculationMethod;
 import com.batoulapps.adhan.CalculationParameters;
 import com.batoulapps.adhan.Coordinates;
 import com.batoulapps.adhan.HighLatitudeRule;
@@ -44,8 +43,8 @@ final class PrayerDay {
         this(now, Prefs.where(c), Prefs.method(c), Prefs.madhab(c), Prefs.adjustments(c), Prefs.hijriOffset(c));
     }
 
-    PrayerDay(Date now, Coordinates where, CalculationMethod method, Madhab madhab, int[] adjust, int hijriOffset) {
-        CalculationParameters params = method.getParameters();
+    PrayerDay(Date now, Coordinates where, Method method, Madhab madhab, int[] adjust, int hijriOffset) {
+        CalculationParameters params = method.parameters();
         params.madhab = madhab;
         // Minutes added to each time (Settings → Adjust the times), to match a mosque's timetable.
         params.adjustments = new PrayerAdjustments(adjust[FAJR], adjust[SUNRISE], adjust[DHUHR], adjust[ASR],
@@ -57,7 +56,7 @@ final class PrayerDay {
         // Umm al-Qura's Isha is 2 hours after Maghrib in Ramadan, not 1½, as Saudi Arabia's calendar and al-azan
         // have it. An evening belongs to the next Hijri day, so this runs from the first night of Ramadan (the
         // first tarawih) to the last, and not on the night of Eid.
-        if (method == CalculationMethod.UMM_AL_QURA && hijriMonthOf(now, 1) == IslamicCalendar.RAMADAN) {
+        if (method == Method.UMM_AL_QURA && hijriMonthOf(now, 1) == IslamicCalendar.RAMADAN) {
             params.ishaInterval = 120;
         }
         PrayerTimes today = new PrayerTimes(where, DateComponents.from(now), params);

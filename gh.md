@@ -41,7 +41,7 @@ would have to uninstall and lose their settings. Keep a backup of that keystore 
    bash tools/fetch-announce.sh        # the 12 spoken lines (pip install edge-tts); no-op if there
    ls app/src/main/assets/adhan/*.mp3 | wc -l   # expect 14
    ls app/src/main/assets/announce/*.mp3 | wc -l   # expect 12
-   ./gradlew clean assembleDebug
+   ./gradlew clean :app:assembleDebug
    cp app/build/outputs/apk/debug/app-debug.apk afnon.apk
    ```
 5. **Check the APK.**
@@ -66,15 +66,21 @@ would have to uninstall and lose their settings. Keep a backup of that keystore 
    ```
 8. **Publish the release.** `gh` creates the tag on the pushed `main`, as it did for v0.1 (a lightweight tag).
    The asset must be named `afnon.apk`: the README's download link is `releases/latest/download/afnon.apk`.
+   Every release also carries the phone installer as `afnon-installer.apk` (the README links
+   `releases/latest/download/afnon-installer.apk`, so a release without it breaks that link). It downloads
+   `afnon.apk` from the latest release itself, so it only needs rebuilding when `installer/` changed, but attach it
+   each time:
    ```bash
-   gh release create vX.Y afnon.apk --target main --title "Afnon X.Y · أفنون" --notes-file notes.md
+   ./gradlew :installer:assembleDebug
+   cp installer/build/outputs/apk/debug/installer-debug.apk afnon-installer.apk
+   gh release create vX.Y afnon.apk afnon-installer.apk --target main --title "Afnon X.Y · أفنون" --notes-file notes.md
    git fetch --tags
    ```
    `notes.md`: the version's `CHANGELOG.md` section (plus a one-line Arabic summary), the install commands as in
    the v0.1 release, "Tested on a TCL 55P7K (Google TV, Android 12)", the debug-signing note, the APK's SHA-256,
    and the adhan credit line. Copy the layout of the v0.1 notes: `gh release view v0.1`.
 9. **Check it.** `gh release view vX.Y` shows the asset, the README download link fetches the new APK, and its
-   SHA-256 matches the notes. Delete the local `afnon.apk` and `notes.md` (APKs are git-ignored anyway).
+   SHA-256 matches the notes. Delete the local `afnon.apk`, `afnon-installer.apk` and `notes.md` (APKs are git-ignored anyway).
 
 ## What to update, by kind of change
 
