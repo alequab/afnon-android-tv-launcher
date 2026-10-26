@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic, for phones set to Arabic. English, the fallback, is in values/strings.xml; keep the two in step. -->
+<resources>
+    <string name="lang" translatable="false">ar</string>
+    <string name="app_name">مثبّت أفنون</string>
+
+    <string name="stage_prepare">التجهيز</string>
+    <string name="stage_connect">الاتصال</string>
+    <string name="stage_install">التثبيت</string>
+
+    <string name="guide_title">أفنون على تلفازك</string>
+    <string name="guide_lead">ثبّت أفنون من هذا الهاتف في دقائق، دون حاسوب. أولًا أربع خطوات على التلفاز بجهاز التحكم.</string>
+    <string name="g1_title">افتح «حول»</string>
+    <string name="g2_title">فعّل وضع المطوّر</string>
+    <string name="g2_body">اضغط عليه OK سبع مرات حتى تظهر رسالة أنك أصبحت مطوّرًا.</string>
+    <string name="g3_title">فعّل التصحيح</string>
+    <string name="g3_body">فعّل هذا الخيار. تسمّيه بعض الأجهزة «تصحيح ADB» أو «التصحيح عبر الشبكة»:</string>
+    <string name="g4_title">الشبكة نفسها</string>
+    <string name="g4_body">اجعل التلفاز وهذا الهاتف على شبكة الواي فاي نفسها.</string>
+    <string name="guide_ready">ابحث عن تلفازي</string>
+
+    <string name="find_title">البحث عن تلفازك</string>
+    <string name="find_lead">جارٍ البحث في شبكتك. اضغط على تلفازك حين يظهر.</string>
+    <string name="tv_found">تلفاز أندرويد</string>
+    <string name="badge_wireless">تصحيح لاسلكي</string>
+    <string name="badge_network">تصحيح عبر الشبكة</string>
+    <string name="badge_pair">جاهز للإقران</string>
+    <string name="help_title">لا يظهر تلفازك؟</string>
+    <string name="help_body">• تأكّد أن التصحيح مفعّل (الخطوة ٣).\n• تأكّد أن الجهازين على شبكة الواي فاي نفسها.\n• بعض أجهزة الراوتر تُخفي الأجهزة عن بعضها: اكتب عنوان التلفاز بدلًا من ذلك.</string>
+    <string name="manual_title">أو اكتب عنوانه</string>
+    <string name="manual_body">على التلفاز: الإعدادات › الشبكة › شبكتك. وللتصحيح اللاسلكي أضف المنفذ الظاهر هناك، مثل 192.168.1.50:41234.</string>
+    <string name="manual_hint">192.168.1.50</string>
+    <string name="connect">اتصال</string>
+    <string name="not_wifi_title">اتصل بشبكة التلفاز</string>
+    <string name="not_wifi">هذا الهاتف غير متصل بالواي فاي. اتصل بشبكة التلفاز نفسها ثم أعد المحاولة.</string>
+
+    <string name="connecting_title">جارٍ الاتصال</string>
+    <string name="connecting">جارٍ الوصول إلى %1$s…</string>
+    <string name="scanning_title">فحص التلفاز</string>
+    <string name="scanning">جارٍ البحث عن منفذ تصحيح مفتوح على %1$s. يستغرق ذلك نحو ١٥ ثانية.</string>
+    <string name="allow_title">اسمح على التلفاز</string>
+    <string name="allow_lead">تظهر رسالة على التلفاز:</string>
+    <string name="allow_1">ضع علامة على</string>
+    <string name="allow_2">ثم اختر بجهاز التحكم</string>
+    <string name="waiting">بانتظار التلفاز…</string>
+
+    <string name="pair_title">الإقران بالتلفاز</string>
+    <string name="pair_lead">يحتاج التصحيح اللاسلكي إلى رمز من التلفاز مرة واحدة.</string>
+    <string name="pair_1">على التلفاز افتح</string>
+    <string name="pair_2">اختر</string>
+    <string name="pair_3">اكتب الرمز المكوّن من ستة أرقام</string>
+    <string name="pair_port_found">منفذ الإقران %1$s</string>
+    <string name="pair_port_waiting">بانتظار نافذة الإقران على التلفاز…</string>
+    <string name="pair_port_hint">منفذ الإقران (الرقم بعد النقطتين على التلفاز)</string>
+    <string name="pair_button">إقران</string>
+    <string name="pairing">جارٍ الإقران…</string>
+
+    <string name="install_title">تثبيت أفنون</string>
+    <string name="install_lead_version">أفنون %1$s · أبقِ هذه الشاشة مفتوحة. يستغرق ذلك دقيقة أو اثنتين.</string>
+    <string name="install_lead">أبقِ هذه الشاشة مفتوحة. يستغرق ذلك دقيقة أو اثنتين.</string>
+    <string name="t_download">التنزيل من GitHub</string>
+    <string name="t_send">الإرسال إلى التلفاز</string>
+    <string name="mb_of">%1$s من %2$s ميغابايت</string>
+    <string name="old_signature_title">على التلفاز نسخة أخرى من أفنون</string>
+    <string name="old_signature_body">وُقّعت بمفتاح مختلف فلا يمكن تحديثها مباشرة. حذفها يحذف إعداداتها أيضًا (المدينة والمفضلة واختيارات الأذان). أتحذفها وتثبّت أحدث إصدار؟</string>
+    <string name="remove_and_install">احذف وثبّت</string>
+    <string name="cancel">إلغاء</string>
+
+
+    <string name="done_title">أفنون على تلفازك</string>
+    <string name="done_lead">ثُبّت أفنون %1$s وأُعدّ. أمسك جهاز التحكم.</string>
+    <string name="done_lead_plain">ثُبّت أفنون وأُعدّ. أمسك جهاز التحكم.</string>
+    <string name="done_partly_title">ثُبّت مع مشكلة</string>
+    <string name="done_partly_lead">أفنون على التلفاز، لكن خطوة باللون الأحمر لم تكتمل. شغّل المثبّت مرة أخرى لإعادتها.</string>
+    <string name="tip_title">أمر أخير</string>
+    <string name="tip_body">يمكنك الآن إيقاف «تصحيح أخطاء USB» و«تصحيح الأخطاء اللاسلكي» على التلفاز. وللتحديث لاحقًا فعّل التصحيح من جديد وافتح هذا التطبيق.</string>
+    <string name="finish">تم</string>
+    <string name="another">التثبيت على تلفاز آخر</string>
+
+    <string name="problem_title">لم ينجح ذلك</string>
+    <string name="error_connect">تعذّر الوصول إلى التلفاز (%1$s).</string>
+    <string name="not_accepted">لم يسمح التلفاز لهذا الهاتف. أعد المحاولة واختر «سماح» على التلفاز.</string>
+    <string name="scan_none">لا يوجد منفذ تصحيح مفتوح على %1$s.</string>
+    <string name="pair_failed">لم ينجح الإقران (%1$s). افتح نافذة الإقران على التلفاز من جديد؛ فهي تعرض رمزًا جديدًا كل مرة.</string>
+    <string name="install_failed">رفض التلفاز التثبيت: %1$s</string>
+    <string name="error_install">حدث خطأ: %1$s</string>
+    <string name="tv_too_old">يحتاج أفنون إلى أندرويد ٨ فما بعده على التلفاز.</string>
+    <string name="check_title">تحقّق من</string>
+    <string name="check_body">• التلفاز يعمل وغير نائم.\n• التصحيح مفعّل في خيارات المطوّرين.\n• التلفاز وهذا الهاتف على شبكة الواي فاي نفسها.</string>
+    <string name="try_again">أعد المحاولة</string>
+    <string name="steps_failed_lead">أفنون على التلفاز، لكن خطوة باللون الأحمر لم تكتمل. أعد المحاولة، أو تابِع وارجع إليها لاحقًا.</string>
+    <string name="back">رجوع</string>
+
+    <!-- Make it yours -->
+    <string name="stage_personal">تخصيص</string>
+    <string name="found_heading">على شبكتك</string>
+    <string name="already_on_tv">أفنون %1$s مثبّت على التلفاز بالفعل</string>
+    <string name="continue_">متابعة</string>
+    <string name="skip">تخطٍّ</string>
+    <string name="personal_title">اجعله لك</string>
+    <string name="personal_loading">جارٍ قراءة تطبيقات التلفاز وإعداداته…</string>
+    <string name="personal_old">لاختيار المدينة والمفضلة من الهاتف يحتاج التلفاز إلى إصدار أفنون التالي. وإلى حينه اضبطهما من إعدادات أفنون على التلفاز.</string>
+    <string name="prayer_title">مواقيت الصلاة</string>
+    <string name="prayer_lead">يعرض أفنون مواقيت مدينتك ويرفع الأذان وحده.</string>
+    <string name="city_label">مدينتك</string>
+    <string name="lang_label">لغة التلفاز</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_en">English</string>
+    <string name="lang_tv">مثل التلفاز</string>
+    <string name="adhan_label">الأذان عند دخول الوقت</string>
+    <string name="remind_label">تذكير صوتي قبل كل صلاة</string>
+    <string name="city_title">مدينتك</string>
+    <string name="city_lead">تتبع كل مدينة طريقة الحساب التي تعتمدها مساجدها.</string>
+    <string name="city_search">ابحث عن مدينة أو دولة</string>
+    <string name="city_none">لا توجد مدينة بهذا الاسم. جرّب اسم الدولة أو مدينة قريبة.</string>
+    <string name="fav_title">تطبيقاتك المفضلة الأربعة</string>
+    <string name="fav_lead">تأتي أولًا في الشاشة الرئيسية. اضغط عليها بالترتيب الذي تريده.</string>
+    <string name="fav_count">%1$d من ٤</string>
+    <string name="clean_title">نظّف تلفازك</string>
+    <string name="clean_lead">أوقف الإعلانات والتتبّع والتطبيقات التي لا تستخدمها. لا يُحذف شيء، ويمكنك إعادة تشغيلها كلها.</string>
+    <string name="clean_loading">جارٍ فحص ما على التلفاز…</string>
+    <string name="saving">جارٍ الحفظ على التلفاز…</string>
+    <string name="clean_none">لا شيء للتنظيف: التلفاز نظيف بالفعل.</string>
+    <string name="clean_offline">تعذّر تنزيل قائمة التنظيف. تحقّق من إنترنت الهاتف وحاول لاحقًا.</string>
+    <string name="clean_button">أوقف %1$s</string>
+    <string name="clean_more">أظهر %1$s أخرى</string>
+    <string name="clean_kept">يحتفظ به بعض المالكين</string>
+    <string name="clean_earlier">%1$s ما زالت متوقفة من تنظيف سابق</string>
+    <string name="clean_undo">أعد تشغيلها</string>
+    <string name="clean_credit">القوائم من cleanyourtv، كتبها مالكو ٢٦٠ طرازًا من أجهزة التلفاز.</string>
+    <string name="kind_tracking">التتبّع والتحليلات</string>
+    <string name="kind_ads">الإعلانات والعروض</string>
+    <string name="kind_demo">وضع العرض في المتاجر</string>
+    <string name="kind_launcher">الشاشة الرئيسية القديمة</string>
+    <string name="kind_apps">تطبيقات مثبّتة مسبقًا</string>
+    <string name="kind_background">خدمات إضافية في الخلفية</string>
+    <string name="cleaning_title">جارٍ التنظيف</string>
+    <string name="cleaning">%1$s من %2$s</string>
+    <string name="restoring_title">جارٍ إعادة تشغيل التطبيقات</string>
+    <string name="sum_city">مواقيت الصلاة لـ%1$s</string>
+    <string name="sum_favourites">المفضلة: %1$s</string>
+    <string name="sum_cleaned">أُوقف %1$s من التطبيقات</string>
+
+    <!-- Three states: not set, set, checked on the TV -->
+    <string name="state_init">غير مضبوط</string>
+    <string name="state_done">مضبوط</string>
+    <string name="state_checked">مُتحقَّق منه على التلفاز</string>
+    <string name="state_was_set">مضبوط على التلفاز من قبل</string>
+    <string name="state_not_here">غير متاح في هذا التلفاز</string>
+    <string name="state_failed">ضُبط، لكن التلفاز لا يُظهره</string>
+    <string name="clean_still_off">تحقّقنا الآن: ما زالت متوقفة على التلفاز.</string>
+    <string name="clean_back_on">عاد للعمل بعد آخر تنظيف</string>
+    <string name="cleaned_checked">تأكّد إيقاف %1$s من %2$s على التلفاز</string>
+
+    <string name="guide_both">قوائم التلفاز معروضة بالعربية والإنجليزية</string>
+    <string name="g3_wireless">وإن وجدت هذا أيضًا ففعّله:</string>
+</resources>

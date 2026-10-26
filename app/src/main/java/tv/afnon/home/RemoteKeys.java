@@ -27,8 +27,11 @@ import java.util.Map;
  */
 public class RemoteKeys extends AccessibilityService {
 
-    /** Key name (TCL names resolve on this firmware only) or keycode -> the app it opens. */
-    private static final String[][] APP_KEYS = {
+    /**
+     * Key name (TCL names resolve on this firmware only) or keycode -> the app it opens. The default; the phone
+     * installer replaces it through {@link SetupProvider} (pref "keys": "KEY=package,KEY=package").
+     */
+    static final String[][] APP_KEYS = {
         {"KEYCODE_BUTTON_3", "com.google.android.youtube.tv"},
         {"KEYCODE_TCL_YOUTUBE", "com.google.android.youtube.tv"},
         {"KEYCODE_TCL_NETFLIX", "net.mbc.shahidTV"},
@@ -43,17 +46,14 @@ public class RemoteKeys extends AccessibilityService {
     private final Map<Integer, String> appKeys = new HashMap<>();
     /** The running watch, for Home's test hook; null while the service is off. */
     static PrayerWatch watch;
+    /** The running service, so a new button table applies at once; null while the service is off. */
+    private static RemoteKeys running;
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        appKeys.clear();
-        for (String[] k : APP_KEYS) {
-            int code = KeyEvent.keyCodeFromString(k[0]);
-            if (code > 0) appKeys.put(code, k[1]);
-        }
-        boolean tcl = TclKeys.install(this, targets());
-        filterKeys(!tcl && FirmwareKeys.shouldFilter(this));
+        running = this;
+        applyKeys();
         // The radio may have left the TV's sleep timer off (a crash, a reboot mid-listen): put it back.
         Radio.restoreSleep(this);
         if (watch != null) watch.stop();
@@ -64,8 +64,43 @@ public class RemoteKeys extends AccessibilityService {
         Wake.schedule(this);
     }
 
+    /** The button table: the saved one, else {@link #APP_KEYS}. */
+    static String[][] keys(android.content.Context c) {
+        String saved = Prefs.of(c).getString("keys", null);
+        if (saved == null) return APP_KEYS;
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        for (String pair : saved.split(",")) {
+            int eq = pair.indexOf('=');
+            if (eq > 0 && eq < pair.length() - 1) out.add(new String[] {pair.substring(0, eq).trim(), pair.substring(eq + 1).trim()});
+        }
+        return out.toArray(new String[0][]);
+    }
+
+    /** A key's code from its name ("KEYCODE_TCL_NETFLIX" or "TCL_NETFLIX") or its number ("4159"); 0 if unknown. */
+    static int code(String name) {
+        if (name.matches("\\d+")) return Integer.parseInt(name);
+        int code = KeyEvent.keyCodeFromString(name.startsWith("KEYCODE_") ? name : "KEYCODE_" + name);
+        return Math.max(code, 0);
+    }
+
+    /** Re-reads the button table and hands it to the firmware again. Main thread. */
+    static void reload() {
+        if (running != null) running.applyKeys();
+    }
+
+    private void applyKeys() {
+        appKeys.clear();
+        for (String[] k : keys(this)) {
+            int code = code(k[0]);
+            if (code > 0) appKeys.put(code, k[1]);
+        }
+        boolean tcl = TclKeys.install(this, targets());
+        filterKeys(!tcl && FirmwareKeys.shouldFilter(this));
+    }
+
     @Override
     public void onDestroy() {
+        if (running == this) running = null;
         if (watch != null) watch.stop();
         watch = null;
         super.onDestroy();

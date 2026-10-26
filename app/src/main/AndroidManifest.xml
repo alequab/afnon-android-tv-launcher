@@ -140,6 +140,14 @@
             </intent-filter>
         </service>
 
+        <!-- What the phone installer reads and sets over ADB (SetupProvider). DUMP: the shell holds it, apps don't. -->
+        <provider
+            android:name=".SetupProvider"
+            android:authorities="tv.afnon.home.setup"
+            android:exported="true"
+            android:readPermission="android.permission.DUMP"
+            android:writePermission="android.permission.DUMP" />
+
         <!-- Remote buttons. Turned on with:
              settings put secure enabled_accessibility_services tv.afnon.home/.RemoteKeys -->
         <service

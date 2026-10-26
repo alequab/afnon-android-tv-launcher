@@ -118,7 +118,10 @@ final class Apps {
         return out;
     }
 
-    /** Always four for Home: the saved favourites that are installed, topped up from the rest if some went away. */
+    /**
+     * Four for Home: the saved favourites that are installed, topped up from the rest if some went away. Fewer on
+     * a TV with fewer apps; Home shows the missing ones as empty tiles.
+     */
     static List<String> slots(Context c, Text t) {
         List<String> installed = installed(c);
         List<String> out = new ArrayList<>();
@@ -145,6 +148,7 @@ final class Apps {
     }
 
     static Drawable icon(Context c, String pkg) {
+        if (pkg == null) return null;
         try {
             return c.getPackageManager().getApplicationIcon(pkg);
         } catch (PackageManager.NameNotFoundException e) {

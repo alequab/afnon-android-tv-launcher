@@ -82,7 +82,7 @@ can't be committed, add them to `tools/fetch-adhans.sh`.
 
 - One topic per PR. Small is fine.
 - Say which TV you tested on, and attach screenshots.
-- `./gradlew assembleDebug` must build with no new warnings.
+- `./gradlew :app:assembleDebug` must build with no new warnings.
 - **No personal data.** Before you push, check screenshots and logs for your Wi-Fi name, IP
   addresses, serial numbers, your home city or room direction if you'd rather keep them private,
   and other apps' content playing behind Afnon. Never commit `state/` or `local.properties`.

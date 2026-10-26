@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English, the fallback for every other language. Arabic is in values-ar/strings.xml; keep the two in step.
+     (Arabic is not the unqualified default: Android would then pick values-en for an Arabic phone with English
+     as a second language, since an exact match on a later language beats the default.) -->
+<resources>
+    <string name="lang" translatable="false">en</string>
+    <string name="app_name">Afnon Installer</string>
+
+    <string name="stage_prepare">Prepare</string>
+    <string name="stage_connect">Connect</string>
+    <string name="stage_install">Install</string>
+
+    <string name="guide_title">Afnon on your TV</string>
+    <string name="guide_lead">Install Afnon from this phone in a few minutes, no computer needed. First, four steps on the TV with its remote.</string>
+    <string name="g1_title">Open About</string>
+    <string name="g2_title">Become a developer</string>
+    <string name="g2_body">Press OK on it 7 times, until the TV says you are now a developer.</string>
+    <string name="g3_title">Turn on debugging</string>
+    <string name="g3_body">Turn this on. Some TVs call it ADB or Network debugging:</string>
+    <string name="g4_title">Same Wi-Fi</string>
+    <string name="g4_body">Keep the TV and this phone on the same Wi-Fi network.</string>
+    <string name="guide_ready">Find my TV</string>
+
+    <string name="find_title">Looking for your TV</string>
+    <string name="find_lead">Searching your Wi-Fi. Tap your TV when it appears.</string>
+    <string name="tv_found">Android TV</string>
+    <string name="badge_wireless">Wireless debugging</string>
+    <string name="badge_network">Network debugging</string>
+    <string name="badge_pair">Ready to pair</string>
+    <string name="help_title">Not seeing your TV?</string>
+    <string name="help_body">• Check that debugging is on (step 3).\n• Make sure both are on the same Wi-Fi.\n• Some routers hide devices from each other: type the TV’s address instead.</string>
+    <string name="manual_title">Or type its address</string>
+    <string name="manual_body">On the TV: Settings › Network › your Wi-Fi. For Wireless debugging, add the port it shows, like 192.168.1.50:41234.</string>
+    <string name="manual_hint">192.168.1.50</string>
+    <string name="connect">Connect</string>
+    <string name="not_wifi_title">Join the TV’s Wi-Fi</string>
+    <string name="not_wifi">This phone isn’t on Wi-Fi. Connect to the same network as the TV, then try again.</string>
+
+    <string name="connecting_title">Connecting</string>
+    <string name="connecting">Reaching %1$s…</string>
+    <string name="scanning_title">Checking the TV</string>
+    <string name="scanning">Looking for an open debugging port on %1$s. This takes about 15 seconds.</string>
+    <string name="allow_title">Allow on the TV</string>
+    <string name="allow_lead">A message appears on the TV:</string>
+    <string name="allow_1">Tick</string>
+    <string name="allow_2">Then choose, with the remote</string>
+    <string name="waiting">Waiting for the TV…</string>
+
+    <string name="pair_title">Pair with the TV</string>
+    <string name="pair_lead">Wireless debugging needs a one-time code from the TV.</string>
+    <string name="pair_1">On the TV, open</string>
+    <string name="pair_2">Choose</string>
+    <string name="pair_3">Type the six-digit code it shows</string>
+    <string name="pair_port_found">Pairing port %1$s</string>
+    <string name="pair_port_waiting">Waiting for the pairing dialog on the TV…</string>
+    <string name="pair_port_hint">Pairing port (after the colon on the TV)</string>
+    <string name="pair_button">Pair</string>
+    <string name="pairing">Pairing…</string>
+
+    <string name="install_title">Installing Afnon</string>
+    <string name="install_lead_version">Afnon %1$s · keep this screen open. It takes a minute or two.</string>
+    <string name="install_lead">Keep this screen open. It takes a minute or two.</string>
+    <string name="t_download">Download from GitHub</string>
+    <string name="t_send">Send to the TV</string>
+    <string name="mb_of">%1$s of %2$s MB</string>
+    <string name="old_signature_title">Another copy of Afnon is on the TV</string>
+    <string name="old_signature_body">It was signed with a different key, so it can’t be updated in place. Removing it also removes its settings (city, favourites, adhan choices). Remove it and install the latest?</string>
+    <string name="remove_and_install">Remove and install</string>
+    <string name="cancel">Cancel</string>
+
+
+    <string name="done_title">Afnon is on your TV</string>
+    <string name="done_lead">Afnon %1$s is installed and set up. Pick up the remote.</string>
+    <string name="done_lead_plain">Afnon is installed and set up. Pick up the remote.</string>
+    <string name="done_partly_title">Installed, with a problem</string>
+    <string name="done_partly_lead">Afnon is on the TV, but a step marked in red didn’t finish. Run the installer again to retry it.</string>
+    <string name="tip_title">One more thing</string>
+    <string name="tip_body">You can turn off USB debugging and Wireless debugging on the TV now. To update Afnon later, turn debugging back on and open this app again.</string>
+    <string name="finish">Done</string>
+    <string name="another">Install on another TV</string>
+
+    <string name="problem_title">That didn’t work</string>
+    <string name="error_connect">Couldn’t reach the TV (%1$s).</string>
+    <string name="not_accepted">The TV didn’t allow this phone. Try again and choose Allow on the TV.</string>
+    <string name="scan_none">No debugging port is open on %1$s.</string>
+    <string name="pair_failed">Pairing didn’t work (%1$s). Open the pairing dialog on the TV again; it shows a new code each time.</string>
+    <string name="install_failed">The TV refused the install: %1$s</string>
+    <string name="error_install">Something went wrong: %1$s</string>
+    <string name="tv_too_old">Afnon needs Android 8 or later on the TV.</string>
+    <string name="check_title">Things to check</string>
+    <string name="check_body">• The TV is on and awake.\n• Debugging is on in Developer options.\n• The TV and this phone are on the same Wi-Fi.</string>
+    <string name="try_again">Try again</string>
+    <string name="steps_failed_lead">Afnon is on the TV, but a step marked in red didn’t finish. Try it again, or continue and come back to it later.</string>
+    <string name="back">Back</string>
+
+    <!-- Make it yours -->
+    <string name="stage_personal">Set up</string>
+    <string name="found_heading">On your Wi-Fi</string>
+    <string name="already_on_tv">Afnon %1$s is already on the TV</string>
+    <string name="continue_">Continue</string>
+    <string name="skip">Skip</string>
+    <string name="personal_title">Make it yours</string>
+    <string name="personal_loading">Reading the TV’s apps and settings…</string>
+    <string name="personal_old">To choose the city and favourites from the phone, the TV needs the next Afnon release. Until then, set them in Afnon’s Settings on the TV.</string>
+    <string name="prayer_title">Prayer times</string>
+    <string name="prayer_lead">Afnon shows the times for your city and calls the adhan by itself.</string>
+    <string name="city_label">Your city</string>
+    <string name="lang_label">Language on the TV</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_en">English</string>
+    <string name="lang_tv">Like the TV</string>
+    <string name="adhan_label">Adhan at prayer time</string>
+    <string name="remind_label">Spoken reminder before each prayer</string>
+    <string name="city_title">Your city</string>
+    <string name="city_lead">Each city uses the method its mosques follow.</string>
+    <string name="city_search">Search a city or country</string>
+    <string name="city_none">No city by that name. Try its country, or a nearby city.</string>
+    <string name="fav_title">Your four favourites</string>
+    <string name="fav_lead">They sit first on the home screen. Tap them in the order you want.</string>
+    <string name="fav_count">%1$d of 4</string>
+    <string name="clean_title">Clean up your TV</string>
+    <string name="clean_lead">Turn off ads, tracking and apps you don’t use. Nothing is uninstalled, and you can turn it all back on.</string>
+    <string name="clean_loading">Checking what’s on the TV…</string>
+    <string name="saving">Saving on the TV…</string>
+    <string name="clean_none">Nothing to clean: this TV is already tidy.</string>
+    <string name="clean_offline">The cleanup list couldn’t be downloaded. Check the phone’s internet and try again later.</string>
+    <string name="clean_button">Turn off %1$s</string>
+    <string name="clean_more">Show %1$s more</string>
+    <string name="clean_kept">some owners keep this</string>
+    <string name="clean_earlier">%1$s still off from an earlier cleanup</string>
+    <string name="clean_undo">Turn them back on</string>
+    <string name="clean_credit">Lists from cleanyourtv, written by owners of 260 TV models.</string>
+    <string name="kind_tracking">Tracking and analytics</string>
+    <string name="kind_ads">Ads and promos</string>
+    <string name="kind_demo">Store demo</string>
+    <string name="kind_launcher">The old home screen</string>
+    <string name="kind_apps">Preloaded apps</string>
+    <string name="kind_background">Background extras</string>
+    <string name="cleaning_title">Cleaning up</string>
+    <string name="cleaning">%1$s of %2$s</string>
+    <string name="restoring_title">Turning apps back on</string>
+    <string name="sum_city">Prayer times for %1$s</string>
+    <string name="sum_favourites">Favourites: %1$s</string>
+    <string name="sum_cleaned">%1$s apps turned off</string>
+
+    <!-- Three states: not set, set, checked on the TV -->
+    <string name="state_init">Not set</string>
+    <string name="state_done">Set</string>
+    <string name="state_checked">Checked on the TV</string>
+    <string name="state_was_set">Already in place on the TV</string>
+    <string name="state_not_here">Not on this TV</string>
+    <string name="state_failed">Set, but the TV doesn’t show it</string>
+    <string name="clean_still_off">Checked just now: they are still off on the TV.</string>
+    <string name="clean_back_on">Back on since the last cleanup</string>
+    <string name="cleaned_checked">%1$s of %2$s confirmed off on the TV</string>
+
+    <string name="guide_both">TV menus are shown in Arabic and English</string>
+    <string name="g3_wireless">If you also see this, turn it on too:</string>
+</resources>

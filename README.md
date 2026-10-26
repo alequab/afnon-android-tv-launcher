@@ -6,7 +6,7 @@
 
 <p dir="rtl"><b>أفنون: شاشة رئيسية لتلفاز أندرويد، تدور حول يوم الصلاة: المواقيت والقبلة والأذان وإذاعة القرآن الكريم.</b></p>
 
-Arabic first (RTL) and English · Offline prayer times for 136 cities · 16 adhan voices · Qibla · 18 Quran radio stations and reciters
+Arabic first (RTL) and English · Offline prayer times for 192 cities · 16 adhan voices · Qibla · 18 Quran radio stations and reciters
 
 **[⬇ Download the APK](https://github.com/egyjs/afnon-android-tv-launcher/releases/latest/download/afnon.apk)** · [Releases](https://github.com/egyjs/afnon-android-tv-launcher/releases) · **[Try it in your browser](https://egyjs.github.io/afnon-android-tv-launcher/)**
 
@@ -54,10 +54,12 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
 ## Features
 
 - **Prayer times, fully offline.** Calculated on the TV with
-  [adhan-java](https://github.com/batoulapps/adhan-java). It ships with 136 cities in 43 countries across
+  [adhan-java](https://github.com/batoulapps/adhan-java). It ships with 192 cities in 43 countries across
   the Arab world, Asia, Europe, the Americas, Africa and Oceania, picked by region, then country, then city. Each
   city starts on the method and Asr school its mosques use; you can still choose the calculation method (Egyptian,
-  Umm al-Qura, MWL, Karachi and more), the Asr school (Shafi'i or Hanafi) and a Hijri date offset. The Hijri date and Ramadan mode always use the
+  Umm al-Qura, MWL, Karachi, Oman's Ministry of Awqaf and more), the Asr school (Shafi'i or Hanafi) and a Hijri date offset. Oman's cities start on the Ministry of
+  Awqaf's method, fitted to its [published timetable](https://www.mara.gov.om/arabic/calendar_page1.asp) so every
+  prayer is within a minute or two of it (see `Method.OMAN_AWQAF`). The Hijri date and Ramadan mode always use the
   Umm al-Qura calendar, so where local moon sighting differs (the United States, for one) set the offset.
 - **Qibla and room direction.** The Qibla bearing from your city, and a one-time "which way does
   the TV face" setting, so the screen can say *"Qibla is behind you"*.
@@ -112,6 +114,26 @@ nothing from other sites except the station's stream when you press Play, and ke
 
 ## Install
 
+### Easiest: from your phone
+
+No computer needed. Install [`afnon-installer.apk`](https://github.com/egyjs/afnon-android-tv-launcher/releases/latest/download/afnon-installer.apk)
+on an Android phone (8 or later) on the same Wi-Fi as the TV, open it and follow the screens:
+
+1. **Prepare.** How to turn on Developer options and USB debugging (or Wireless debugging) on the TV.
+2. **Connect.** TVs on the Wi-Fi appear by themselves (mDNS for classic debugging, Wireless debugging's random
+   port and the pairing port, and a sweep for port 5555); or type the address, with or without a port. Then accept
+   "Allow USB debugging?" on the TV, or type the six-digit pairing code it shows.
+3. **Install.** The latest `afnon.apk` from this repo's releases (skipped when the TV already has it), then the
+   steps in [`tools/setup-steps.txt`](tools/setup-steps.txt) at that release's tag, the same file
+   `tools/install.sh` runs.
+4. **Make it yours.** The city and prayer settings, the four favourites (with the TV's own app icons) and a
+   cleanup: ads, tracking and preloaded apps, turned off (never uninstalled) from
+   [`tools/clean-catalog.tsv`](tools/clean-catalog.tsv), with an undo.
+
+The installer keeps no copies of what can change: the APK, the setup steps and the cleanup list come from GitHub,
+and the cities and apps from Afnon on the TV (`SetupProvider`), so a new Afnon release needs no new
+installer. Source in `installer/` (plain Java, an ADB client library and Conscrypt for TLS).
+
 ### Quick: the APK
 
 Download [`afnon.apk`](https://github.com/egyjs/afnon-android-tv-launcher/releases/latest/download/afnon.apk) from the latest release, then:
@@ -128,6 +150,10 @@ adb -s $TV shell pm grant tv.afnon.home android.permission.ACCESS_FINE_LOCATION
 ```
 
 Then turn on **Afnon remote buttons** in the TV's Settings → Accessibility. The APK includes the adhan recordings.
+
+If Home still opens the stock launcher (stock Android TV and Google TV keep theirs ahead of any app), use the
+phone installer or `tools/install.sh`: they turn the stock launcher off behind a safety switch that turns it back
+on if Afnon doesn't come up, and the installer's cleanup can undo it.
 
 ### From source
 
@@ -232,6 +258,9 @@ app/src/main/java/tv/afnon/home/
   Announce            The spoken reminder and «حان الآن موعد صلاة …»
   Wake, WakeReceiver  Turning the TV on from standby for the adhan (one alarm, for the next picked prayer)
   PrayerDay, Prefs, Reminders, Adhans, Text, Tokens, Ui …
+installer/            The phone app that installs and sets up Afnon over ADB (Finder, Adb, Tv, Setup, Personalise)
+tools/setup-steps.txt What Afnon needs after install: one list for install.sh and the phone installer
+tools/clean-catalog.tsv  The cleanup list, built weekly from cleanyourtv by tools/gen-clean-catalog.py
 tools/                install, restore, disable/enable, fetch-adhans, fetch-announce, screenshot
 docs/screenshots/     the images above, all from the real TV
 ```
@@ -245,7 +274,7 @@ docs/screenshots/     the images above, all from the real TV
 **أفنون** شاشة رئيسية لتلفاز أندرويد، تبدأ من يوم الصلاة. الصلاة القادمة والعدّ التنازلي في قلب
 محراب، ومواقيت اليوم الستة في الأعلى، وتطبيقاتك المفضلة تحتها. ويأتي الأذان إلى التلفاز وحده في وقته.
 
-- **مواقيت بلا إنترنت**: تُحسب على التلفاز نفسه، مع ١٣٦ مدينة في ٤٣ دولة تُختار بالمنطقة ثم الدولة ثم المدينة، وعدة طرق حساب، والمذهب الشافعي أو الحنفي في
+- **مواقيت بلا إنترنت**: تُحسب على التلفاز نفسه، مع ١٩٢ مدينة في ٤٣ دولة تُختار بالمنطقة ثم الدولة ثم المدينة، وعدة طرق حساب، والمذهب الشافعي أو الحنفي في
   العصر، وتعديل التاريخ الهجري. التاريخ الهجري ووضع رمضان يعتمدان دائمًا على تقويم أم القرى، فإن اختلفت رؤية الهلال
   المحلية (كما في الولايات المتحدة) فاضبط التعديل.
 - **القبلة واتجاه الغرفة**: اتجاه القبلة من مدينتك، وإعداد لمرة واحدة لاتجاه التلفاز، فتقول لك الشاشة
