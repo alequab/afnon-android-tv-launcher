@@ -306,7 +306,6 @@ final class Prefs {
 
     static void setAdjustment(Context c, int prayer, int minutes) {
         of(c).edit().putInt("adjust_" + prayer, Math.max(-30, Math.min(30, minutes))).apply();
-        Wake.schedule(c);
     }
 
     // ---------------------------------------------------------------- reminders
