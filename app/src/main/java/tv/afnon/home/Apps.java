@@ -34,9 +34,12 @@ final class Apps {
     static final String[] MORE_FIRST = {
         "com.google.android.youtube.tvmusic", "com.android.vending", "com.tcl.ui_mediaCenter",
         "com.alphainventor.filemanager", "com.sami.salaty_tv"};
-    /** Never listed: this launcher, the previous one, and the TV's own input/Live TV plumbing. */
+    /**
+     * Never listed: this launcher, the previous one, the TV's own input/Live TV plumbing, and TCL's remote pairing
+     * service, whose launcher entry is only a test screen ("TCL_BT_RCU_Service").
+     */
     private static final Set<String> HIDDEN = new HashSet<>(Arrays.asList(
-        "tv.afnon.home", "com.gathin.tvhome", "com.tcl.suspension", "com.tcl.tv"));
+        "tv.afnon.home", "com.gathin.tvhome", "com.tcl.suspension", "com.tcl.tv", "com.tcl.tcl_bt_rcu_service"));
 
     private static final Map<String, String> AR_NAMES = new HashMap<>();
     private static final Map<String, String> EN_NAMES = new HashMap<>();
@@ -93,9 +96,13 @@ final class Apps {
         return out;
     }
 
-    /** Home's "More" row: the preferred picks that are installed and not favourites, filled up from the rest. */
+    /**
+     * Home's "More" row: the preferred picks that are installed and not on the favourites row, filled up from the
+     * rest. The row is what Home shows (slots), not only the saved favourites: when a saved one isn't installed,
+     * another app fills its slot and would otherwise show twice.
+     */
     static List<String> more(Context c, Text t, int count) {
-        List<String> favs = favourites(c);
+        List<String> favs = slots(c, t);
         List<String> all = installed(c);
         List<String> out = new ArrayList<>();
         for (String p : MORE_FIRST) if (out.size() < count && all.contains(p) && !favs.contains(p)) out.add(p);
