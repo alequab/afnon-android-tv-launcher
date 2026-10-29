@@ -43,16 +43,23 @@ final class Announce {
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
             .build();
-        MediaPlayer mp = new MediaPlayer();
-        try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ".mp3")) {
-            mp.setAudioAttributes(attrs);
-            mp.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
-            mp.prepare();
-        } catch (IOException | RuntimeException e) {
-            // Not recorded on this build (tools/fetch-announce.sh), or unreadable: say nothing.
-            mp.release();
-            return;
+        MediaPlayer mp = null;
+        // The recorded lines are .mp3 (tools/fetch-announce.sh); a recording of someone's own voice may be .wav,
+        // kept uncompressed in the APK (build.gradle) so it can be opened here.
+        for (String ext : new String[] {".mp3", ".wav"}) {
+            MediaPlayer p = new MediaPlayer();
+            try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ext)) {
+                p.setAudioAttributes(attrs);
+                p.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
+                p.prepare();
+                mp = p;
+                break;
+            } catch (IOException | RuntimeException e) {
+                p.release();
+            }
         }
+        // Not recorded on this build, or unreadable: say nothing.
+        if (mp == null) return;
         // May-duck: the video or radio underneath gets quieter for a moment instead of stopping.
         focus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(attrs)
