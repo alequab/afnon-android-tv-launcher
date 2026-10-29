@@ -244,7 +244,7 @@ final class Text {
      */
     String[][] news() {
         if (ar) return new String[][] {
-            {"0.7",
+            {"0.8",
                 "تعديل المواقيت: كل وقت حتى 30 دقيقة قبله أو بعده، لمطابقة تقويم مسجدك",
                 "التاريخ الهجري ويومه يتغيّران عند المغرب، ومعهما رمضان وتذكير سورة الكهف",
                 "أم القرى: العشاء بعد المغرب بساعتين في رمضان",
@@ -266,7 +266,7 @@ final class Text {
                 "مرجع الآية «النساء 103» بالأرقام المختارة"},
         };
         return new String[][] {
-            {"0.7",
+            {"0.8",
                 "Adjust the times: each up to 30 minutes earlier or later, to match your mosque's timetable",
                 "The Hijri date and its weekday turn at Maghrib, and Ramadan and the Al-Kahf reminder with them",
                 "Umm al-Qura: Isha 2 hours after Maghrib in Ramadan",
