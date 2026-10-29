@@ -21,7 +21,8 @@ Arabic first (RTL) and English · Offline prayer times for 192 cities · 16 adha
 Afnon replaces the stock launcher on an Android TV with one quiet screen. The next prayer and a live
 countdown sit inside a mihrab arch. The day's six times run across the top, your favourite apps sit
 below, and the call to prayer comes to the TV by itself. Built and tested on a **TCL 55P7K (Google
-TV, Android 12)**, driven only by the remote's D-pad.
+TV, Android 12)**, driven only by the remote's D-pad, and also run on a Super General (CVTE) and a Xiaomi
+Mi TV (see the notes below).
 
 ### How it started
 
@@ -82,6 +83,8 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
     recitation keeps playing.
 - **Remote buttons.** An accessibility service maps the remote's app buttons, and its Settings,
   Input and All apps buttons, to Afnon. The stock home's background service can then be disabled.
+  The same service brings the call to prayer, so if a TV cleaner force-stops Afnon (which switches the
+  service off), Home switches it back on. Turning it off in Settings → Accessibility is respected.
 - **Arabic and English.** RTL and LTR layouts. Language follows the TV or is set in Afnon. Digits
   are Arabic-Indic or Latin.
 - **Night mode.** Calmer, dimmer, warmer colours on every screen, from the moon button beside Home's Settings
@@ -107,7 +110,7 @@ nothing from other sites except the station's stream when you press Play, and ke
 |---|---|
 | `INTERNET`, `WAKE_LOCK` | The radio stream, kept playing with the screen off |
 | `RECORD_AUDIO` | Required by Android's Visualizer, to read Afnon's **own** player for the level bars. It does not use the microphone. |
-| `WRITE_SECURE_SETTINGS` | Turns the TV's sleep timer off while the radio plays, and puts it back after. On TCL, also writes the remote button mappings (see TCL notes) |
+| `WRITE_SECURE_SETTINGS` | Turns the TV's sleep timer off while the radio plays, and puts it back after. Turns Afnon's own remote buttons service back on after a force-stop. On TCL, also writes the remote button mappings (see TCL notes) |
 | `ACCESS_FINE_LOCATION` | Android 9+ hides the Wi-Fi name without it; Home shows the name. Afnon never reads the TV's location |
 | `SCHEDULE_EXACT_ALARM` (Android 12), `USE_EXACT_ALARM` (13+), `RECEIVE_BOOT_COMPLETED` | Turn the TV on for the adhan (off by default): one alarm at the next picked prayer, armed again after a reboot |
 | Accessibility service | Remote button mapping (see `RemoteKeys.java`) |
@@ -240,6 +243,23 @@ detects them by their hotkey service and each piece is skipped elsewhere:
 - If Afnon guesses wrong about key filtering on some TV, the `key_filter` preference (`on`/`off`) forces it.
 - `install.sh` grants location, which Android 9+ needs before Home can show the Wi-Fi name.
 
+## Other brands (Xiaomi)
+
+Tested on one Xiaomi Mi TV (MiTV-MOOQ0, Android TV 10, 1.8 GB RAM, MediaTek), after a debloat with
+[cleanyourtv](https://github.com/Gathin23/cleanyourtv)'s list for that model. Home, the app list, favourites,
+the screensaver and the remote buttons service run (its buttons are not checked with the remote yet), and `install.sh` makes Afnon Home there (it turns the stock
+launcher off behind its safety switch). Notes:
+
+- Xiaomi's TV Manager force-stops apps, and Android then switches the remote buttons service off. Home turns
+  it back on.
+- The firmware gives a few built-in apps a phone-style entry only (Clock, MediaTek's Netflix watcher, a
+  disclaimer screen). Afnon leaves those out of its app list.
+- The remote's Input button sends `KEYCODE_MEDIA_RECORD` (130). Afnon doesn't map it yet; open Live TV from
+  the favourites for HDMI.
+- Holding Volume and the Audio Only screen-off have not been checked there yet.
+- Free memory matters on this 1.8 GB set: a screen-mirroring app stuck at full CPU (AirScreen) had filled
+  RAM and swap and froze other apps before Afnon was installed.
+
 ## Project layout
 
 ```
@@ -285,7 +305,8 @@ docs/screenshots/     the images above, all from the real TV
 - **إذاعة القرآن الكريم**: من القاهرة (٩٨٫٢ إف إم) افتراضيًا، بث مباشر، وأعمدة تتحرك مع صوت التلاوة نفسه. تتوقف
   للأذان ثم تُستأنف، ويمكن إطفاء الشاشة أثناء الاستماع لتوفير الكهرباء. ومن الإعدادات ← الإذاعة ← المحطة:
   إذاعات القرآن الكريم من نابلس وشباب إف إم وقطر والأردن، أو قناة أحد القرّاء العشرة على مدار الساعة.
-- **أزرار الريموت**: أزرار التطبيقات والإعدادات والمدخلات تعمل مع أفنون.
+- **أزرار الريموت**: أزرار التطبيقات والإعدادات والمدخلات تعمل مع أفنون. والخدمة نفسها تأتي بالأذان، فإن
+  أوقف أحد تطبيقات التنظيف أفنون أعادت الشاشة الرئيسية تشغيلها.
 - **العربية أولًا**: من اليمين إلى اليسار، مع الإنجليزية، والأرقام عربية أو لاتينية.
 - **بلا حسابات ولا إعلانات ولا تتبّع**. الإذاعة وحدها تستخدم الإنترنت.
 
