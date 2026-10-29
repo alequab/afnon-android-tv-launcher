@@ -78,6 +78,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
   arch: it stays on one line and gets a little smaller until it fits, sized as if every digit were a 0 (the
   widest in Marcellus) so it doesn't change size from one second to the next.
+- The adhan and reminders no longer stop for good after Afnon is force-stopped. Android drops a force-stopped
+  app's accessibility service from the enabled list, and that service (Afnon remote buttons) runs the call to
+  prayer. Home now puts it back each time it comes up (`RemoteKeys.ensureOn`, with the WRITE_SECURE_SETTINGS
+  grant from install); without that grant nothing changes.
 - Home's More row no longer repeats the favourites. It left out only the saved favourites, so when one of them
   wasn't installed and another app filled its slot, that app showed in both rows. It now leaves out what the
   favourites row shows.

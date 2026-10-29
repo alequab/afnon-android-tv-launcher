@@ -61,6 +61,32 @@ public class RemoteKeys extends AccessibilityService {
         watch.start();
     }
 
+    /**
+     * Puts this service back in the TV's enabled accessibility services if it went missing. Android drops a
+     * package's services from that list when the package is force-stopped (Settings → Apps → Force stop, or
+     * `am force-stop`), which silently stops the adhan and the reminders. Home calls this each time it comes up;
+     * it needs WRITE_SECURE_SETTINGS (granted at install) and otherwise does nothing.
+     *
+     * @return whether it had to turn the service back on
+     */
+    static boolean ensureOn(android.content.Context c) {
+        android.content.ContentResolver cr = c.getContentResolver();
+        ComponentName me = new ComponentName(c, RemoteKeys.class);
+        String on = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        if (on != null) {
+            for (String s : on.split(":")) if (me.equals(ComponentName.unflattenFromString(s))) return false;
+        }
+        try {
+            String next = on == null || on.isEmpty() ? me.flattenToShortString() : on + ":" + me.flattenToShortString();
+            Settings.Secure.putString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, next);
+            Settings.Secure.putInt(cr, Settings.Secure.ACCESSIBILITY_ENABLED, 1);
+            android.util.Log.i("Afnon", "remote buttons service was off; turned it back on");
+            return true;
+        } catch (SecurityException e) {
+            return false;   // WRITE_SECURE_SETTINGS not granted: Settings → Accessibility it is
+        }
+    }
+
     /** The button table: the saved one, else {@link #APP_KEYS}. */
     static String[][] keys(android.content.Context c) {
         String saved = Prefs.of(c).getString("keys", null);
