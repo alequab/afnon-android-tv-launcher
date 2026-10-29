@@ -59,6 +59,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   both near 1 a.m.
 
 ### Fixed
+- Afnon remote buttons (and the call to prayer) now also come back after a force-stop when Android marked the
+  service crashed: it stays listed as on but is never started again until it leaves the list. `ensureOn` takes it
+  out and puts it back a second later when it is listed but nothing runs, and looks again 3 s after listing a
+  missing one. On the TCL 55P7K, a force-stop and one press of Home left it off two times in three; now none.
 - Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
   ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
   whole tiles, rings included, and moves a whole item at a time when it scrolls.
