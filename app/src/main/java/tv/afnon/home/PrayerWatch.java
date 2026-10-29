@@ -35,7 +35,7 @@ final class PrayerWatch {
      * "prayer index:time" of the last reminder, call and spoken announcement, so each happens once. Saved, because
      * the system restarts this service (low memory, TCL's background manager) and a fresh one would repeat them.
      */
-    private String reminded, called, announced;
+    private String reminded, called, announced, ending;
     private View banner;
 
     private final Runnable check = new Runnable() {
@@ -51,6 +51,7 @@ final class PrayerWatch {
         reminded = Prefs.of(service).getString("reminded", "");
         called = Prefs.of(service).getString("called", "");
         announced = Prefs.of(service).getString("announced", "");
+        ending = Prefs.of(service).getString("ending", "");
     }
 
     void start() {
@@ -89,6 +90,20 @@ final class PrayerWatch {
             }
         }
         if (asleep) return;
+        // «أوشك…»: the current prayer's time is ending, as long before its end as the reminder comes before a
+        // prayer. Fajr ends at sunrise; Dhuhr, Asr and Maghrib at the next prayer; Isha at Fajr.
+        int current = day.nowIndex;
+        if (current >= 0 && Prefs.remindVoice(service)) {
+            Date end = current == PrayerDay.FAJR ? day.times[PrayerDay.SUNRISE] : day.nextTime;
+            long left = Screen.secondsUntil(end, now);
+            int minutes = Prefs.remindMinutes(service);
+            String key = current + ":" + end.getTime();
+            if (minutes > 0 && left > 0 && left <= minutes * 60L && !key.equals(ending)) {
+                ending = key;
+                Prefs.of(service).edit().putString("ending", key).apply();
+                Announce.ending(service, current, day.friday);
+            }
+        }
         if (Reminders.dueReminder(service, day, now)) {
             String key = day.nextIndex + ":" + day.nextTime.getTime();
             if (key.equals(reminded) || AfnonDream.running) return;

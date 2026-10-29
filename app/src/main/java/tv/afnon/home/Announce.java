@@ -34,11 +34,15 @@ final class Announce {
         play(c, "now_", prayer, friday);
     }
 
+    /** «أوشك وقت صلاة … على الانتهاء», the current prayer's time is ending: end_&lt;prayer&gt;. */
+    static void ending(Context c, int prayer, boolean friday) {
+        play(c, "end_", prayer, friday);
+    }
+
     private static void play(Context c, String kind, int prayer, boolean friday) {
         if (prayer < 0 || prayer >= NAMES.length || NAMES[prayer] == null) return;
         String name = friday && prayer == PrayerDay.DHUHR ? "jumuah" : NAMES[prayer];
         Context app = c.getApplicationContext();
-        stop(app);
         AudioAttributes attrs = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
@@ -58,8 +62,9 @@ final class Announce {
                 p.release();
             }
         }
-        // Not recorded on this build, or unreadable: say nothing.
+        // Not recorded on this build, or unreadable: say nothing, and leave a line that is speaking alone.
         if (mp == null) return;
+        stop(app);
         // May-duck: the video or radio underneath gets quieter for a moment instead of stopping.
         focus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(attrs)
