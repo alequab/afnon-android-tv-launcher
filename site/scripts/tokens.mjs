@@ -137,9 +137,14 @@ const sdNight = new StyleDictionary({
   platforms: {
     java: { transforms: ['attribute/cti', 'name/constant', 'color/hex8android'] },
     android: { transforms: ['attribute/cti', 'name/snake', 'color/hex8android'] },
+    css: { transforms: ['attribute/cti', 'name/kebab', 'color/css'] },
   },
 });
 for (const t of (await sdNight.getPlatformTokens('java')).allTokens) if (t.$type === 'color') night.set(constName(t), t.$value);
+/** The site's night block: every colour whose resolved value differs at night, as a literal (a var() reference
+ *  resolves where it is declared, on :root, so references must be repeated with their night value). */
+const nightCss = new Map();
+for (const t of (await sdNight.getPlatformTokens('css')).allTokens) if (t.$type === 'color') nightCss.set(t.name, t.$value);
 for (const t of (await sdNight.getPlatformTokens('android')).allTokens) {
   if (t.path[0] === 'color') nightAndroid.set(path(t).join('_').replace(/-/g, '_'), t.$value);
 }
@@ -169,7 +174,13 @@ const sd = new StyleDictionary({
 let stale = [];
 // The CSS is gitignored and rebuilt with the site, so --check covers only the app's committed files.
 for (const platform of check ? ['java', 'android'] : ['css', 'java', 'android']) {
-  for (const { output, destination } of await sd.formatPlatform(platform)) {
+  for (let { output, destination } of await sd.formatPlatform(platform)) {
+    if (platform === 'css') {
+      const day = (await sd.getPlatformTokens('css')).allTokens.filter((t) => t.$type === 'color');
+      const lines = day.filter((t) => nightCss.get(t.name) !== t.$value).map((t) => `  --${t.name}: ${nightCss.get(t.name)};`);
+      output += `\n/* Night mode (afnon-mihrab/tokens.night.json): the colours that differ, on the TV stage. */\n`
+        + `.tv[data-night] {\n${lines.join('\n')}\n}\n`;
+    }
     let old = null;
     try { old = readFileSync(destination, 'utf8'); } catch {}
     if (old === output) continue;
