@@ -85,6 +85,12 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
   OK on the panel fills the screen.
 ### Fixed
+- The adhan and reminders no longer stop for good after Afnon is force-stopped. Android drops a force-stopped
+  app's accessibility service from the enabled list, and that service (Afnon remote buttons) runs the call to
+  prayer. Home now puts it back each time it comes up (`RemoteKeys.ensureOn`, with the WRITE_SECURE_SETTINGS
+  grant from install).
+- The arch countdown no longer changes size every second when ten hours or more are left: it is measured with
+  every digit a 0, the widest in Marcellus.
 - Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
   (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
 - Opening Settings (and Prayer day or All apps) no longer flashes a plain blue screen first. That was Android's
