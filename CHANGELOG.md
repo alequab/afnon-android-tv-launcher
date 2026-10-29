@@ -5,6 +5,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ## [Unreleased]
 
 ### Added
+- «أوشك وقت صلاة … على الانتهاء»: a spoken warning that the current prayer's time is ending, as long before its end as
+  the reminder comes before a prayer (15 minutes by default), with the spoken reminder on. Fajr ends at sunrise;
+  Dhuhr, Asr and Maghrib at the next prayer; Isha at Fajr. Clips `announce/end_<prayer>` (on the TCL, recorded by
+  Lutfi Khamis); test with `--es test say --ei prayer N --ez end true`.
 - Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
   apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
   Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current

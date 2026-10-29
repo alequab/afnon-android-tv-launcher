@@ -180,10 +180,12 @@ public class MainActivity extends Screen {
         });
         else if ("friday".equals(kind) || "ramadan".equals(kind) || "now".equals(kind)) shiftTo(kind);
         else if ("radio".equals(kind)) Radio.toggle(this);
-        // One spoken line now, to hear a clip: --ei prayer 0..5 (Fajr..Isha), --ez before true for «اقترب…».
+        // One spoken line now, to hear a clip: --ei prayer 0..5 (Fajr..Isha); --ez end true for «أوشك…» (its time
+        // is ending), --ez before true for «اقترب…»; else «حان الآن…».
         else if ("say".equals(kind)) {
             int prayer = i.getIntExtra("prayer", PrayerDay.FAJR);
-            if (i.getBooleanExtra("before", false)) Announce.before(this, prayer, false);
+            if (i.getBooleanExtra("end", false)) Announce.ending(this, prayer, false);
+            else if (i.getBooleanExtra("before", false)) Announce.before(this, prayer, false);
             else Announce.now(this, prayer, false);
         }
         else if ("wake".equals(kind)) Wake.test(this, i.getIntExtra("seconds", 120), i.getStringExtra("via"));
