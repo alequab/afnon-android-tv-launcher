@@ -5,17 +5,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ## [Unreleased]
 
 ### Added
-- Calculation method «وزارة الأوقاف والشؤون الدينية، سلطنة عُمان» (Oman Ministry of Awqaf): Fajr and Isha at 18°, Asr
-  by the standard shadow, +5 minutes on Dhuhr, Asr and Maghrib. The ministry publishes no parameters, so they were
-  fitted to its own timetable (mara.gov.om/arabic/calendar_page1.asp): across 15 Omani cities and 2026 every prayer
-  is within 1 minute of it (2 in one case), offline as before.
-- Eleven Omani cities (Barka, Rustaq, Sur, Ibri, Al Buraimi, Khasab, Duqm, Bahla, Ibra, Samail, Adam); all Omani
-  cities start on the Awqaf method. Muscat is placed at the point the ministry's Muscat timetable matches (58.28°E).
-- Albany, NY in the location list (ISNA method), now 137 cities. New York's times are up to 15 minutes off in
-  Albany, NY over the year (Maghrib and Isha early in summer).
-- Indonesia: 44 more cities, 48 in all, largest first: the province capitals (for South and North Kalimantan and
-  North Maluku, their largest city: Banjarmasin, Tarakan, Ternate) and the other big cities, Bekasi, Depok and
-  Tangerang among them. Now 181 cities.
 - Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
   apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
   Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current
@@ -47,7 +36,6 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   use the adjusted times.
 - Two more adhan voices: «المسجد النبوي» and «راغب مصطفى غلوش», the recordings meypod/al-azan uses
   (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
-
 - Settings → Reminders → Turn the TV on for the adhan: the prayers picked in its list (Fajr, Dhuhr/Jumu'ah, Asr,
   Maghrib, Isha; none, so off, by default) wake the TV from standby for their call. One alarm is armed at a time,
   for the next picked prayer (`setAlarmClock`), and armed again after it rings, on boot, and when the picks, the
@@ -58,9 +46,8 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
   seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
   the way back.
+
 ### Changed
-- Calculation methods are `Method` objects (`Method.java`) instead of adhan-java's enum, so Afnon can define its own;
-  the saved ids are unchanged. The web preview mirrors the new method.
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
   is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
   Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
@@ -80,15 +67,15 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 - Cities above 48° (London, Paris, Berlin, Amsterdam…): where summer nights never get dark enough for Fajr's and
   Isha's angles, they are now a seventh of the night from Maghrib and before sunrise, as al-azan has it, instead of
   both near 1 a.m.
-
 - Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
   card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
   OK on the panel fills the screen.
+
 ### Fixed
-- The adhan and reminders no longer stop for good after Afnon is force-stopped. Android drops a force-stopped
-  app's accessibility service from the enabled list, and that service (Afnon remote buttons) runs the call to
-  prayer. Home now puts it back each time it comes up (`RemoteKeys.ensureOn`, with the WRITE_SECURE_SETTINGS
-  grant from install).
+- Afnon remote buttons (and the call to prayer) now also come back after a force-stop when Android marked the
+  service crashed: it stays listed as on but is never started again until it leaves the list. `ensureOn` takes it
+  out and puts it back a second later when it is listed but nothing runs, and looks again 3 s after listing a
+  missing one. On the TCL, a force-stop and one press of Home left it off two times in three; now none.
 - The arch countdown no longer changes size every second when ten hours or more are left: it is measured with
   every digit a 0, the widest in Marcellus.
 - Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
@@ -107,6 +94,36 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   favourites row shows.
 - TCL's remote pairing service (`com.tcl.tcl_bt_rcu_service`, "TCL_BT_RCU_Service") is no longer listed as an app:
   its launcher entry is only a test screen.
+
+
+## [0.7] - 2026-10-28
+
+### Added
+- Calculation method «وزارة الأوقاف والشؤون الدينية، سلطنة عُمان» (Oman Ministry of Awqaf): Fajr and Isha at 18°, Asr
+  by the standard shadow, +5 minutes on Dhuhr, Asr and Maghrib. The ministry publishes no parameters, so they were
+  fitted to its own timetable (mara.gov.om/arabic/calendar_page1.asp): across 15 Omani cities and 2026 every prayer
+  is within 1 minute of it (2 in one case), offline as before.
+- Eleven Omani cities (Barka, Rustaq, Sur, Ibri, Al Buraimi, Khasab, Duqm, Bahla, Ibra, Samail, Adam); all Omani
+  cities start on the Awqaf method. Muscat is placed at the point the ministry's Muscat timetable matches (58.28°E).
+- Albany, NY in the location list (ISNA method), now 137 cities. New York's times are up to 15 minutes off in
+  Albany, NY over the year (Maghrib and Isha early in summer).
+- Indonesia: 44 more cities, 48 in all, largest first: the province capitals (for South and North Kalimantan and
+  North Maluku, their largest city: Banjarmasin, Tarakan, Ternate) and the other big cities, Bekasi, Depok and
+  Tangerang among them. Now 181 cities.
+
+### Fixed
+- The call to prayer no longer stays off after Afnon is force-stopped. Android drops a force-stopped app's
+  accessibility service from the enabled list, and TV cleaners force-stop apps (Xiaomi's TV Manager), so the
+  remote buttons service and the adhan were found off on a Xiaomi MiTV-MOOQ0 and on the TCL 55P7K. Home now turns
+  it back on (with setup's WRITE_SECURE_SETTINGS grant), unless it was turned off in Settings.
+- The app list no longer shows a TV's built-in phone-only entries: on a Xiaomi MiTV-MOOQ0, Clock, MediaTek's
+  Netflix watcher ("com.mediatek.tv.serv…") and a vendor disclaimer screen were on Home's More row. A preinstalled,
+  never-updated system app with no TV entry is left out unless Afnon names it or it is a favourite; sideloaded
+  phone apps still show. Nothing changes on the TCL, where every app has a TV entry.
+
+### Changed
+- Calculation methods are `Method` objects (`Method.java`) instead of adhan-java's enum, so Afnon can define its own;
+  the saved ids are unchanged. The web preview mirrors the new method.
 
 ## [0.6.1] - 2026-10-25
 
@@ -306,7 +323,8 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.7...HEAD
+[0.7]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6.1...v0.7
 [0.6.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6...v0.6.1
 [0.6]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.5...v0.6
 [0.5]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.4...v0.5
