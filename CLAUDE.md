@@ -52,7 +52,8 @@ a button sends and who handled it.
   `NowActivity` the call · `AfnonDream` screensaver · `ScreenOffActivity` radio with the panel off (TCL Audio Only).
 - `PrayerDay`, `Prefs` (cities and methods), `Reminders`, `Adhans`, `Radio`/`RadioBars`, `Apps` (launching).
 - `RemoteKeys` is the accessibility service. It is always on, so it also hosts `PrayerWatch` (reminders, banner,
-  the call). Turning it off stops the call to prayer.
+  the call). Turning it off stops the call to prayer, and a force-stop turns it off: Home puts it back each time it
+  comes up (`RemoteKeys.ensureOn`, needs the WRITE_SECURE_SETTINGS grant).
 
 ### Remote buttons and the volume-hold bug (fixed 2026-10-21)
 
