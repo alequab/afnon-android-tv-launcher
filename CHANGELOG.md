@@ -72,6 +72,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   OK on the panel fills the screen.
 
 ### Fixed
+- The spoken lines can be .wav recordings too (a person's own voice instead of the recorded TTS): Announce tries
+  `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
+  silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:
+  `--es test say --ei prayer 0..5 [--ez before true]`.
 - Afnon remote buttons (and the call to prayer) now also come back after a force-stop when Android marked the
   service crashed: it stays listed as on but is never started again until it leaves the list. `ensureOn` takes it
   out and puts it back a second later when it is listed but nothing runs, and looks again 3 s after listing a
