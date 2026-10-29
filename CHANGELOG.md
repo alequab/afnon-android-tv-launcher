@@ -38,6 +38,9 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
 
 ### Changed
+- Web preview (`site/`): night mode (Home's button and Settings → Display), the radio card's Station button, Settings →
+  Adjust the times and What's new, Marcellus for the big numbers with Western digits, and the prayer rules above
+  (adjusted times, the Hijri day from Maghrib, Jumu'ah until Maghrib, Umm al-Qura's Ramadan Isha, above 48°).
 - Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
   is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
   Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
