@@ -48,6 +48,8 @@ public class RemoteKeys extends AccessibilityService {
     static PrayerWatch watch;
     /** The running service, so a new button table applies at once; null while the service is off. */
     private static RemoteKeys running;
+    /** Home when the TV turns on (Settings → Display); runs while the service does. */
+    private HomeOnWake homeOnWake;
 
     /**
      * Pref: false once the service was turned off in Settings; {@link #ensureOn} keeps it on otherwise. Unset counts
@@ -67,6 +69,9 @@ public class RemoteKeys extends AccessibilityService {
         if (watch != null) watch.stop();
         watch = new PrayerWatch(this);
         watch.start();
+        if (homeOnWake != null) homeOnWake.stop();
+        homeOnWake = new HomeOnWake(this);
+        homeOnWake.start();
         // The alarm that turns the TV on for the adhan, if any prayer is picked: also armed here, in case the
         // firmware holds back BOOT_COMPLETED.
         Wake.schedule(this);
@@ -191,6 +196,8 @@ public class RemoteKeys extends AccessibilityService {
     @Override
     public void onDestroy() {
         if (running == this) running = null;
+        if (homeOnWake != null) homeOnWake.stop();
+        homeOnWake = null;
         if (watch != null) watch.stop();
         watch = null;
         super.onDestroy();

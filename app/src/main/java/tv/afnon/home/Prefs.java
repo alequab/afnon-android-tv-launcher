@@ -511,6 +511,15 @@ final class Prefs {
     }
 
     /** Saves night mode and switches {@link Tokens} to it; screens built from then on take the new colours. */
+    /** Settings → Display → Open Afnon when the TV turns on (HomeOnWake); on by default. */
+    static boolean homeOnWake(Context c) {
+        return of(c).getBoolean("home_on_wake", true);
+    }
+
+    static void setHomeOnWake(Context c, boolean on) {
+        of(c).edit().putBoolean("home_on_wake", on).apply();
+    }
+
     static void setNight(Context c, boolean on) {
         of(c).edit().putBoolean("night", on).apply();
         Tokens.use(on);

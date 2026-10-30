@@ -460,6 +460,12 @@ public class SettingsActivity extends Screen {
                     boolean on() { return Prefs.night(c); }
                     // Every colour changes: rebuild this screen where it is, in the new palette.
                     void set(boolean on) { Prefs.setNight(c, on); relaunch(); }
+                },
+                new Row(TOGGLE) {
+                    String label() { return t.homeOnWakeRow(); }
+                    String help() { return t.homeOnWakeHelp(); }
+                    boolean on() { return Prefs.homeOnWake(c); }
+                    void set(boolean on) { Prefs.setHomeOnWake(c, on); }
                 });
             case NETWORK: return Arrays.asList(
                 new Row(VALUE) {

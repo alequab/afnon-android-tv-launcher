@@ -393,6 +393,10 @@ final class Text {
     // Night mode: Settings → Display, and the moon button beside Home's Settings.
     String nightRow() { return ar ? "الوضع الليلي" : "Night mode"; }
     String nightHelp() { return ar ? "ألوان أهدأ وأخفت للمشاهدة ليلًا" : "Calmer, dimmer colours for watching at night"; }
+    String homeOnWakeRow() { return ar ? "افتح أفنون عند تشغيل التلفاز" : "Open Afnon when the TV turns on"; }
+    String homeOnWakeHelp() {
+        return ar ? "بدل آخر تطبيق كان مفتوحًا، تظهر الصلاة القادمة أولًا" : "Instead of the last app, the next prayer comes first";
+    }
     String nightOn() { return ar ? "تشغيل الوضع الليلي" : "Night mode on"; }
     String nightOff() { return ar ? "إيقاف الوضع الليلي" : "Night mode off"; }
     String networkRow() { return ar ? "إعدادات الشبكة في التلفاز" : "TV network settings"; }
