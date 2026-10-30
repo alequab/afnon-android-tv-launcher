@@ -5,6 +5,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ## [Unreleased]
 
 ### Added
+- Home's Wi-Fi pill shows the network's name with Location off. Android gives apps the name only with Location on
+  for the whole TV; setup now reads it in the shell (`cmd wifi status`) and hands it to Afnon (SetupProvider setting
+  `wifi_name`, API 2), which keeps it with the network's gateway and DNS servers (new `ACCESS_NETWORK_STATE`) and
+  shows it on that network only. A step in `tools/setup-steps.txt`.
 - «أوشك وقت صلاة … على الانتهاء»: a spoken warning that the current prayer's time is ending, as long before its end as
   the reminder comes before a prayer (15 minutes by default), with the spoken reminder on. Fajr ends at sunrise;
   Dhuhr, Asr and Maghrib at the next prayer; Isha at Fajr. Clips `announce/end_<prayer>` (on the TCL, recorded by

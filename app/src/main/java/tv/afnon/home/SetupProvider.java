@@ -39,12 +39,13 @@ import java.util.List;
  * content insert --uri content://tv.afnon.home.setup/settings --bind name:s:&lt;name&gt; --bind value:s:&lt;value&gt;
  *     city (an id from cities) · locale (ar|en|system) · favourites (packages, comma-separated, at most 4) ·
  *     keys (KEY=package pairs, comma-separated; KEY is a keycode name or number) · adhan · remind_voice ·
- *     announce (on|off)
+ *     announce (on|off) · wifi_name (API 2: the Wi-Fi network's name as `cmd wifi status` gives it, kept for the
+ *     network the TV is on now, for Home's pill where Location is off; the insert returns null off Wi-Fi)
  * </pre>
  * Each query is one row with one column, "json". Bump {@link #API} when the contract changes; never break it.
  */
 public final class SetupProvider extends ContentProvider {
-    static final int API = 1;
+    static final int API = 2;
     private static final int ICON_PX = 96;
 
     @Override
@@ -151,6 +152,9 @@ public final class SetupProvider extends ContentProvider {
             case "adhan": Prefs.setAdhan(c, on); break;
             case "remind_voice": Prefs.setRemindVoice(c, on); break;
             case "announce": Prefs.setAnnounce(c, on); break;
+            case "wifi_name":
+                if (!WifiName.remember(c, value.trim())) return null;
+                break;
             default: return null;
         }
         return uri;
