@@ -36,6 +36,8 @@ final class PrayerWatch {
      * the system restarts this service (low memory, TCL's background manager) and a fresh one would repeat them.
      */
     private String reminded, called, announced, ending;
+    /** The reminder minutes the keys above were given with; -1 before the first check. */
+    private int remindMinutes = -1;
     private View banner;
 
     private final Runnable check = new Runnable() {
@@ -72,6 +74,7 @@ final class PrayerWatch {
         // still comes, waking the screen.
         if (asleep && !Radio.on()) return;
         PrayerDay day = new PrayerDay(service, now);
+        rearm(day, now);
 
         int call = Reminders.dueCall(service, day, now);
         if (call >= 0) {
@@ -112,6 +115,29 @@ final class PrayerWatch {
             if (Reminders.home != null) Reminders.home.showReminder();
             else showBanner(day, now);
             if (Prefs.remindVoice(service)) Announce.before(service, day.nextIndex, day.friday);
+        }
+    }
+
+    /**
+     * The reminder minutes changed (Settings → Reminders): a reminder or «أوشك» given with the old minutes that is not
+     * due with the new ones comes again when it is (10 → 5 at 8 minutes left: once more at 5). One that is still due
+     * stays given, so it isn't said twice.
+     */
+    private void rearm(PrayerDay day, Date now) {
+        int minutes = Prefs.remindMinutes(service);
+        boolean changed = remindMinutes >= 0 && minutes != remindMinutes;
+        remindMinutes = minutes;
+        if (!changed) return;
+        if (!Reminders.dueReminder(service, day, now)) {
+            reminded = "";
+            Prefs.of(service).edit().putString("reminded", "").apply();
+        }
+        int current = day.nowIndex;
+        Date end = current < 0 ? null : current == PrayerDay.FAJR ? day.times[PrayerDay.SUNRISE] : day.nextTime;
+        long left = end == null ? 0 : Screen.secondsUntil(end, now);
+        if (minutes <= 0 || left <= 0 || left > minutes * 60L) {
+            ending = "";
+            Prefs.of(service).edit().putString("ending", "").apply();
         }
     }
 

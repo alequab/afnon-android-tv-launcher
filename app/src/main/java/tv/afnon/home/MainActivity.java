@@ -184,9 +184,10 @@ public class MainActivity extends Screen {
         // is ending), --ez before true for «اقترب…»; else «حان الآن…».
         else if ("say".equals(kind)) {
             int prayer = i.getIntExtra("prayer", PrayerDay.FAJR);
-            if (i.getBooleanExtra("end", false)) Announce.ending(this, prayer, false);
-            else if (i.getBooleanExtra("before", false)) Announce.before(this, prayer, false);
-            else Announce.now(this, prayer, false);
+            boolean friday = i.getBooleanExtra("friday", false);   // --ez friday true: as on a Friday (Jumu'ah)
+            if (i.getBooleanExtra("end", false)) Announce.ending(this, prayer, friday);
+            else if (i.getBooleanExtra("before", false)) Announce.before(this, prayer, friday);
+            else Announce.now(this, prayer, friday);
         }
         else if ("wake".equals(kind)) Wake.test(this, i.getIntExtra("seconds", 120), i.getStringExtra("via"));
         else if (RemoteKeys.watch != null) RemoteKeys.watch.test(kind, 8000);
