@@ -6,6 +6,8 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- The current network's gateway and DNS servers (WifiName): which network a saved Wi-Fi name belongs to. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Quran Radio: the stream, keeping the CPU and Wi-Fi awake under the screensaver, its level bars
          (RECORD_AUDIO, granted with pm grant at install) and the TV's sleep timer (WRITE_SECURE_SETTINGS, also
          pm grant), which is off only while the radio plays. -->

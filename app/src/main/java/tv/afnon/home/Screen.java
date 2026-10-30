@@ -387,8 +387,16 @@ abstract class Screen extends Activity {
         }
     }
 
-    /** The connected Wi-Fi network's name, or null when there is none or it can't be read. */
+    /**
+     * The connected Wi-Fi network's name, or null when there is none or it can't be read. Without Location turned on
+     * Android hides it; then the name setup saved for this network (WifiName), if any.
+     */
     String ssid() {
+        String ssid = readSsid();
+        return ssid != null ? ssid : WifiName.known(this);
+    }
+
+    private String readSsid() {
         String ssid = null;
         try {
             WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
