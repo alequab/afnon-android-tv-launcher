@@ -5,6 +5,10 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 ## [Unreleased]
 
 ### Added
+- Settings → Display → Open Afnon when the TV turns on (on by default): the TCL goes back to the last app when it
+  leaves standby; Home now comes to the front 2.5 s later instead, as cleanyourtv's Open on wake add-on does. Run by
+  the remote buttons service (`HomeOnWake`, a SCREEN_ON receiver and its Home action); never over the call to
+  prayer, not twice within 5 s, nothing if the screen went off again.
 - Home's Wi-Fi pill shows the network's name with Location off. Android gives apps the name only with Location on
   for the whole TV; setup now reads it in the shell (`cmd wifi status`) and hands it to Afnon (SetupProvider setting
   `wifi_name`, API 2), which keeps it with the network's gateway and DNS servers (new `ACCESS_NETWORK_STATE`) and
