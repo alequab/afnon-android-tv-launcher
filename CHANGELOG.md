@@ -76,6 +76,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   OK on the panel fills the screen.
 
 ### Fixed
+- The spoken reminder before a prayer says «حان الآن موعد صلاة …» (the recorded `now_` line): there is no recording of
+  «اقترب…», so it had been silent. On Friday every spoken line falls back to Dhuhr's recording while there is no
+  Jumu'ah one (they had all been silent on Fridays). Changing the reminder minutes brings back a reminder or «أوشك»
+  that isn't due with the new minutes (10 → 5 at 8 minutes left: once more at 5); before, it never came again.
+  `--es test say` takes `--ez friday true`.
 - The spoken lines can be .wav recordings too (a person's own voice instead of the recorded TTS): Announce tries
   `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
   silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:

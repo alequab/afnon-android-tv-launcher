@@ -18,15 +18,21 @@ import java.io.IOException;
 final class Announce {
     private Announce() {}
 
-    /** Clip names by prayer index; Sunrise has none. On Friday, Dhuhr is "jumuah". */
+    /**
+     * Clip names by prayer index; Sunrise has none. On Friday, Dhuhr is "jumuah", and Dhuhr's own clip while there
+     * is no Jumu'ah recording.
+     */
     private static final String[] NAMES = {"fajr", null, "dhuhr", "asr", "maghrib", "isha"};
 
     private static MediaPlayer player;
     private static AudioFocusRequest focus;
 
-    /** «اقترب موعد صلاة …»: before_&lt;prayer&gt;.mp3. */
+    /**
+     * The spoken reminder before a prayer. This build says «حان الآن موعد صلاة …» there too (now_), the user's
+     * choice: «اقترب…» was only ever the computer voice, and the recorded lines have no before_ clips.
+     */
     static void before(Context c, int prayer, boolean friday) {
-        play(c, "before_", prayer, friday);
+        play(c, "now_", prayer, friday);
     }
 
     /** «حان الآن موعد صلاة …»: now_&lt;prayer&gt;.mp3. */
@@ -41,7 +47,7 @@ final class Announce {
 
     private static void play(Context c, String kind, int prayer, boolean friday) {
         if (prayer < 0 || prayer >= NAMES.length || NAMES[prayer] == null) return;
-        String name = friday && prayer == PrayerDay.DHUHR ? "jumuah" : NAMES[prayer];
+        String[] names = friday && prayer == PrayerDay.DHUHR ? new String[] {"jumuah", "dhuhr"} : new String[] {NAMES[prayer]};
         Context app = c.getApplicationContext();
         AudioAttributes attrs = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -50,16 +56,18 @@ final class Announce {
         MediaPlayer mp = null;
         // The recorded lines are .mp3 (tools/fetch-announce.sh); a recording of someone's own voice may be .wav,
         // kept uncompressed in the APK (build.gradle) so it can be opened here.
-        for (String ext : new String[] {".mp3", ".wav"}) {
-            MediaPlayer p = new MediaPlayer();
-            try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ext)) {
-                p.setAudioAttributes(attrs);
-                p.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
-                p.prepare();
-                mp = p;
-                break;
-            } catch (IOException | RuntimeException e) {
-                p.release();
+        for (String name : names) {
+            for (String ext : new String[] {".mp3", ".wav"}) {
+                if (mp != null) break;
+                MediaPlayer p = new MediaPlayer();
+                try (AssetFileDescriptor fd = app.getAssets().openFd("announce/" + kind + name + ext)) {
+                    p.setAudioAttributes(attrs);
+                    p.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
+                    p.prepare();
+                    mp = p;
+                } catch (IOException | RuntimeException e) {
+                    p.release();
+                }
             }
         }
         // Not recorded on this build, or unreadable: say nothing, and leave a line that is speaking alone.
