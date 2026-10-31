@@ -200,7 +200,7 @@ public class PrayerDayActivity extends Screen {
         lineHeight(degrees, 1f);
         lineHeight(direction, 1.3f);
         qiblaHint.setIncludeFontPadding(false);
-        qiblaHint.setLineHeight(Ui.ipx(20 * 1.4f));
+        lineHeightPx(qiblaHint, Ui.ipx(20 * 1.4f));
         panel.setClipChildren(false);
         place(panel, 1424, 236, 400, 698);
 
@@ -244,7 +244,7 @@ public class PrayerDayActivity extends Screen {
         title.setText(t.roomTitle());
         TextView tip = text(ui400, 26, Tokens.PLASTER_100);
         tip.setText(t.roomTip());
-        tip.setLineHeight(Ui.ipx(26 * 1.6f));
+        lineHeightPx(tip, Ui.ipx(26 * 1.6f));
 
         LinearLayout body = new LinearLayout(this);
         body.setGravity(Gravity.CENTER_VERTICAL);

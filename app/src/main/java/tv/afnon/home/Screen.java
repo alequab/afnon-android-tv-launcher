@@ -231,7 +231,7 @@ abstract class Screen extends Activity {
         verse.setText("إِنَّ الصَّلَاةَ كَانَتْ\nعَلَى الْمُؤْمِنِينَ\nكِتَابًا مَّوْقُوتًا");
         verse.setGravity(Gravity.CENTER_HORIZONTAL);
         verse.setTextDirection(View.TEXT_DIRECTION_RTL);
-        verse.setLineHeight(Ui.ipx(32 * 1.55f));
+        lineHeightPx(verse, Ui.ipx(32 * 1.55f));
         place(verse, 156, 238, 480, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         TextView ref = text(ui400, 20, Tokens.MIST_400);
@@ -457,6 +457,19 @@ abstract class Screen extends Activity {
         v.setTextSize(TypedValue.COMPLEX_UNIT_PX, Ui.px(sizeDesignPx));
         v.setTextColor(color);
         return v;
+    }
+
+    /**
+     * TextView.setLineHeight (Android 9 and later) on any Android: Afnon runs from Android 8, where calling it
+     * crashes the screen. Older versions get the same spacing the platform method sets.
+     */
+    static void lineHeightPx(TextView v, int px) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            v.setLineHeight(px);
+            return;
+        }
+        int font = v.getPaint().getFontMetricsInt(null);
+        if (px != font) v.setLineSpacing(px - font, 1f);
     }
 
     /**
