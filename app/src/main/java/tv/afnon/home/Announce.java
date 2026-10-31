@@ -10,7 +10,7 @@ import android.media.MediaPlayer;
 import java.io.IOException;
 
 /**
- * Short spoken lines in assets/announce: «اقترب موعد صلاة …» with the reminder (Settings → Reminders → Spoken
+ * Short spoken lines in assets/announce: «حان الآن موعد صلاة …» with the reminder in this build (Settings → Reminders → Spoken
  * reminder), and «حان الآن موعد صلاة …» when a prayer's time begins with its adhan off (Announce the time). The
  * clips are recorded on the maintainer's PC by tools/fetch-announce.sh and never committed; a missing one plays
  * nothing. Whatever is playing is lowered for the three seconds, not paused.

@@ -448,7 +448,7 @@ final class Prefs {
         of(c).edit().putInt("remind", minutes).apply();
     }
 
-    /** Say «اقترب موعد صلاة …» with the reminder card or banner (Announce, on by default). */
+    /** Say the spoken line (here «حان الآن موعد صلاة …») with the reminder card or banner (Announce, on by default). */
     static boolean remindVoice(Context c) {
         return of(c).getBoolean("remind_voice", true);
     }
