@@ -278,7 +278,7 @@ final class Text {
     /** A time's adjustment between its − and + buttons: "+2", "0", "-3" (minutes). */
     String minutesSigned(int n) {
         // Left-to-right embedding: in an Arabic line the sign would otherwise land after the number ("2+").
-        return "‪" + d(n > 0 ? "+" + n : String.valueOf(n)) + "‬";
+        return "\u202A" + d(n > 0 ? "+" + n : String.valueOf(n)) + "\u202C";
     }
     /** Under each time's name: what it is with the adjustment (Fajr is tomorrow's after Isha), and what the buttons do. */
     String adjustTimeHelp(String time, boolean tomorrow) {
