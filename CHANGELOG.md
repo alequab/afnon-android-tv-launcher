@@ -45,6 +45,9 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
   OK on the panel fills the screen.
 
 ### Fixed
+- Lists (method, station, adhan voice, city…) show one highlighted row: the focused one. The current choice had a filled
+  row of its own as well, so two rows looked selected; it is now gold words and a check at the end. MWL's help says
+  «+1 دقيقة», not «+1 دقائق».
 - The spoken reminder before a prayer says «حان الآن موعد صلاة …» (the recorded `now_` line): there is no recording of
   «اقترب…», so it had been silent. On Friday every spoken line falls back to Dhuhr's recording while there is no
   Jumu'ah one (they had all been silent on Fridays). Changing the reminder minutes brings back a reminder or «أوشك»

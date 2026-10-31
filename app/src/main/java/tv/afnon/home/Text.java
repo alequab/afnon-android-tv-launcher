@@ -263,7 +263,8 @@ final class Text {
         String extra = m == Method.MOROCCO_HABOUS
             ? ar ? " · الظهر +5 دقائق · أفق كل مدينة" : " · Dhuhr +5 min · each city's horizon"
             : plus == 0 ? ""
-            : ar ? " · +" + plus + " دقائق للظهر والعصر والمغرب" : " · Dhuhr, Asr and Maghrib +" + plus + " min";
+            : ar ? " · +" + plus + (plus == 1 ? " دقيقة" : plus == 2 ? " دقيقتان" : plus <= 10 ? " دقائق" : " دقيقة") + " للظهر والعصر والمغرب"
+                 : " · Dhuhr, Asr and Maghrib +" + plus + " min";
         return d(fajr + " · " + isha + extra);
     }
 
