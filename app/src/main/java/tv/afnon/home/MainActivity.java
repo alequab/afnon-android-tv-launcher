@@ -33,6 +33,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,8 +57,8 @@ public class MainActivity extends Screen {
     // Section labels sit 10px above the design (478 / 722) so the focus ring and 1.06 scale never touch them.
     private static final int LABEL_ABOVE_FAV = 468, LABEL_ABOVE_MORE = 712;
 
-    private static final int ARCH = 0, WIFI = 1, SETTINGS = 2, F0 = 3, M0 = 7, ALL = 12, RADIO = 13, NIGHT = 14, LIVE = 15,
-        PANEL = 16, FULL = 17, OTHER = 18, STOP = 19, NODES = 20;
+    private static final int ARCH = 0, WIFI = 1, SETTINGS = 2, F0 = 3, M0 = 7, ALL = 12, RADIO = 13, NIGHT = 14, INPUTS = 15,
+        LIVE = 16, PANEL = 17, FULL = 18, OTHER = 19, STOP = 20, NODES = 21;
     /**
      * The live panel (local only): the courtyard's whole width at 16:9, from the prayer strip's top, over the
      * strip and the favourites and More rows; the clock and dates stay above it.
@@ -97,6 +98,9 @@ public class MainActivity extends Screen {
     private LinearLayout radioCard;
     /** The card's buttons from the start side: Play/Stop, Station, Screen off. */
     private FocusTile cardPlay, cardStation, cardDark;
+    /** The Inputs side panel (design/Inputs.dc.html) while open, and its rows top to bottom. */
+    private FrameLayout inputsPanel;
+    private final List<FocusTile> inputRows = new ArrayList<>();
     private final Radio.Listener onRadio = state -> styleRadio();
     /**
      * Live from Makkah and Madinah (local only): the player, the header pill, its card while open, and the panel
@@ -142,7 +146,8 @@ public class MainActivity extends Screen {
      * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now, with
      * the spoken reminder if it is on; `banner`, `call`, `announce` and `standby` come from the remote buttons
      * service 8 s later, time enough to open another app. `wake` (with `--ei seconds N`, 120 by default) turns the
-     * TV on for the coming prayer N seconds from now, after it has been put in standby (Wake.test).
+     * TV on for the coming prayer N seconds from now, after it has been put in standby (Wake.test). `inputs` presses
+     * the Inputs button; `inputs-panel` opens Afnon's panel even where the TV has its own inputs screen.
      * `--es station <id>` (ids in Radio.STATIONS) picks a radio station as Settings does, before any test runs.
      * `--es live makkah|madinah|off` starts or stops the live panel as its card does; with `--ei quality 1080`
      * (360, 480…) it saves that quality first, as the quality bar does; `--ez full true` fills the screen, and
@@ -190,6 +195,11 @@ public class MainActivity extends Screen {
             else Announce.now(this, prayer, friday);
         }
         else if ("wake".equals(kind)) Wake.test(this, i.getIntExtra("seconds", 120), i.getStringExtra("via"));
+        else if ("inputs".equals(kind)) root.post(() -> { if (nodes[INPUTS] != null) nodes[INPUTS].performClick(); });
+        else if ("inputs-panel".equals(kind)) root.post(() -> {
+            List<Inputs.Source> sources = Inputs.list(this);
+            if (!sources.isEmpty()) showInputsPanel(sources);
+        });
         else if (RemoteKeys.watch != null) RemoteKeys.watch.test(kind, 8000);
     }
 
@@ -277,11 +287,12 @@ public class MainActivity extends Screen {
             names.clear();
         }
         sameApps = false;
+        inputsPanel = null;
         buildArch(488, 26, 12, Tokens.GOLD_200, 8);
 
         nodes[ARCH] = archButton();
 
-        // Courtyard: clock and dates, then Wi-Fi and Settings at the end side.
+        // Courtyard: clock and dates, then Radio, Wi-Fi, Inputs, night mode and Settings at the end side.
         LinearLayout when = new LinearLayout(this);
         when.setOrientation(LinearLayout.VERTICAL);
         clock = text(numbers, 96, Tokens.PLASTER_100);
@@ -300,8 +311,10 @@ public class MainActivity extends Screen {
         when.setClipChildren(false);
         place(when, Tokens.COURT_X, 56, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        // Live, Radio and Wi-Fi side by side, ending 20px before the night button, which is 20px before Settings.
+        // Live, Radio and Wi-Fi side by side, ending 20px before the Inputs button (or the night button, on a TV
+        // without inputs); then the night button and Settings, 20px apart.
         nodes[LIVE] = livePill();
+        nodes[INPUTS] = inputsButton();
         nodes[RADIO] = radioPill();
         nodes[WIFI] = wifiPill();
         LinearLayout pills = new LinearLayout(this);
@@ -314,7 +327,7 @@ public class MainActivity extends Screen {
             pills.addView(pill, plp2);
         }
         FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
-        plp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W) + 2 * (72 + 20) - reach));
+        plp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W) + (nodes[INPUTS] != null ? 3 : 2) * (72 + 20) - reach));
         plp.topMargin = Ui.ipx(56 - reach);
         root.addView(pills, plp);
         nodes[NIGHT] = nightButton();
@@ -472,6 +485,30 @@ public class MainActivity extends Screen {
         });
         nodeLabel[NIGHT] = label;
         placeEnd(b, 1920 - (Tokens.COURT_X + Tokens.COURT_W) + 72 + 20, 56, 72, 72);
+        return b;
+    }
+
+    /**
+     * The round Inputs button before the night button, for remotes without a Source button. Opens what the Source button
+     * opens, the TV's own inputs screen; where the firmware has none (the stock launcher gone, say), Afnon's panel
+     * of the TV's sources. Null (no button) where it has neither.
+     */
+    private View inputsButton() {
+        if (Inputs.list(this).isEmpty() && Inputs.screen(this) == null) return null;
+        FocusTile b = new FocusTile(this, 36);
+        b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
+        Icon icon = new Icon(this, Icon.INPUT, 1.8f);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.ipx(34), Ui.ipx(34), Gravity.CENTER);
+        b.addView(icon, lp);
+        b.setContentDescription(t.inputs());
+        b.setLook(f -> icon.setColor(f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100));
+        b.setOnClickListener(v -> {
+            Intent screen = Inputs.screen(this);
+            if (screen != null) startSafely(screen.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            else showInputsPanel(Inputs.list(this));
+        });
+        nodeLabel[INPUTS] = t.inputs();
+        placeEnd(b, 1920 - (Tokens.COURT_X + Tokens.COURT_W) + 2 * (72 + 20), 56, 72, 72);
         return b;
     }
 
@@ -634,7 +671,7 @@ public class MainActivity extends Screen {
         if (n == ARCH) {
             h.add(t.hintOk(t.today()));
             h.add(t.hintApps());
-        } else if (n == RADIO || n == NIGHT || n == LIVE) {
+        } else if (n == RADIO || n == NIGHT || n == INPUTS || n == LIVE) {
             h.add(t.hintOk(nodeLabel[n]));
         } else if (n == PANEL || n == FULL || n == OTHER) {
             h.add(t.hintOk(n == OTHER ? otherLabel.getText().toString() : t.fullScreen()));
@@ -719,7 +756,7 @@ public class MainActivity extends Screen {
      * closes the card and the radio carries on. Built like the reminder card, in the lapis of the header.
      */
     private void showRadioCard() {
-        if (radioCard != null || card != null) return;
+        if (radioCard != null || card != null || inputsPanel != null) return;
         radioCard = new LinearLayout(this);
         radioCard.setOrientation(LinearLayout.VERTICAL);
         radioCard.setPadding(Ui.ipx(36), Ui.ipx(30), Ui.ipx(36), Ui.ipx(30));
@@ -756,11 +793,11 @@ public class MainActivity extends Screen {
         buttons.setClipChildren(false);
         playIcon = new Icon(this, Icon.PLAY, 2f);
         playLabel = text(ui400, 24, Tokens.PLASTER_100);
-        cardPlay = cardPill(playIcon, playLabel, t.radioPlay());
+        cardPlay = radioButton(playIcon, playLabel, t.radioPlay());
         cardPlay.setOnClickListener(v -> Radio.toggle(this));
-        cardStation = cardPill(new Icon(this, Icon.RADIO, 2f), text(ui400, 24, Tokens.PLASTER_100), t.stationRow());
+        cardStation = radioButton(new Icon(this, Icon.RADIO, 2f), text(ui400, 24, Tokens.PLASTER_100), t.stationRow());
         cardStation.setOnClickListener(v -> chooseStation(this::styleRadio));
-        cardDark = cardPill(new Icon(this, Icon.MOON, 2f), text(ui400, 24, Tokens.PLASTER_100), t.screenOff());
+        cardDark = radioButton(new Icon(this, Icon.MOON, 2f), text(ui400, 24, Tokens.PLASTER_100), t.screenOff());
         cardDark.setOnClickListener(v -> {
             closeRadioCard(true);
             ScreenOffActivity.start(this);
@@ -798,12 +835,8 @@ public class MainActivity extends Screen {
     private void cardHints(View focused) {
         if (hints == null) return;
         List<String> h = new ArrayList<>();
-        if (radioCard != null) {
-            h.add(t.hintOk(focused == cardDark ? t.screenOff() : focused == cardStation ? t.stationRow()
-                : (Radio.on() ? t.radioStop() : t.radioPlay())));
-        } else {
-            return;
-        }
+        h.add(t.hintOk(focused == cardDark ? t.screenOff() : focused == cardStation ? t.stationRow()
+            : (Radio.on() ? t.radioStop() : t.radioPlay())));
         h.add(t.hintClose());
         setHints(hints, h);
     }
@@ -821,8 +854,8 @@ public class MainActivity extends Screen {
         if (!open) cardStation.requestFocus();
     }
 
-    /** A 68px pill on the radio card, with an icon: lapis at rest, gold when focused. */
-    private FocusTile cardPill(Icon icon, TextView v, String label) {
+    /** A 68px pill on the card with an icon: lapis at rest, gold when focused. */
+    private FocusTile radioButton(Icon icon, TextView v, String label) {
         FocusTile b = new FocusTile(this, 34);
         b.setRest(Tokens.LAPIS_900, Tokens.LINE_SOFT, 2);
         LinearLayout row = new LinearLayout(this);
@@ -1230,6 +1263,161 @@ public class MainActivity extends Screen {
         if (focused) nodes[LIVE].requestFocus();
     }
 
+    // ---------------------------------------------------------------- inputs
+
+    /**
+     * design/Inputs.dc.html: a 600px panel on the end side over a scrim, one row per source with its badge, name
+     * and whether something is plugged in. OK switches to it, Back closes; the first row takes focus.
+     */
+    private void showInputsPanel(List<Inputs.Source> sources) {
+        // The button can outlive the sources it was made for (none listed now): nothing to show.
+        if (inputsPanel != null || card != null || sources.isEmpty()) return;
+        closeRadioCard(false);
+        inputsPanel = new FrameLayout(this);
+        inputsPanel.setBackgroundColor(Tokens.SCRIM_PANEL);
+        inputsPanel.setClipChildren(false);
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPaddingRelative(Ui.ipx(56), Ui.ipx(56), Ui.ipx(48), Ui.ipx(56));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Tokens.LAPIS_800);
+        bg.setStroke(Ui.ipx(2), Tokens.GOLD_400_60);
+        panel.setBackground(bg);
+        panel.setClipChildren(false);
+        panel.setClipToPadding(false);
+
+        LinearLayout head = new LinearLayout(this);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        Icon mihrab = new Icon(this, Icon.MIHRAB, 1.4f);
+        mihrab.setColor(Tokens.GOLD_400);
+        head.addView(mihrab, new LinearLayout.LayoutParams(Ui.ipx(56), Ui.ipx(56)));
+        TextView title = text(displayBold, 56, Tokens.PLASTER_100);
+        title.setText(t.inputs());
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-2, -2);
+        tlp.setMarginStart(Ui.ipx(18));
+        head.addView(title, tlp);
+        lineHeight(title, 1.1f);
+        panel.addView(head);
+
+        // The rows scroll if a TV lists more than fit; moving focus to a row brings it into view.
+        float r = FocusTile.REACH;
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        rows.setClipChildren(false);
+        inputRows.clear();
+        for (Inputs.Source s : sources) {
+            FocusTile row = inputRow(s);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, Ui.ipx(104 + 2 * r));
+            if (!inputRows.isEmpty()) lp.topMargin = Ui.ipx(14 - 2 * r);
+            rows.addView(row, lp);
+            inputRows.add(row);
+        }
+        ScrollView scroll = new ScrollView(this);
+        scroll.setClipChildren(false);
+        scroll.setClipToPadding(false);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.addView(rows);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-1, 0, 1);
+        slp.topMargin = Ui.ipx(32 - r);
+        slp.setMarginStart(-Ui.ipx(r));
+        slp.setMarginEnd(-Ui.ipx(r));
+        panel.addView(scroll, slp);
+
+        LinearLayout panelHints = new LinearLayout(this);
+        List<String> h = new ArrayList<>();
+        h.add(t.hintOk(t.inputSwitch()));
+        h.add(t.hintClose());
+        setHints(panelHints, h);
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(-2, -2);
+        hlp.topMargin = Ui.ipx(24);
+        panel.addView(panelHints, hlp);
+
+        inputsPanel.addView(panel, new FrameLayout.LayoutParams(Ui.ipx(600), -1, Gravity.END));
+        root.addView(inputsPanel, new FrameLayout.LayoutParams(-1, -1));
+        for (View n : nodes) if (n != null) n.setFocusable(false);
+        inputRows.get(0).requestFocus();
+    }
+
+    /**
+     * One source: a badge (H1, AV…), its name over Connected / Not connected, and a dot that is filled when on.
+     * Where the TV doesn't report it, just the badge and the name.
+     */
+    private FocusTile inputRow(Inputs.Source s) {
+        FocusTile b = new FocusTile(this, Tokens.RADIUS_ROW);
+        b.setRest(0, 0, 0).setFocusScale(Tokens.FOCUS_SCALE_ROW);
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Ui.ipx(24), 0, Ui.ipx(24), 0);
+
+        TextView badge = text(ui600, 16, Tokens.PLASTER_100);
+        badge.setText(s.badge);
+        badge.setGravity(Gravity.CENTER);
+        badge.setSingleLine(true);
+        badge.setTextDirection(View.TEXT_DIRECTION_LTR);
+        GradientDrawable badgeBg = new GradientDrawable();
+        badgeBg.setColor(Tokens.LAPIS_900);
+        badgeBg.setCornerRadius(Ui.px(Tokens.RADIUS_BADGE));
+        badge.setBackground(badgeBg);
+        row.addView(badge, new LinearLayout.LayoutParams(Ui.ipx(60), Ui.ipx(44)));
+
+        LinearLayout words = new LinearLayout(this);
+        words.setOrientation(LinearLayout.VERTICAL);
+        boolean known = s.connected != null, on = !known || s.connected;
+        int rest = on ? Tokens.PLASTER_100 : Tokens.MIST_400;
+        TextView name = text(ui500, 30, rest);
+        name.setText(s.name);
+        name.setSingleLine(true);
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        TextView status = text(ui400, 20, rest);
+        status.setText(on ? t.inputOn() : t.inputOff());
+        status.setAlpha(0.8f);
+        words.addView(name);
+        if (known) words.addView(status);
+        lineHeight(name, 1.2f);
+        if (known) ((LinearLayout.LayoutParams) status.getLayoutParams()).topMargin += Ui.ipx(4);
+        LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(0, -2, 1);
+        wlp.setMarginStart(Ui.ipx(20));
+        wlp.setMarginEnd(Ui.ipx(20));
+        row.addView(words, wlp);
+
+        View dot = new View(this);
+        GradientDrawable dotBg = new GradientDrawable();
+        dotBg.setShape(GradientDrawable.OVAL);
+        dot.setBackground(dotBg);
+        if (known) row.addView(dot, new LinearLayout.LayoutParams(Ui.ipx(14), Ui.ipx(14)));
+
+        b.addView(row, new FrameLayout.LayoutParams(-1, -1));
+        b.setLook(f -> {
+            int fg = f ? Tokens.LAPIS_900 : rest;
+            name.setTextColor(fg);
+            status.setTextColor(fg);
+            badge.setTextColor(f ? Tokens.GOLD_400 : Tokens.PLASTER_100);
+            badgeBg.setStroke(f ? 0 : Ui.ipx(1), Tokens.LINE_SOFT);
+            if (on) {
+                dotBg.setColor(f ? Tokens.LAPIS_900 : Tokens.GOLD_400);
+                dotBg.setStroke(0, 0);
+            } else {
+                dotBg.setColor(0);
+                dotBg.setStroke(Ui.ipx(2), f ? Tokens.LAPIS_900 : Tokens.MIST_400);
+            }
+        });
+        b.setOnClickListener(v -> {
+            closeInputsPanel(true);
+            startSafely(new Intent(s.open).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        });
+        return b;
+    }
+
+    private void closeInputsPanel(boolean focusButton) {
+        if (inputsPanel == null) return;
+        root.removeView(inputsPanel);
+        inputsPanel = null;
+        inputRows.clear();
+        for (View n : nodes) if (n != null) n.setFocusable(true);
+        if (focusButton && nodes[INPUTS] != null) nodes[INPUTS].requestFocus();
+    }
+
     // ---------------------------------------------------------------- reminder card
 
     /** "Asr in 13 minutes" at the bottom end, over the apps; it takes focus until Got it, Today's prayers or Back. */
@@ -1237,6 +1425,7 @@ public class MainActivity extends Screen {
         if (card != null) dismissReminder();
         exitFullScreen();
         closeRadioCard(false);
+        closeInputsPanel(false);
         Date now = new Date();
         day = new PrayerDay(this, now);
         cardFor = day.nextTime;
@@ -1371,6 +1560,20 @@ public class MainActivity extends Screen {
         }
         // The station list (from the radio card): Back steps back, Up/Down move through it.
         if (chooser != null) return chooserKey(e);
+        if (inputsPanel != null) {
+            if (k == KeyEvent.KEYCODE_BACK) {
+                if (e.getAction() == KeyEvent.ACTION_UP) closeInputsPanel(true);
+                return true;
+            }
+            if (k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN) {
+                int i = inputRows.indexOf(getCurrentFocus());
+                int to = i < 0 ? 0 : i + (k == KeyEvent.KEYCODE_DPAD_DOWN ? 1 : -1);
+                if (e.getAction() == KeyEvent.ACTION_DOWN && to >= 0 && to < inputRows.size()) inputRows.get(to).requestFocus();
+                return true;
+            }
+            if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT) return true;
+            return super.dispatchKeyEvent(e);
+        }
         if (radioCard != null) {
             if (k == KeyEvent.KEYCODE_BACK) {
                 if (e.getAction() == KeyEvent.ACTION_UP) closeRadioCard(true);
@@ -1436,8 +1639,9 @@ public class MainActivity extends Screen {
             case ARCH: to = right ? (panel ? PANEL : F0) : up ? LIVE : -1; break;
             case LIVE: to = left ? ARCH : right ? RADIO : down ? (panel ? PANEL : F0) : -1; break;
             case RADIO: to = left ? LIVE : right ? WIFI : down ? (panel ? PANEL : F0 + 1) : -1; break;
-            case WIFI: to = left ? RADIO : right ? NIGHT : down ? (panel ? PANEL : F0 + 2) : -1; break;
-            case NIGHT: to = left ? WIFI : right ? SETTINGS : down ? (panel ? PANEL : F0 + 3) : -1; break;
+            case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? (panel ? PANEL : F0 + 2) : -1; break;
+            case INPUTS: to = left ? WIFI : right ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
+            case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? (panel ? PANEL : F0 + 3) : -1; break;
             case SETTINGS: to = left ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
             case PANEL: to = left ? ARCH : up ? LIVE : down ? (fullShown ? FULL : OTHER) : -1; break;
             // Full screen, the other mosque and Stop sit under the panel's end corner, in the row of the arch's

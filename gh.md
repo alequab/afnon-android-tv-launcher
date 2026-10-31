@@ -38,11 +38,13 @@ would have to uninstall and lose their settings. Keep a backup of that keystore 
 2. **Bump the version** in `app/build.gradle`: `versionCode` +1, `versionName` to the new version.
 3. **Update the docs** for whatever changed (list below), and in `CHANGELOG.md` rename `[Unreleased]` to
    `[X.Y] - YYYY-MM-DD`, add a fresh empty `[Unreleased]`, and update the compare links at the bottom.
+   Settings → What's new is `Text.news()`: put a group for X.Y on top (its version, then a few short lines, the
+   same in Arabic and English), or rename the top group if it was written ahead under another number.
 4. **Build with the adhans and spoken lines in.** The APK must include the recordings:
    ```bash
    bash tools/fetch-adhans.sh          # no-op if they are already there
    bash tools/fetch-announce.sh        # the 12 spoken lines (pip install edge-tts); no-op if there
-   ls app/src/main/assets/adhan/*.mp3 | wc -l   # expect 14
+   ls app/src/main/assets/adhan/*.mp3 | wc -l   # expect 16
    ls app/src/main/assets/announce/*.mp3 | wc -l   # expect 12
    ./gradlew clean :app:assembleDebug
    cp app/build/outputs/apk/debug/app-debug.apk afnon.apk
