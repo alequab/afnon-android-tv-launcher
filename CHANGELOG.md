@@ -4,6 +4,8 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 
 ## [Unreleased]
 
+Only in the TCL build (`tcl-features`); everything else is in 0.8.
+
 ### Added
 - Settings → Display → Open Afnon when the TV turns on (on by default): the TCL goes back to the last app when it
   leaves standby; Home now comes to the front 2.5 s later instead, as cleanyourtv's Open on wake add-on does. Run by
@@ -17,6 +19,56 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   the reminder comes before a prayer (15 minutes by default), with the spoken reminder on. Fajr ends at sunrise;
   Dhuhr, Asr and Maghrib at the next prayer; Isha at Fajr. Clips `announce/end_<prayer>` (on the TCL, recorded by
   Lutfi Khamis); test with `--es test say --ei prayer N --ez end true`.
+- Settings → Reminders → Turn the TV on for the adhan: the prayers picked in its list (Fajr, Dhuhr/Jumu'ah, Asr,
+  Maghrib, Isha; none, so off, by default) wake the TV from standby for their call. One alarm is armed at a time,
+  for the next picked prayer (`setAlarmClock`), and armed again after it rings, on boot, and when the picks, the
+  adhan, a bell, the city, the method or the Asr school change; with nothing picked nothing is armed. The call
+  opens as usual and only once, and the adhan switch and each prayer's bell still decide. If Afnon turned the TV
+  on, closing the call screen (by itself, Back or Dismiss) asks Android for standby again through the remote
+  buttons service; leaving it for another app keeps the TV on. Needs the exact-alarm permission
+  (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
+  seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
+  the way back.
+
+### Changed
+- Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
+  is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
+  Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
+  digits, which Marcellus doesn't have, they stay in Amiri, and so they do before Android 9 (the mixed fonts
+  need its `TypefaceSpan`).
+- The arch countdown holds still. Marcellus's digits differ in width (a 0 is nearly three 1s) and it has no
+  tabular figures, so the centred countdown slid sideways every second, in English too. It now starts at a
+  fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
+  changing never moves. The view also no longer asks for a new layout every second.
+- Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
+  card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
+  OK on the panel fills the screen.
+
+### Fixed
+- The spoken reminder before a prayer says «حان الآن موعد صلاة …» (the recorded `now_` line): there is no recording of
+  «اقترب…», so it had been silent. On Friday every spoken line falls back to Dhuhr's recording while there is no
+  Jumu'ah one (they had all been silent on Fridays). Changing the reminder minutes brings back a reminder or «أوشك»
+  that isn't due with the new minutes (10 → 5 at 8 minutes left: once more at 5); before, it never came again.
+  `--es test say` takes `--ez friday true`.
+- The spoken lines can be .wav recordings too (a person's own voice instead of the recorded TTS): Announce tries
+  `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
+  silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:
+  `--es test say --ei prayer 0..5 [--ez before true]`.
+- The arch countdown no longer changes size every second when ten hours or more are left: it is measured with
+  every digit a 0, the widest in Marcellus.
+- Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
+  (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
+- Opening Settings (and Prayer day or All apps) no longer flashes a plain blue screen first. That was Android's
+  starting window in the theme's ground colour, shown for the quarter second the screen takes to draw, and blue
+  even in night mode. Afnon's screens now have none (`windowDisablePreview`), and open and close with no
+  transition: the screen in front stays until the next one is ready.
+- The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
+  arch: it stays on one line and gets a little smaller until it fits.
+
+
+## [0.8] - 2026-10-31
+
+### Added
 - Night mode: a dimmer, warmer palette for watching at night on every screen (Home, Prayer day, Settings, All
   apps, the call, the reminder banner, the screensaver and screen-off), from the LG version's night colours.
   Near-black and a little warm; text, gold and lines at about half brightness; the reminder card and the current
@@ -40,82 +92,70 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
   Quran radios in both Station lists (Settings and the radio card).
 - Settings → What's new («ما الجديد», the last section): the latest releases, newest first, each a few short
   lines in Arabic (or English) under its version, read-only and built only while it is open. OK or toward the
-  end goes into it, ▲▼ scroll it, Back or toward the start returns to the sections. It starts with 0.5 and this
-  release; the lines are `Text.news()`, and each release adds its own on top.
+  end goes into it, ▲▼ scroll it, Back or toward the start returns to the sections. It goes back to 0.5; the
+  lines are `Text.news()`, and each release adds its own on top.
 - Settings → Adjust the times («تعديل المواقيت», its own section), as in meypod/al-azan and the LG launcher:
   Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha each a stepper of minutes («+2», «0», «-3»), up to 30 earlier or
-  later, with today's adjusted time under the name. Home, Prayer day, the reminders, the adhan and the wake alarm all
+  later, with today's adjusted time under the name. Home, Prayer day, the reminders and the adhan all
   use the adjusted times.
 - Two more adhan voices: «المسجد النبوي» and «راغب مصطفى غلوش», the recordings meypod/al-azan uses
   (`tools/fetch-adhans.sh` downloads them from meypod/audio_files).
-- Settings → Reminders → Turn the TV on for the adhan: the prayers picked in its list (Fajr, Dhuhr/Jumu'ah, Asr,
-  Maghrib, Isha; none, so off, by default) wake the TV from standby for their call. One alarm is armed at a time,
-  for the next picked prayer (`setAlarmClock`), and armed again after it rings, on boot, and when the picks, the
-  adhan, a bell, the city, the method or the Asr school change; with nothing picked nothing is armed. The call
-  opens as usual and only once, and the adhan switch and each prayer's bell still decide. If Afnon turned the TV
-  on, closing the call screen (by itself, Back or Dismiss) asks Android for standby again through the remote
-  buttons service; leaving it for another app keeps the TV on. Needs the exact-alarm permission
-  (`SCHEDULE_EXACT_ALARM`, granted at install on Android 12; `USE_EXACT_ALARM` from 13). `--es test wake --ei
-  seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
-  the way back.
+- Inputs on Home (#20): a round button between Wi-Fi and the night button, for remotes without a Source button. It opens
+  what Source opens, the TV's own inputs screen (TCL's input bar on the 55P7K). Where the firmware has none, it
+  opens Afnon's Inputs panel (design/Inputs.dc.html): the TV's passthrough sources from the TV Input Framework,
+  HDMI first, and OK switches to one through the TV's own player. Whether something is plugged in shows only
+  where the TV reports it. A TV with neither gets no button. `--es test inputs` presses the button and
+  `--es test inputs-panel` opens Afnon's panel.
+- Oman's Holy Quran Radio (إذاعة القرآن الكريم، سلطنة عُمان, ayn.om/live/164) in Settings → Radio: its public HLS
+  stream on the Mangomolo CDN, which plays without a token. It adds the host `partwota.cdn.mgmlcdn.com` to the
+  README's Privacy list.
+- Canada: Montreal, Calgary, Ottawa, Edmonton, Winnipeg, Mississauga, Vancouver and Halifax (#25), on ISNA like
+  Toronto. Denmark: Copenhagen (#23), on MWL. Now 245 cities in 45 countries.
+- Morocco: calculation method «وزارة الأوقاف والشؤون الإسلامية، المملكة المغربية» (Ministry of Habous) and 44 cities,
+  capital first then by size (Rabat, Casablanca, Fes, Tangier, Marrakech … Ifrane, Zagora). The
+  ministry publishes times, not its method, so the rules were recovered from its tables (habous.gov.ma, October 2026
+  for 44 cities, and Tetouan's whole 2019 year from the Internet Archive): Fajr 19° with seconds dropped, Isha 17°,
+  Dhuhr transit + 5 min, Asr with the sun's declination at Asr itself, sunrise and Maghrib at each city's own
+  horizon (lower in the Atlas than on the coast), the rest rounded. `Habous.java` computes them on adhan-java's
+  solar positions, since its parameters can't round, take seconds or set a horizon. Against the October 2026 table
+  98.8% of the 8184 times are on the minute and the rest a minute off; Tetouan's 2019 year, not fitted to, is 90.8%
+  on the minute and within one throughout. Each city sits at the point the table matches, within 7 km of its centre.
+  Morocco keeps legal time on GMT since 20 September 2026 (decree 2.26.530): TVs whose time-zone data predates it
+  show Africa/Casablanca an hour ahead, so set such a TV to a GMT+0 zone until its firmware updates.
 
 ### Changed
-- Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
-  is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
-  Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
-  digits, which Marcellus doesn't have, they stay in Amiri, and so they do before Android 9 (the mixed fonts
-  need its `TypefaceSpan`).
-- The arch countdown holds still. Marcellus's digits differ in width (a 0 is nearly three 1s) and it has no
-  tabular figures, so the centred countdown slid sideways every second, in English too. It now starts at a
-  fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
-  changing never moves. The view also no longer asks for a new layout every second.
+- Web preview (`site/`): night mode (Home's button and Settings → Display), the radio card's Station button, Settings →
+  Adjust the times and What's new, and the prayer rules above (adjusted times, the Hijri day from Maghrib,
+  Jumu'ah until Maghrib, Umm al-Qura's Ramadan Isha, above 48°).
 - The Hijri date turns at Maghrib, as the Islamic day does: from Maghrib to midnight it shows the next day's date,
   and its weekday with it (Friday evening reads السبت). The weekday moved from the Gregorian line to the Hijri one
   (Home, Prayer day, the screensaver). Ramadan follows the Hijri day, so its first night shows the suhoor and the
   night of Eid doesn't; «سورة الكهف اليوم» shows from Thursday's Maghrib to Friday's. Jumu'ah replaces Dhuhr on
   Friday until its Maghrib, then the strip says الظهر again.
 - Umm al-Qura (the Saudi cities): Isha is 2 hours after Maghrib in Ramadan instead of 1½, from the first night of
-  Ramadan to the last, as Saudi Arabia's calendar and meypod/al-azan have it.
-- Cities above 48° (London, Paris, Berlin, Amsterdam…): where summer nights never get dark enough for Fajr's and
-  Isha's angles, they are now a seventh of the night from Maghrib and before sunrise, as al-azan has it, instead of
-  both near 1 a.m.
-- Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
-  card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
-  OK on the panel fills the screen.
+  Ramadan to the last (moved by the Hijri offset with the date shown), as Saudi Arabia's calendar and
+  meypod/al-azan have it. Settings shows it under the method.
+- Cities beyond 48°, north or south (London, Paris, Berlin, Amsterdam, Copenhagen, Edmonton…): Fajr is no earlier
+  than a seventh of the night before sunrise and Isha no later than a seventh after Maghrib, as al-azan has it.
+  On summer nights, when the sun never reaches their angles, both were near 1 a.m.; the limit also moves them by
+  some minutes from about spring to autumn.
 
 ### Fixed
-- The spoken reminder before a prayer says «حان الآن موعد صلاة …» (the recorded `now_` line): there is no recording of
-  «اقترب…», so it had been silent. On Friday every spoken line falls back to Dhuhr's recording while there is no
-  Jumu'ah one (they had all been silent on Fridays). Changing the reminder minutes brings back a reminder or «أوشك»
-  that isn't due with the new minutes (10 → 5 at 8 minutes left: once more at 5); before, it never came again.
-  `--es test say` takes `--ez friday true`.
-- The spoken lines can be .wav recordings too (a person's own voice instead of the recorded TTS): Announce tries
-  `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
-  silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:
-  `--es test say --ei prayer 0..5 [--ez before true]`.
 - Afnon remote buttons (and the call to prayer) now also come back after a force-stop when Android marked the
   service crashed: it stays listed as on but is never started again until it leaves the list. `ensureOn` takes it
   out and puts it back a second later when it is listed but nothing runs, and looks again 3 s after listing a
-  missing one. On the TCL, a force-stop and one press of Home left it off two times in three; now none.
-- The arch countdown no longer changes size every second when ten hours or more are left: it is measured with
-  every digit a 0, the widest in Marcellus.
-- Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
-  (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
-- Opening Settings (and Prayer day or All apps) no longer flashes a plain blue screen first. That was Android's
-  starting window in the theme's ground colour, shown for the quarter second the screen takes to draw, and blue
-  even in night mode. Afnon's screens now have none (`windowDisablePreview`), and open and close with no
-  transition: the screen in front stays until the next one is ready.
+  missing one. On the TCL 55P7K, a force-stop and one press of Home left it off two times in three; now none.
 - Lists over the screen (Settings' lists and the radio card's Station) no longer cut off the last item: its focus
   ring and the bottom of its tile were clipped, plainly with only two groups. The list is now as tall as its
   whole tiles, rings included, and moves a whole item at a time when it scrolls.
-- The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
-  arch: it stays on one line and gets a little smaller until it fits.
 - Home's More row no longer repeats the favourites. It left out only the saved favourites, so when one of them
   wasn't installed and another app filled its slot, that app showed in both rows. It now leaves out what the
   favourites row shows.
 - TCL's remote pairing service (`com.tcl.tcl_bt_rcu_service`, "TCL_BT_RCU_Service") is no longer listed as an app:
   its launcher entry is only a test screen.
-
+- TCL: the remote's Source button opened the input bar and closed it again at once, so nothing seemed to happen.
+  TCL's window manager opens that bar (com.tcl.suspension) on Source itself, and a second start from Afnon's
+  remapping toggled it shut; Source and TV are left to the firmware there now.
 
 ## [0.7] - 2026-10-28
 
@@ -344,7 +384,8 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.7...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8...HEAD
+[0.8]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.7...v0.8
 [0.7]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6.1...v0.7
 [0.6.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6...v0.6.1
 [0.6]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.5...v0.6

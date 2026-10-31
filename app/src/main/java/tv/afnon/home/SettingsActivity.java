@@ -232,16 +232,16 @@ public class SettingsActivity extends Screen {
     }
 
     /**
-     * What's new: what this TV's Afnon has on top of 0.4, as headings and short lines (Text.news), in Arabic or
-     * English. Read-only, built only while its section is open. OK or toward the end goes into it; ▲▼ scroll it,
-     * toward the start or Back returns to the sections.
+     * What's new: the latest releases, newest first, each its version and a few short lines (Text.news), in Arabic
+     * or English. Read-only, built only while its section is open. OK or toward the end goes into it; ▲▼ scroll
+     * it, toward the start or Back returns to the sections.
      */
     private ScrollView newsPage() {
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         for (String[] group : t.news()) {
             TextView head = text(ui500, 26, Tokens.GOLD_400);
-            head.setText(group[0]);
+            head.setText(t.newsVersion(group[0]));
             LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(-1, -2);
             if (list.getChildCount() > 0) hlp.topMargin = Ui.ipx(28);
             list.addView(head, hlp);
@@ -490,7 +490,11 @@ public class SettingsActivity extends Screen {
     private Row adjustRow(int prayer) {
         return new Row(STEP) {
             String label() { return t.prayerNames()[prayer]; }
-            String help() { return t.adjustTimeHelp(time(day.times[prayer], 1f).toString()); }
+            String help() {
+                // After Isha, PrayerDay holds tomorrow's Fajr.
+                boolean tomorrow = prayer == PrayerDay.FAJR && day.times[prayer].after(day.times[PrayerDay.ISHA]);
+                return t.adjustTimeHelp(time(day.times[prayer], 1f).toString(), tomorrow);
+            }
             int amount() { return Prefs.adjustments(SettingsActivity.this)[prayer]; }
             void setAmount(int n) { Prefs.setAdjustment(SettingsActivity.this, prayer, n); }
             int lowest() { return -30; }
