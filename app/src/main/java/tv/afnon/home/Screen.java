@@ -571,12 +571,23 @@ abstract class Screen extends Activity {
             boolean chosen = i == selected;
             FocusTile item = new FocusTile(this, 14);
             item.setFocusScale(1f);   // the list scrolls, so a grown tile would be clipped at its edges
-            item.setRest(chosen ? Tokens.LAPIS_700 : 0, 0, 0);
+            // Only focus fills a row: the current choice is gold words and a check at the end, so a list never shows
+            // two highlighted rows at once.
+            item.setRest(0, 0, 0);
             TextView v = text(chosen ? ui500 : ui400, 26, Tokens.PLASTER_100);
             v.setText(items[i]);
             v.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-            v.setPadding(Ui.ipx(24), 0, Ui.ipx(24), 0);
+            v.setPaddingRelative(Ui.ipx(24), 0, Ui.ipx(chosen && checks == null ? 72 : 24), 0);
             item.addView(v, new FrameLayout.LayoutParams(-1, -1));
+            Icon tick = null;
+            if (chosen && checks == null) {
+                tick = new Icon(this, Icon.CHECK, 2.4f);
+                FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(Ui.ipx(28), Ui.ipx(28),
+                    Gravity.CENTER_VERTICAL | Gravity.END);
+                tlp.setMarginEnd(Ui.ipx(28));
+                item.addView(tick, tlp);
+            }
+            Icon check = tick;
             Switch box = null;
             if (checks != null) {
                 box = new Switch(this, checks[i], false);
@@ -588,6 +599,7 @@ abstract class Screen extends Activity {
             Switch sw = box;
             item.setLook(f -> {
                 v.setTextColor(f ? Tokens.FOCUS_TEXT : (chosen ? Tokens.GOLD_400 : Tokens.PLASTER_100));
+                if (check != null) check.setColor(f ? Tokens.FOCUS_TEXT : Tokens.GOLD_400);
                 if (sw != null) sw.set(checks[index], f);
                 if (f && onFocus != null) onFocus.accept(index);
             });

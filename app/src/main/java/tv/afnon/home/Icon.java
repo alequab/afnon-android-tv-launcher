@@ -9,7 +9,7 @@ import android.view.View;
 /** Stroke icons on a 24px grid in the current colour, so they follow focus (README: Iconography). */
 final class Icon extends View {
     static final int WIFI = 0, GEAR = 1, COMPASS = 2, BELL = 3, BACK = 4, STAR = 5, MIHRAB = 6, RADIO = 7, PLAY = 8, STOP = 9, MOON = 10,
-        INPUT = 11, NIGHT = 12, SUN = 13, LIVE = 14, EXPAND = 15;
+        INPUT = 11, NIGHT = 12, SUN = 13, LIVE = 14, EXPAND = 15, CHECK = 16;
 
     private int kind;
     private final float strokeOn24;
@@ -160,6 +160,10 @@ final class Icon extends View {
             c.drawLine(12 * k, 7 * k, 12 * k, 13.5f * k, p);
             c.drawLine(9 * k, 10.5f * k, 12 * k, 13.5f * k, p);
             c.drawLine(15 * k, 10.5f * k, 12 * k, 13.5f * k, p);
+        } else if (kind == CHECK) {
+            // The current choice in a list: M5 12.5l4.5 4.5L19 7.5
+            c.drawLine(5 * k, 12.5f * k, 9.5f * k, 17 * k, p);
+            c.drawLine(9.5f * k, 17 * k, 19 * k, 7.5f * k, p);
         } else if (kind == BACK) {
             // M15 5l-7 7 7 7: points to the start side, so it mirrors in Arabic.
             boolean flip = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
