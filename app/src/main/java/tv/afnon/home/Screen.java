@@ -118,6 +118,16 @@ abstract class Screen extends Activity {
         super.onPause();
     }
 
+    /**
+     * Gone behind something else (Home, another app): a list left open closes, so coming back hours later doesn't show
+     * an old list where the next OK would pick, say, another calculation method.
+     */
+    @Override
+    protected void onStop() {
+        if (chooser != null) closeChooser();
+        super.onStop();
+    }
+
     // ---------------------------------------------------------------- settings
 
     /**

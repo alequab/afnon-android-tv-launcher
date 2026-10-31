@@ -118,6 +118,9 @@ public class MainActivity extends Screen {
     private TextView fullHint;
     /** Full screen's quality bar while it shows: its buttons, lowest first, and their picture heights. */
     private LinearLayout qualityBar;
+    /** The bar's holder under the panel, and whether it was asked for in full screen (it goes back there after). */
+    private FrameLayout qualityBox;
+    private boolean qualityFromFull;
     private FocusTile[] qualityButtons;
     private int[] qualityHeights;
     /** Test only (--ez bar true): the quality bar once the video plays. */
@@ -1098,14 +1101,19 @@ public class MainActivity extends Screen {
     };
 
     /**
-     * Full screen's quality bar at the bottom, over the video: «الجودة», then each rendition the stream's master
-     * playlist offers (lowest first) with what an hour of it costs in data; the one playing is outlined in gold and
-     * focused. ◀▶ move, OK picks it (saved for next time, also for the panel), Back closes the bar. It fades away
-     * after a few seconds without a key.
+     * The quality bar: «الجودة», then each rendition the stream's master playlist offers (lowest first) with what an
+     * hour of it costs in data; the one playing is outlined in gold and focused. ◀▶ move, OK picks it (saved for next
+     * time, also for the panel), Back closes the bar. It fades away after a few seconds without a key.
+     *
+     * It sits under the panel, never over the video: at 1080p the TCL puts the video on a hardware plane above the
+     * app's own drawing, so a bar over full screen was there but couldn't be seen. Asked for in full screen, the video
+     * steps back to the panel while the bar is open and fills the screen again when it closes.
      */
     private void showQualityBar() {
         List<Live.Rendition> list = live.renditions();
-        if (qualityBar != null || list.isEmpty() || !fullScreen) return;
+        if (qualityBar != null || list.isEmpty() || nodes[PANEL] == null) return;
+        qualityFromFull = fullScreen;
+        if (fullScreen) exitFullScreen();
         qualityBar = new LinearLayout(this);
         qualityBar.setGravity(Gravity.CENTER_VERTICAL);
         qualityBar.setPadding(Ui.ipx(32), Ui.ipx(14), Ui.ipx(24), Ui.ipx(14));
@@ -1149,14 +1157,14 @@ public class MainActivity extends Screen {
             qualityHeights[i] = q.height;
             if (on) current = b;
         }
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        lp.bottomMargin = Ui.ipx(Tokens.SPACE_SAFE_BLOCK);
-        root.addView(qualityBar, lp);
-        // The hint sits where the bar is: it gives way.
-        if (fullHint != null) {
-            fullHint.animate().cancel();
-            fullHint.setAlpha(0);
-        }
+        // Centred under the panel, where its words and buttons were (they and the key hints step aside meanwhile).
+        qualityBox = new FrameLayout(this);
+        qualityBox.setClipChildren(false);
+        qualityBox.addView(qualityBar, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_HORIZONTAL));
+        place(qualityBox, Tokens.COURT_X, PANEL_Y + PANEL_H + 4, PANEL_W, ViewGroup.LayoutParams.WRAP_CONTENT);
+        panelSide.setVisibility(View.INVISIBLE);
+        panelButtons.setVisibility(View.INVISIBLE);
+        if (hints != null) hints.setVisibility(View.INVISIBLE);
         (current != null ? current : qualityButtons[0]).requestFocus();
         keepQualityBar();
     }
@@ -1186,11 +1194,19 @@ public class MainActivity extends Screen {
         if (qualityBar == null) return;
         qualityBar.removeCallbacks(fadeQualityBar);
         qualityBar.animate().cancel();
-        root.removeView(qualityBar);
+        root.removeView(qualityBox);
+        qualityBox = null;
         qualityBar = null;
         qualityButtons = null;
         qualityHeights = null;
+        if (hints != null) hints.setVisibility(View.VISIBLE);
+        if (panelSide != null) panelSide.setVisibility(View.VISIBLE);
+        if (panelButtons != null) panelButtons.setVisibility(View.VISIBLE);
         if (nodes[FULL] != null) nodes[FULL].requestFocus();
+        if (qualityFromFull) {
+            qualityFromFull = false;
+            enterFullScreen();
+        }
     }
 
     /** That rendition on the same player (a short pause), saved; its height shows for a moment. */
@@ -1242,14 +1258,18 @@ public class MainActivity extends Screen {
             fullScreen = false;
             if (fullHint != null) root.removeView(fullHint);
             fullHint = null;
-            if (qualityBar != null) {
-                qualityBar.animate().cancel();
-                root.removeView(qualityBar);
-            }
-            qualityBar = null;
-            qualityButtons = null;
-            qualityHeights = null;
         }
+        if (qualityBar != null) {
+            qualityBar.removeCallbacks(fadeQualityBar);
+            qualityBar.animate().cancel();
+            root.removeView(qualityBox);
+            if (hints != null) hints.setVisibility(View.VISIBLE);
+        }
+        qualityBox = null;
+        qualityBar = null;
+        qualityButtons = null;
+        qualityHeights = null;
+        qualityFromFull = false;
         root.removeView(panelButtons);
         panelButtons = null;
         nodes[FULL] = null;
@@ -1525,28 +1545,28 @@ public class MainActivity extends Screen {
                 return true;
             }
         }
-        // The live video filling the screen: Back or OK returns to the panel, ▲▼ or Menu open the quality bar.
-        // With the bar open: ◀▶ move along it (mirrored in Arabic), OK picks, Back closes it first.
-        if (fullScreen) {
-            boolean ok = k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER || k == KeyEvent.KEYCODE_NUMPAD_ENTER;
-            boolean down = e.getAction() == KeyEvent.ACTION_DOWN, up = e.getAction() == KeyEvent.ACTION_UP;
-            boolean sideways = k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT;
-            boolean upDown = k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN;
-            if (qualityBar != null) {
-                keepQualityBar();
-                int i = java.util.Arrays.asList(qualityButtons).indexOf(getCurrentFocus());
-                if (k == KeyEvent.KEYCODE_BACK) {
-                    if (up) closeQualityBar();
-                } else if (ok) {
-                    if (up && i >= 0) pickQuality(i);
-                } else if (sideways) {
-                    boolean toEnd = (k == KeyEvent.KEYCODE_DPAD_RIGHT) != rtl;
-                    if (down) qualityButtons[i < 0 ? 0 : Math.max(0, Math.min(qualityButtons.length - 1, i + (toEnd ? 1 : -1)))].requestFocus();
-                } else if (!upDown) {
-                    return super.dispatchKeyEvent(e);
-                }
-                return true;
+        // The live video: Back or OK in full screen returns to the panel, ▲▼ or Menu open the quality bar (under the
+        // panel). With the bar open: ◀▶ move along it (mirrored in Arabic), OK picks, Back closes it first.
+        boolean ok = k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER || k == KeyEvent.KEYCODE_NUMPAD_ENTER;
+        boolean down = e.getAction() == KeyEvent.ACTION_DOWN, up = e.getAction() == KeyEvent.ACTION_UP;
+        boolean sideways = k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT;
+        boolean upDown = k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN;
+        if (qualityBar != null) {
+            keepQualityBar();
+            int i = java.util.Arrays.asList(qualityButtons).indexOf(getCurrentFocus());
+            if (k == KeyEvent.KEYCODE_BACK) {
+                if (up) closeQualityBar();
+            } else if (ok) {
+                if (up && i >= 0) pickQuality(i);
+            } else if (sideways) {
+                boolean toEnd = (k == KeyEvent.KEYCODE_DPAD_RIGHT) != rtl;
+                if (down) qualityButtons[i < 0 ? 0 : Math.max(0, Math.min(qualityButtons.length - 1, i + (toEnd ? 1 : -1)))].requestFocus();
+            } else if (!upDown) {
+                return super.dispatchKeyEvent(e);
             }
+            return true;
+        }
+        if (fullScreen) {
             if (k == KeyEvent.KEYCODE_BACK || ok) {
                 if (up) exitFullScreen();
                 return true;

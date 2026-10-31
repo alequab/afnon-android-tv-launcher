@@ -408,7 +408,8 @@ final class Text {
                   : new String[] {"5 min", "10 min", "15 min", "20 min", "30 min", "Off"};
     }
     String remindVoiceRow() { return ar ? "تذكير صوتي" : "Spoken reminder"; }
-    String remindVoiceHelp() { return ar ? "«اقترب موعد صلاة …» مع التذكير" : "Says «اقترب موعد صلاة …» with the reminder"; }
+    /** This build says «حان الآن» with the reminder (Announce.before plays the now_ line). */
+    String remindVoiceHelp() { return ar ? "«حان الآن موعد صلاة …» مع التذكير" : "Says «حان الآن موعد صلاة …» with the reminder"; }
     String announceRow() { return ar ? "إعلان دخول الوقت" : "Announce the time"; }
     String announceHelp() {
         return ar ? "«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف" : "Says «حان الآن موعد صلاة …» when a prayer's adhan is off";
