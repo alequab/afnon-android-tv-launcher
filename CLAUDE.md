@@ -19,7 +19,8 @@ real TV over ADB, never just in the build.
 - No blur, video or shadows; animate transform/opacity only. No new timers or background services: prayer checks
   share one 15 s timer in the accessibility service.
 - No network access except the chosen radio station's stream (hosts listed in `Radio.STATIONS` and the README's
-  Privacy section). No analytics, ads or feeds.
+  Privacy section) and Settings → Device → Afnon updates (`Updates`), which contacts GitHub only when OK is pressed
+  on it, never on its own. No analytics, ads or feeds.
 - Colours/sizes/timings from `afnon-mihrab/tokens.json` (generated into `Tokens.java`, `colors.xml` and the site's
   `tokens.css` by `cd site && npm run tokens`; never edit those by hand). Night mode's colours are
   `tokens.night.json`; colours are read when a view is built, so never copy one into a `static final`. Every string in Arabic and English in
@@ -111,7 +112,10 @@ hard-wires to an app. Tested on one Super General (Android 9) only; any change h
 One Xiaomi MiTV-MOOQ0 (Android TV 10, MediaTek, 1.8 GB, low-RAM mode), debloated with cleanyourtv's
 `examples/xiaomi-mitv-mooq0` list. Stock launcher `com.google.android.tvlauncher` (no launcherx, so setup leaves
 Google's setup app alone; on that TV it owns the saved Wi-Fi network and must stay enabled). Input sends
-`KEYCODE_MEDIA_RECORD` (130), not mapped yet. Not checked there: holding Volume (the service filters keys on
+`KEYCODE_TV_INPUT` (178); Xiaomi's `GlobalKeyReceiver` (MiTvSetupCustomizer) starts the disabled stock launcher's
+`InputsPanelActivity` on it, so `RemoteKeys` opens Afnon's Inputs panel instead (`Inputs.source`). Its channels come from the
+built-in satellite receiver (tuner `HW0`): the panel's first row opens its channel list, since Live TV reopens on
+whatever input was last used (AV or an empty HDMI shows "No signal"). Not checked there: holding Volume (the service filters keys on
 non-TCL, non-CVTE firmware), Audio Only, the remote's buttons. Live TV/HDMI is `com.mediatek.wwtv.tvcenter`.
 
 ## Web preview (`site/`)

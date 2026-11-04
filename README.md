@@ -22,7 +22,7 @@ Afnon replaces the stock launcher on an Android TV with one quiet screen. The ne
 countdown sit inside a mihrab arch. The day's six times run across the top, your favourite apps sit
 below, and the call to prayer comes to the TV by itself. Built and tested on a **TCL 55P7K (Google
 TV, Android 12)**, driven only by the remote's D-pad, and also run on a Super General (CVTE) and a Xiaomi
-Mi TV (see the notes below).
+Mi TV (see the notes below, and [Tested TVs](docs/tested-tvs.md) for every TV so far).
 
 ### How it started
 
@@ -88,8 +88,8 @@ Afnon started from [cleanyourtv](https://github.com/Gathin23/cleanyourtv):
   The same service brings the call to prayer, so if a TV cleaner force-stops Afnon (which switches the
   service off), Home switches it back on. Turning it off in Settings → Accessibility is respected.
 - **Inputs.** A round button on Home, beside the night-mode button, opens the TV's input menu, as the Source button
-  does, for remotes without one. Where the TV has no menu of its own, Afnon lists the HDMI and AV
-  sources itself.
+  does, for remotes without one. Where the TV has no menu of its own, Afnon lists the sources itself:
+  TV channels (the built-in receiver) first, then the HDMI ports.
 - **Arabic and English.** RTL and LTR layouts. Language follows the TV or is set in Afnon. Digits
   are Arabic-Indic or Latin.
 - **Night mode.** Calmer, dimmer, warmer colours on every screen, from the moon button beside Home's Settings
@@ -103,7 +103,10 @@ Afnon has **no accounts, no analytics and no ads**. The radio is the only featur
 internet, and it connects only to the chosen station's stream, one at a time: `stream.radiojar.com` (Cairo),
 `quran-radio.org` (Nablus), `streaming.zaytonatube.com` (Shabab FM), `live.kwikmotion.com` (Qatar and the Saudi
 Quran stations), `jrtv-live.ercdn.net` (Jordan), `partwota.cdn.mgmlcdn.com` (Oman) or `backup.qurango.net` (the
-reciters). The list is in `Radio.STATIONS`. Afnon makes no other network requests, and its
+reciters). The list is in `Radio.STATIONS`. The only other connection is **Settings → Device → Afnon updates**:
+when you press OK there, Afnon asks `github.com` for the latest release and, if you then choose to update,
+downloads its `afnon.apk` from GitHub (`github.com`, which hands the file over from `*.githubusercontent.com`). It
+never checks on its own and sends nothing about you or the TV. Afnon makes no other network requests, and its
 [network security config](app/src/main/res/xml/network_security.xml) allows plain HTTP for the Cairo stream only.
 Your city and settings stay on the TV.
 
@@ -115,6 +118,7 @@ nothing from other sites except the station's stream when you press Play, and ke
 | `INTERNET`, `WAKE_LOCK` | The radio stream, kept playing with the screen off |
 | `RECORD_AUDIO` | Required by Android's Visualizer, to read Afnon's **own** player for the level bars. It does not use the microphone. |
 | `WRITE_SECURE_SETTINGS` | Turns the TV's sleep timer off while the radio plays, and puts it back after. Turns Afnon's own remote buttons service back on after a force-stop. On TCL, also writes the remote button mappings (see TCL notes) |
+| `REQUEST_INSTALL_PACKAGES`, `UPDATE_PACKAGES_WITHOUT_USER_ACTION` | Settings → Device → Afnon updates installs the new release you asked for (on Android 12+ without a confirm dialog). Allowed at setup (`appops`); Android only accepts an update signed with the same key |
 | `ACCESS_FINE_LOCATION` | Android 9+ hides the Wi-Fi name without it; Home shows the name. Afnon never reads the TV's location |
 | `SCHEDULE_EXACT_ALARM` (Android 12), `USE_EXACT_ALARM` (13+), `RECEIVE_BOOT_COMPLETED` | Turn the TV on for the adhan (off by default): one alarm at the next picked prayer, armed again after a reboot |
 | Accessibility service | Remote button mapping (see `RemoteKeys.java`) |
@@ -258,8 +262,8 @@ launcher off behind its safety switch). Notes:
   it back on.
 - The firmware gives a few built-in apps a phone-style entry only (Clock, MediaTek's Netflix watcher, a
   disclaimer screen). Afnon leaves those out of its app list.
-- The remote's Input button sends `KEYCODE_MEDIA_RECORD` (130). Afnon doesn't map it yet; open Live TV from
-  the favourites for HDMI.
+- The remote's Input button sends Source (`KEYCODE_TV_INPUT`, 178) and opens Afnon's Inputs panel, which
+  starts with the TV channels.
 - Holding Volume and the Audio Only screen-off have not been checked there yet.
 - Free memory matters on this 1.8 GB set: a screen-mirroring app stuck at full CPU (AirScreen) had filled
   RAM and swap and froze other apps before Afnon was installed.
@@ -312,7 +316,7 @@ docs/screenshots/     the images above, all from the real TV
   إذاعات القرآن الكريم من نابلس وشباب إف إم وقطر وعُمان والأردن والسعودية، أو قناة أحد القرّاء العشرة على مدار الساعة.
 - **أزرار الريموت**: أزرار التطبيقات والإعدادات والمدخلات تعمل مع أفنون. والخدمة نفسها تأتي بالأذان، فإن
   أوقف أحد تطبيقات التنظيف أفنون أعادت الشاشة الرئيسية تشغيلها.
-- **مصادر الإدخال**: زر في الرئيسية بجانب زر الوضع الليلي يفتح قائمة المصادر في التلفاز كما يفعل زر المصدر، لأجهزة التحكم التي ليس فيها هذا الزر. وإن لم تكن للتلفاز قائمة خاصة، يعرض أفنون منافذ HDMI وAV بنفسه.
+- **مصادر الإدخال**: زر في الرئيسية بجانب زر الوضع الليلي يفتح قائمة المصادر في التلفاز كما يفعل زر المصدر، لأجهزة التحكم التي ليس فيها هذا الزر. وإن لم تكن للتلفاز قائمة خاصة، يعرض أفنون المصادر بنفسه: قنوات التلفاز (الريسيفر المدمج) أولًا ثم منافذ HDMI.
 - **العربية أولًا**: من اليمين إلى اليسار، مع الإنجليزية، والأرقام عربية أو لاتينية.
 - **بلا حسابات ولا إعلانات ولا تتبّع**. الإذاعة وحدها تستخدم الإنترنت.
 
