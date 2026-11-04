@@ -19,9 +19,11 @@ real TV over ADB, never just in the build.
 - No blur, video or shadows; animate transform/opacity only. No new timers or background services: prayer checks
   share one 15 s timer in the accessibility service.
 - No network access except the chosen radio station's stream (hosts listed in `Radio.STATIONS` and the README's
-  Privacy section). No analytics, ads or feeds.
+  Privacy section) and Settings → Device → Afnon updates (`Updates`), which contacts GitHub only when OK is pressed
+  on it, never on its own. No analytics, ads or feeds.
 - Colours/sizes/timings from `afnon-mihrab/tokens.json` (generated into `Tokens.java`, `colors.xml` and the site's
-  `tokens.css` by `cd site && npm run tokens`; never edit those by hand); every string in Arabic and English in
+  `tokens.css` by `cd site && npm run tokens`; never edit those by hand). Night mode's colours are
+  `tokens.night.json`; colours are read when a view is built, so never copy one into a `static final`. Every string in Arabic and English in
   `Text.java`. Arabic (RTL) is the
   default; check RTL and LTR. No letter-spacing on Arabic. Quranic text uses Amiri and must be exact (surah:ayah).
 - D-pad focus is explicit per screen, with Left/Right swapped in RTL.
@@ -52,6 +54,12 @@ a button sends and who handled it.
 - `PrayerDay`, `Prefs` (cities and methods), `Reminders`, `Adhans`, `Radio`/`RadioBars`, `Apps` (launching).
 - `RemoteKeys` is the accessibility service. It is always on, so it also hosts `PrayerWatch` (reminders, banner,
   the call). Turning it off stops the call to prayer.
+- Android removes a force-stopped app's accessibility service from `enabled_accessibility_services` (TV cleaners
+  force-stop apps, and so does `am force-stop` in testing). `RemoteKeys.ensureOn`, called from Home's `onResume`,
+  lists it again unless pref `remote_on` is false (set in `onUnbind` when the service is no longer listed, i.e.
+  turned off in Settings or by `restore.sh`). After a force-stop in tests, open Home before checking the service.
+- `Apps.installed` skips phone-only (`CATEGORY_LAUNCHER` without a TV entry) system apps that were never updated,
+  unless Afnon names them or they are favourites.
 
 ### Remote buttons and the volume-hold bug (fixed 2026-10-21)
 
@@ -94,6 +102,17 @@ and 190. Audio Only via `com.tcl.settings.SHOW_WINDOW`. `APP_AUTO_START` appop k
 `FirmwareKeys` detects CVTE boards (`android.intent.action.HOTKEYSERVICE`): no key filtering there, and Home opens
 CVTE's source menu for Source. `Redirects` (pref `redirects`, `from=to` packages) repoints buttons the firmware
 hard-wires to an app. Tested on one Super General (Android 9) only; any change here must leave TCL untouched.
+
+## Other brands (Xiaomi)
+
+One Xiaomi MiTV-MOOQ0 (Android TV 10, MediaTek, 1.8 GB, low-RAM mode), debloated with cleanyourtv's
+`examples/xiaomi-mitv-mooq0` list. Stock launcher `com.google.android.tvlauncher` (no launcherx, so setup leaves
+Google's setup app alone; on that TV it owns the saved Wi-Fi network and must stay enabled). Input sends
+`KEYCODE_TV_INPUT` (178); Xiaomi's `GlobalKeyReceiver` (MiTvSetupCustomizer) starts the disabled stock launcher's
+`InputsPanelActivity` on it, so `RemoteKeys` opens Afnon's Inputs panel instead (`Inputs.source`). Its channels come from the
+built-in satellite receiver (tuner `HW0`): the panel's first row opens its channel list, since Live TV reopens on
+whatever input was last used (AV or an empty HDMI shows "No signal"). Not checked there: holding Volume (the service filters keys on
+non-TCL, non-CVTE firmware), Audio Only, the remote's buttons. Live TV/HDMI is `com.mediatek.wwtv.tvcenter`.
 
 ## Web preview (`site/`)
 

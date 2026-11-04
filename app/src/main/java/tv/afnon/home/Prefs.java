@@ -25,15 +25,23 @@ final class Prefs {
         final String id, ar, en, countryAr, countryEn;
         final double lat, lng;
         /** The method that city's mosques follow; picked for it when the city changes. */
-        final CalculationMethod method;
+        final Method method;
         /** The Asr school most of its mosques follow, also picked when the city changes. */
         final Madhab madhab;
 
         City(String id, String ar, String en, String countryAr, String countryEn, double lat, double lng, CalculationMethod method) {
+            this(id, ar, en, countryAr, countryEn, lat, lng, Method.of(method), Madhab.SHAFI);
+        }
+
+        City(String id, String ar, String en, String countryAr, String countryEn, double lat, double lng, Method method) {
             this(id, ar, en, countryAr, countryEn, lat, lng, method, Madhab.SHAFI);
         }
 
         City(String id, String ar, String en, String countryAr, String countryEn, double lat, double lng, CalculationMethod method, Madhab madhab) {
+            this(id, ar, en, countryAr, countryEn, lat, lng, Method.of(method), madhab);
+        }
+
+        City(String id, String ar, String en, String countryAr, String countryEn, double lat, double lng, Method method, Madhab madhab) {
             this.id = id;
             this.ar = ar;
             this.en = en;
@@ -51,6 +59,10 @@ final class Prefs {
     private static final CalculationMethod IN = CalculationMethod.KARACHI;
     private static final CalculationMethod SG = CalculationMethod.SINGAPORE;
     private static final CalculationMethod NA = CalculationMethod.NORTH_AMERICA;
+    /** Oman's Ministry of Awqaf: 18° Fajr and Isha, +5 min on Dhuhr, Asr and Maghrib (see {@link Method#OMAN_AWQAF}). */
+    private static final Method OM = Method.OMAN_AWQAF;
+    /** Morocco's Ministry of Habous: 19°/17°, Dhuhr +5 min, each city's own horizon (see {@link Habous}). */
+    private static final Method MA = Method.MOROCCO_HABOUS;
     /** Hanafi Asr (about an hour later), the usual school in Pakistan, Bangladesh and most of North India. */
     private static final Madhab HANAFI = Madhab.HANAFI;
     static final City[] CITIES = {
@@ -119,22 +131,90 @@ final class Prefs {
         new City("sulaymaniyah", "السليمانية", "Sulaymaniyah", "العراق", "Iraq", 35.5500, 45.4333, MWL),
         new City("manama", "المنامة", "Manama", "البحرين", "Bahrain", 26.2167, 50.5833, MWL),
         new City("muharraq", "المحرق", "Muharraq", "البحرين", "Bahrain", 26.2533, 50.6083, MWL),
-        new City("muscat", "مسقط", "Muscat", "عُمان", "Oman", 23.6139, 58.5922, MWL),
-        new City("salalah", "صلالة", "Salalah", "عُمان", "Oman", 17.0197, 54.0897, MWL),
-        new City("sohar", "صحار", "Sohar", "عُمان", "Oman", 24.3420, 56.7299, MWL),
-        new City("nizwa", "نزوى", "Nizwa", "عُمان", "Oman", 22.9333, 57.5333, MWL),
+        // The ministry's Muscat timetable matches a point near Seeb (58.28°E), about 1.3 min west of the old centre.
+        new City("muscat", "مسقط", "Muscat", "عُمان", "Oman", 23.6139, 58.2800, OM),
+        new City("salalah", "صلالة", "Salalah", "عُمان", "Oman", 17.0197, 54.0897, OM),
+        new City("sohar", "صحار", "Sohar", "عُمان", "Oman", 24.3420, 56.7299, OM),
+        new City("nizwa", "نزوى", "Nizwa", "عُمان", "Oman", 22.9333, 57.5333, OM),
+        new City("barka", "بركاء", "Barka", "عُمان", "Oman", 23.6807, 57.8860, OM),
+        new City("rustaq", "الرستاق", "Rustaq", "عُمان", "Oman", 23.3908, 57.4244, OM),
+        new City("sur", "صور", "Sur", "عُمان", "Oman", 22.5667, 59.5289, OM),
+        new City("ibri", "عبري", "Ibri", "عُمان", "Oman", 23.2257, 56.5157, OM),
+        new City("buraimi", "البريمي", "Al Buraimi", "عُمان", "Oman", 24.2500, 55.7933, OM),
+        new City("khasab", "خصب", "Khasab", "عُمان", "Oman", 26.1800, 56.2400, OM),
+        new City("duqm", "الدقم", "Duqm", "عُمان", "Oman", 19.6667, 57.7050, OM),
+        new City("bahla", "بهلاء", "Bahla", "عُمان", "Oman", 22.9667, 57.3000, OM),
+        new City("ibra", "إبراء", "Ibra", "عُمان", "Oman", 22.6900, 58.5300, OM),
+        new City("samail", "سمائل", "Samail", "عُمان", "Oman", 23.3033, 57.9833, OM),
+        new City("adam", "أدم", "Adam", "عُمان", "Oman", 22.3799, 57.5260, OM),
         new City("sanaa", "صنعاء", "Sanaa", "اليمن", "Yemen", 15.3500, 44.2000, MWL),
         new City("aden", "عدن", "Aden", "اليمن", "Yemen", 12.8000, 45.0333, MWL),
         new City("taiz", "تعز", "Taiz", "اليمن", "Yemen", 13.5789, 44.0219, MWL),
         new City("hodeidah", "الحديدة", "Hodeidah", "اليمن", "Yemen", 14.8022, 42.9511, MWL),
         new City("mukalla", "المكلا", "Mukalla", "اليمن", "Yemen", 14.5333, 49.1333, MWL),
+        // Morocco, capital first, then by size, on the Ministry of Habous's timetable (see Habous). It doesn't publish
+        // the points it computes for, so each is where its October 2026 table matches: the longitude from Dhuhr, the
+        // latitude from Fajr and Isha, all within 7 km of the city centre. Each city's horizon in Habous goes with it.
+        new City("rabat", "الرباط", "Rabat", "المغرب", "Morocco", 34.0218, -6.8509, MA),
+        new City("casablanca", "الدار البيضاء", "Casablanca", "المغرب", "Morocco", 33.5945, -7.6600, MA),
+        new City("fes", "فاس", "Fes", "المغرب", "Morocco", 34.0347, -5.0162, MA),
+        new City("tangier", "طنجة", "Tangier", "المغرب", "Morocco", 35.7695, -5.8145, MA),
+        new City("marrakech", "مراكش", "Marrakech", "المغرب", "Morocco", 31.6258, -8.0242, MA),
+        new City("meknes", "مكناس", "Meknes", "المغرب", "Morocco", 33.8984, -5.5772, MA),
+        new City("oujda", "وجدة", "Oujda", "المغرب", "Morocco", 34.6779, -1.9343, MA),
+        new City("kenitra", "القنيطرة", "Kenitra", "المغرب", "Morocco", 34.2646, -6.6002, MA),
+        new City("agadir", "أكادير", "Agadir", "المغرب", "Morocco", 30.4205, -9.5639, MA),
+        new City("tetouan", "تطوان", "Tetouan", "المغرب", "Morocco", 35.5697, -5.3658, MA),
+        new City("safi", "آسفي", "Safi", "المغرب", "Morocco", 32.2994, -9.2445, MA),
+        new City("mohammedia", "المحمدية", "Mohammedia", "المغرب", "Morocco", 33.6958, -7.3893, MA),
+        new City("khouribga", "خريبكة", "Khouribga", "المغرب", "Morocco", 32.8856, -6.9088, MA),
+        new City("eljadida", "الجديدة", "El Jadida", "المغرب", "Morocco", 33.2433, -8.5088, MA),
+        new City("benimellal", "بني ملال", "Beni Mellal", "المغرب", "Morocco", 32.3342, -6.3583, MA),
+        new City("nador", "الناظور", "Nador", "المغرب", "Morocco", 35.1736, -2.9368, MA),
+        new City("taza", "تازة", "Taza", "المغرب", "Morocco", 34.2302, -4.0101, MA),
+        new City("settat", "سطات", "Settat", "المغرب", "Morocco", 33.0024, -7.6299, MA),
+        new City("berrechid", "برشيد", "Berrechid", "المغرب", "Morocco", 33.2677, -7.5811, MA),
+        new City("khemisset", "الخميسات", "Khemisset", "المغرب", "Morocco", 33.8303, -6.0776, MA),
+        new City("guelmim", "كلميم", "Guelmim", "المغرب", "Morocco", 28.9864, -10.0624, MA),
+        new City("laayoune", "العيون", "Laayoune", "المغرب", "Morocco", 27.1545, -13.2254, MA),
+        new City("berkane", "بركان", "Berkane", "المغرب", "Morocco", 34.9267, -2.3494, MA),
+        new City("taroudant", "تارودانت", "Taroudant", "المغرب", "Morocco", 30.4707, -8.8079, MA),
+        new City("ksarelkebir", "القصر الكبير", "Ksar El Kebir", "المغرب", "Morocco", 34.9991, -5.9098, MA),
+        new City("larache", "العرائش", "Larache", "المغرب", "Morocco", 35.1951, -6.1540, MA),
+        new City("sidislimane", "سيدي سليمان", "Sidi Slimane", "المغرب", "Morocco", 34.2599, -5.9523, MA),
+        new City("khenifra", "خنيفرة", "Khenifra", "المغرب", "Morocco", 32.9358, -5.6847, MA),
+        new City("errachidia", "الرشيدية", "Errachidia", "المغرب", "Morocco", 31.9291, -4.4491, MA),
+        new City("sidikacem", "سيدي قاسم", "Sidi Kacem", "المغرب", "Morocco", 34.2264, -5.7164, MA),
+        new City("tiznit", "تزنيت", "Tiznit", "المغرب", "Morocco", 29.6986, -9.7313, MA),
+        new City("ouarzazate", "ورزازات", "Ouarzazate", "المغرب", "Morocco", 30.9202, -6.9359, MA),
+        new City("dakhla", "الداخلة", "Dakhla", "المغرب", "Morocco", 23.6941, -15.9731, MA),
+        new City("essaouira", "الصويرة", "Essaouira", "المغرب", "Morocco", 31.5118, -9.7771, MA),
+        new City("alhoceima", "الحسيمة", "Al Hoceima", "المغرب", "Morocco", 35.2450, -3.9363, MA),
+        new City("ouazzane", "وزان", "Ouazzane", "المغرب", "Morocco", 34.7979, -5.5819, MA),
+        new City("tantan", "طانطان", "Tan-Tan", "المغرب", "Morocco", 28.4376, -11.1087, MA),
+        new City("sefrou", "صفرو", "Sefrou", "المغرب", "Morocco", 33.8249, -4.8483, MA),
+        new City("tinghir", "تنغير", "Tinghir", "المغرب", "Morocco", 31.5213, -5.5312, MA),
+        new City("midelt", "ميدلت", "Midelt", "المغرب", "Morocco", 32.6803, -4.7449, MA),
+        new City("azrou", "آزرو", "Azrou", "المغرب", "Morocco", 33.3942, -5.2263, MA),
+        new City("chefchaouen", "شفشاون", "Chefchaouen", "المغرب", "Morocco", 35.1688, -5.2683, MA),
+        new City("ifrane", "يفرن", "Ifrane", "المغرب", "Morocco", 33.5276, -5.1074, MA),
+        new City("zagora", "زاكورة", "Zagora", "المغرب", "Morocco", 30.3279, -5.8520, MA),
         // United States & Canada
         new City("newyork", "نيويورك", "New York", "الولايات المتحدة", "United States", 40.7128, -74.0060, NA),
+        new City("albany", "ألباني، نيويورك", "Albany, NY", "الولايات المتحدة", "United States", 42.6526, -73.7562, NA),
         new City("chicago", "شيكاغو", "Chicago", "الولايات المتحدة", "United States", 41.8781, -87.6298, NA),
         new City("dallas", "دالاس", "Dallas", "الولايات المتحدة", "United States", 32.7767, -96.7970, NA),
         new City("houston", "هيوستن", "Houston", "الولايات المتحدة", "United States", 29.7604, -95.3698, NA),
         new City("losangeles", "لوس أنجلوس", "Los Angeles", "الولايات المتحدة", "United States", 34.0522, -118.2437, NA),
         new City("toronto", "تورونتو", "Toronto", "كندا", "Canada", 43.6532, -79.3832, NA),
+        new City("montreal", "مونتريال", "Montreal", "كندا", "Canada", 45.5019, -73.5674, NA),
+        new City("calgary", "كالغاري", "Calgary", "كندا", "Canada", 51.0447, -114.0719, NA),
+        new City("ottawa", "أوتاوا", "Ottawa", "كندا", "Canada", 45.4215, -75.6972, NA),
+        new City("edmonton", "إدمونتون", "Edmonton", "كندا", "Canada", 53.5461, -113.4938, NA),
+        new City("winnipeg", "وينيبيغ", "Winnipeg", "كندا", "Canada", 49.8951, -97.1384, NA),
+        new City("mississauga", "ميسيساغا", "Mississauga", "كندا", "Canada", 43.5890, -79.6441, NA),
+        new City("vancouver", "فانكوفر", "Vancouver", "كندا", "Canada", 49.2827, -123.1207, NA),
+        new City("halifax", "هاليفاكس", "Halifax", "كندا", "Canada", 44.6488, -63.5752, NA),
 
         // India
         new City("bangalore", "بنغالور", "Bengaluru", "الهند", "India", 12.9716, 77.5946, IN, HANAFI),
@@ -173,8 +253,52 @@ final class Prefs {
         // e-solat time for Kuala Lumpur (2026-10-22), where Singapore's 20° put Fajr 10 minutes early.
         new City("jakarta", "جاكرتا", "Jakarta", "إندونيسيا", "Indonesia", -6.2088, 106.8456, SG),
         new City("surabaya", "سورابايا", "Surabaya", "إندونيسيا", "Indonesia", -7.2575, 112.7521, SG),
+        new City("bekasi", "بيكاسي", "Bekasi", "إندونيسيا", "Indonesia", -6.2383, 106.9756, SG),
         new City("bandung", "باندونغ", "Bandung", "إندونيسيا", "Indonesia", -6.9175, 107.6191, SG),
         new City("medan", "ميدان", "Medan", "إندونيسيا", "Indonesia", 3.5952, 98.6722, SG),
+        new City("depok", "ديبوك", "Depok", "إندونيسيا", "Indonesia", -6.4025, 106.7942, SG),
+        new City("tangerang", "تانغيرانغ", "Tangerang", "إندونيسيا", "Indonesia", -6.1783, 106.6319, SG),
+        new City("palembang", "باليمبانغ", "Palembang", "إندونيسيا", "Indonesia", -2.9761, 104.7754, SG),
+        new City("semarang", "سمارانغ", "Semarang", "إندونيسيا", "Indonesia", -6.9667, 110.4167, SG),
+        new City("makassar", "مكاسر", "Makassar", "إندونيسيا", "Indonesia", -5.1477, 119.4327, SG),
+        new City("tangsel", "جنوب تانغيرانغ", "Tangerang Selatan", "إندونيسيا", "Indonesia", -6.2886, 106.7179, SG),
+        new City("batam", "باتام", "Batam", "إندونيسيا", "Indonesia", 1.0456, 104.0305, SG),
+        new City("bogor", "بوغور", "Bogor", "إندونيسيا", "Indonesia", -6.5950, 106.8166, SG),
+        new City("pekanbaru", "بيكانبارو", "Pekanbaru", "إندونيسيا", "Indonesia", 0.5071, 101.4478, SG),
+        new City("bandarlampung", "باندار لامبونغ", "Bandar Lampung", "إندونيسيا", "Indonesia", -5.4292, 105.2610, SG),
+        new City("padang", "بادانغ", "Padang", "إندونيسيا", "Indonesia", -0.9471, 100.4172, SG),
+        new City("malang", "مالانغ", "Malang", "إندونيسيا", "Indonesia", -7.9666, 112.6326, SG),
+        new City("samarinda", "ساماريندا", "Samarinda", "إندونيسيا", "Indonesia", -0.5022, 117.1536, SG),
+        new City("denpasar", "دينباسار", "Denpasar", "إندونيسيا", "Indonesia", -8.6705, 115.2126, SG),
+        new City("banjarmasin", "بانجارماسين", "Banjarmasin", "إندونيسيا", "Indonesia", -3.3186, 114.5944, SG),
+        new City("serang", "سيرانغ", "Serang", "إندونيسيا", "Indonesia", -6.1200, 106.1503, SG),
+        new City("pontianak", "بونتياناك", "Pontianak", "إندونيسيا", "Indonesia", -0.0263, 109.3425, SG),
+        new City("balikpapan", "باليكبابان", "Balikpapan", "إندونيسيا", "Indonesia", -1.2379, 116.8529, SG),
+        new City("jambi", "جامبي", "Jambi", "إندونيسيا", "Indonesia", -1.6101, 103.6131, SG),
+        new City("surakarta", "سوراكارتا", "Surakarta", "إندونيسيا", "Indonesia", -7.5755, 110.8243, SG),
+        new City("manado", "مانادو", "Manado", "إندونيسيا", "Indonesia", 1.4748, 124.8421, SG),
+        new City("kupang", "كوبانغ", "Kupang", "إندونيسيا", "Indonesia", -10.1772, 123.6070, SG),
+        new City("mataram", "ماتارام", "Mataram", "إندونيسيا", "Indonesia", -8.5833, 116.1167, SG),
+        new City("yogyakarta", "يوغياكارتا", "Yogyakarta", "إندونيسيا", "Indonesia", -7.7956, 110.3695, SG),
+        new City("jayapura", "جايابورا", "Jayapura", "إندونيسيا", "Indonesia", -2.5337, 140.7181, SG),
+        new City("bengkulu", "بنغكولو", "Bengkulu", "إندونيسيا", "Indonesia", -3.8004, 102.2655, SG),
+        new City("palu", "بالو", "Palu", "إندونيسيا", "Indonesia", -0.8917, 119.8707, SG),
+        new City("ambon", "أمبون", "Ambon", "إندونيسيا", "Indonesia", -3.6954, 128.1814, SG),
+        new City("kendari", "كنداري", "Kendari", "إندونيسيا", "Indonesia", -3.9985, 122.5130, SG),
+        new City("cirebon", "تشيريبون", "Cirebon", "إندونيسيا", "Indonesia", -6.7320, 108.5523, SG),
+        new City("bandaaceh", "باندا آتشيه", "Banda Aceh", "إندونيسيا", "Indonesia", 5.5483, 95.3238, SG),
+        new City("pangkalpinang", "بانغكال بينانغ", "Pangkal Pinang", "إندونيسيا", "Indonesia", -2.1316, 106.1169, SG),
+        new City("tanjungpinang", "تانجونغ بينانغ", "Tanjung Pinang", "إندونيسيا", "Indonesia", 0.9186, 104.4554, SG),
+        new City("sorong", "سورونغ", "Sorong", "إندونيسيا", "Indonesia", -0.8762, 131.2558, SG),
+        new City("palangkaraya", "بالانغكا رايا", "Palangka Raya", "إندونيسيا", "Indonesia", -2.2136, 113.9108, SG),
+        new City("gorontalo", "غورونتالو", "Gorontalo", "إندونيسيا", "Indonesia", 0.5435, 123.0568, SG),
+        new City("ternate", "تيرناتي", "Ternate", "إندونيسيا", "Indonesia", 0.7893, 127.3842, SG),
+        new City("tarakan", "تاراكان", "Tarakan", "إندونيسيا", "Indonesia", 3.3000, 117.6333, SG),
+        new City("mamuju", "ماموجو", "Mamuju", "إندونيسيا", "Indonesia", -2.6748, 118.8886, SG),
+        new City("manokwari", "مانوكواري", "Manokwari", "إندونيسيا", "Indonesia", -0.8615, 134.0620, SG),
+        new City("merauke", "ميراوكي", "Merauke", "إندونيسيا", "Indonesia", -8.4932, 140.4018, SG),
+        new City("nabire", "نابيري", "Nabire", "إندونيسيا", "Indonesia", -3.3667, 135.4833, SG),
+        new City("wamena", "وامينا", "Wamena", "إندونيسيا", "Indonesia", -4.0956, 138.9481, SG),
         new City("kualalumpur", "كوالالمبور", "Kuala Lumpur", "ماليزيا", "Malaysia", 3.1390, 101.6869, CalculationMethod.MOON_SIGHTING_COMMITTEE),
         new City("penang", "بينانغ", "Penang", "ماليزيا", "Malaysia", 5.4164, 100.3327, CalculationMethod.MOON_SIGHTING_COMMITTEE),
         new City("singapore", "سنغافورة", "Singapore", "سنغافورة", "Singapore", 1.3521, 103.8198, SG),
@@ -205,6 +329,7 @@ final class Prefs {
         new City("rome", "روما", "Rome", "إيطاليا", "Italy", 41.9028, 12.4964, MWL),
         new City("madrid", "مدريد", "Madrid", "إسبانيا", "Spain", 40.4168, -3.7038, MWL),
         new City("sarajevo", "سراييفو", "Sarajevo", "البوسنة والهرسك", "Bosnia and Herzegovina", 43.8563, 18.4131, MWL),
+        new City("copenhagen", "كوبنهاغن", "Copenhagen", "الدنمارك", "Denmark", 55.6761, 12.5683, MWL),
 
         // Africa
         new City("nairobi", "نيروبي", "Nairobi", "كينيا", "Kenya", -1.2921, 36.8219, MWL),
@@ -230,7 +355,7 @@ final class Prefs {
     /** A new city also takes that city's usual method and Asr school; their rows can still override them after. */
     static void setCity(Context c, int index) {
         City city = CITIES[index];
-        of(c).edit().putString("city", city.id).putString("method", city.method.name())
+        of(c).edit().putString("city", city.id).putString("method", city.method.id)
             .putString("madhab", city.madhab == Madhab.HANAFI ? "hanafi" : "shafi").apply();
     }
 
@@ -240,11 +365,11 @@ final class Prefs {
      */
     static final String[][] REGIONS = {
         {"Egypt", "Saudi Arabia", "UAE", "Kuwait", "Qatar", "Jordan", "Palestine", "Lebanon", "Syria", "Iraq", "Bahrain",
-            "Oman", "Yemen"},
+            "Oman", "Yemen", "Morocco"},
         {"India", "Pakistan", "Bangladesh", "Sri Lanka", "Maldives", "Indonesia", "Malaysia", "Singapore", "Brunei",
             "Thailand", "Japan", "South Korea", "Turkey"},
         {"United Kingdom", "France", "Germany", "Netherlands", "Belgium", "Austria", "Switzerland", "Italy", "Spain",
-            "Bosnia and Herzegovina"},
+            "Bosnia and Herzegovina", "Denmark"},
         {"United States", "Canada"},
         {"Kenya", "Nigeria", "South Africa"},
         {"Australia", "New Zealand"},
@@ -263,19 +388,20 @@ final class Prefs {
 
     // ---------------------------------------------------------------- calculation
 
-    static final CalculationMethod[] METHODS = {
-        CalculationMethod.EGYPTIAN, CalculationMethod.UMM_AL_QURA, CalculationMethod.MUSLIM_WORLD_LEAGUE,
-        CalculationMethod.KARACHI, CalculationMethod.DUBAI, CalculationMethod.KUWAIT, CalculationMethod.QATAR,
-        CalculationMethod.NORTH_AMERICA, CalculationMethod.MOON_SIGHTING_COMMITTEE, CalculationMethod.SINGAPORE};
+    static final Method[] METHODS = {
+        Method.EGYPTIAN, Method.UMM_AL_QURA, Method.MUSLIM_WORLD_LEAGUE,
+        Method.KARACHI, Method.DUBAI, Method.KUWAIT, Method.QATAR,
+        Method.NORTH_AMERICA, Method.MOON_SIGHTING_COMMITTEE, Method.SINGAPORE, Method.OMAN_AWQAF,
+        Method.MOROCCO_HABOUS};
 
-    static CalculationMethod method(Context c) {
+    static Method method(Context c) {
         String name = of(c).getString("method", null);
-        if (name != null) for (CalculationMethod m : METHODS) if (m.name().equals(name)) return m;
+        if (name != null) for (Method m : METHODS) if (m.id.equals(name)) return m;
         return city(c).method;
     }
 
-    static void setMethod(Context c, CalculationMethod m) {
-        of(c).edit().putString("method", m.name()).apply();
+    static void setMethod(Context c, Method m) {
+        of(c).edit().putString("method", m.id).apply();
     }
 
     static Madhab madhab(Context c) {
@@ -293,6 +419,18 @@ final class Prefs {
 
     static void setHijriOffset(Context c, int days) {
         of(c).edit().putInt("hijri_offset", Math.max(-2, Math.min(2, days))).apply();
+    }
+
+    /** Minutes added to Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha (Settings → Adjust the times): −30 to +30. */
+    static int[] adjustments(Context c) {
+        SharedPreferences p = of(c);
+        int[] a = new int[6];
+        for (int i = 0; i < 6; i++) a[i] = p.getInt("adjust_" + i, 0);
+        return a;
+    }
+
+    static void setAdjustment(Context c, int prayer, int minutes) {
+        of(c).edit().putInt("adjust_" + prayer, Math.max(-30, Math.min(30, minutes))).apply();
     }
 
     // ---------------------------------------------------------------- reminders
@@ -391,10 +529,22 @@ final class Prefs {
         return "system".equals(s) ? DateFormat.is24HourFormat(c) : "24".equals(s);
     }
 
+    /** Night mode: the dimmer, warmer palette of afnon-mihrab/tokens.night.json on every screen. Off by default. */
+    static boolean night(Context c) {
+        return of(c).getBoolean("night", false);
+    }
+
+    /** Saves night mode and switches {@link Tokens} to it; screens built from then on take the new colours. */
+    static void setNight(Context c, boolean on) {
+        of(c).edit().putBoolean("night", on).apply();
+        Tokens.use(on);
+    }
+
     /** Everything a built screen depends on; a screen whose key changed while it was away rebuilds. */
     static String key(Context c) {
         SharedPreferences p = of(c);
         return p.getString("locale", "") + "|" + p.getString("digits", "") + "|" + clock24(c) + "|" + cityIndex(c)
-            + "|" + method(c) + "|" + madhab(c) + "|" + hijriOffset(c) + "|" + p.getInt("facing", -1);
+            + "|" + method(c) + "|" + madhab(c) + "|" + java.util.Arrays.toString(adjustments(c)) + "|" + hijriOffset(c)
+            + "|" + p.getInt("facing", -1) + "|" + night(c);
     }
 }

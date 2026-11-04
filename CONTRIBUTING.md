@@ -23,7 +23,8 @@ calculation method used locally.
 
 ## 2. Add your TV
 
-Afnon is built and tested on a TCL 55P7K (Google TV, Android 12). If you run it on another TV,
+Afnon is built and tested on a TCL 55P7K (Google TV, Android 12), and has also run on a Super General (CVTE,
+Android 9) and a Xiaomi MiTV-MOOQ0 (Android TV 10); the README has notes for each. If you run it on another TV,
 tell us how it went, even if everything worked:
 
 - Model, Android version and RAM.
@@ -41,9 +42,10 @@ Kotlin, no Compose. It has to stay smooth on a TV with under 2 GB of RAM, so:
 - **No blur, video backgrounds or shadows.** Animate with transform and opacity only.
 - **No new timers or background services.** Prayer checks share one 15-second timer in the
   accessibility service.
-- **No new network access.** The radio stream is the only connection. No analytics, no ads, no
-  feeds, no "recommended" rows.
-- **Design tokens.** Colours, sizes and timings live in `afnon-mihrab/tokens.json`. `Tokens.java`,
+- **No new network access.** The radio stream is the only connection, plus GitHub when someone presses
+  Settings → Device → Afnon updates (never on its own). No analytics, no ads, no feeds, no "recommended" rows.
+- **Design tokens.** Colours, sizes and timings live in `afnon-mihrab/tokens.json`, and night mode's colours
+  in `tokens.night.json` (a colour added to one may need a night value in the other). `Tokens.java`,
   `colors.xml` and the preview site's CSS are generated from it: edit the JSON, then run `npm run tokens`
   in `site/` (Node 24). Never edit the generated files; CI checks they match. Text comes from `Text.java`,
   in both languages.

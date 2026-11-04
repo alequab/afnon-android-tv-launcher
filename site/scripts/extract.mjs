@@ -87,11 +87,34 @@ for (const m of text.matchAll(methodRe)) {
 write('strings.json', strings);
 console.log(`  ${Object.keys(strings).length} strings; by hand in text.ts: ${skipped.join(', ')}`);
 
+// Text.news(): Settings → What's new, {ar, en} lists of groups [version, line, line…] (string literals joined by +).
+{
+  const body = /String\[\]\[\] news\(\) \{([\s\S]*?)\n {4}\}/.exec(text)?.[1];
+  if (!body) throw new Error('Text.news() not found');
+  const [arPart, enPart] = body.split(/\n\s*return new String\[\]\[\] (?=\{)/);
+  const groups = (code) => {
+    const out = [];
+    let depth = 0, group = null, item = null;
+    const re = new RegExp(String.raw`${STR}|[{},]`, 'g');
+    for (const m of code.slice(code.indexOf('{')).matchAll(re)) {
+      const tok = m[0];
+      if (tok === '{') { if (++depth === 2) { group = []; item = null; } }
+      else if (tok === '}') { if (depth-- === 2) { if (item !== null) group.push(item); out.push(group); group = null; } }
+      else if (tok === ',') { if (depth === 2 && item !== null) { group.push(item); item = null; } }
+      else if (depth === 2) item = (item ?? '') + unescape(m[1]);
+    }
+    return out;
+  };
+  const news = { ar: groups(arPart), en: groups(enPart) };
+  if (!news.ar.length || news.ar.length !== news.en.length) throw new Error('Text.news(): Arabic and English differ');
+  write('news.json', news);
+}
+
 // ---------------------------------------------------------------- Prefs: cities and methods
 
 const prefs = src('Prefs.java');
 const consts = Object.fromEntries(
-  [...prefs.matchAll(/static final CalculationMethod (\w+) = CalculationMethod\.(\w+);/g)].map((m) => [m[1], m[2]]),
+  [...prefs.matchAll(/static final (?:Calculation)?Method (\w+) = (?:Calculation)?Method\.(\w+);/g)].map((m) => [m[1], m[2]]),
 );
 const cityRe = new RegExp(
   String.raw`new City\(${STR}, ${STR}, ${STR}, ${STR}, ${STR}, ([-\d.]+), ([-\d.]+), (?:CalculationMethod\.)?(\w+)(?:, (\w+))?\)`, 'g');
@@ -109,8 +132,8 @@ const lost = [...new Set(cities.map((c) => c.countryEn))].filter((n) => !regions
 if (lost.length) throw new Error(`Prefs.REGIONS is missing ${lost.join(', ')}`);
 write('regions.json', regions);
 
-const methodsBlock = /CalculationMethod\[\] METHODS = \{([^}]*)\}/.exec(prefs)[1];
-write('methods.json', [...methodsBlock.matchAll(/CalculationMethod\.(\w+)/g)].map((m) => m[1]));
+const methodsBlock = /Method\[\] METHODS = \{([^}]*)\}/.exec(prefs)[1];
+write('methods.json', [...methodsBlock.matchAll(/Method\.(\w+)/g)].map((m) => m[1]));
 
 // ---------------------------------------------------------------- Radio.STATIONS
 

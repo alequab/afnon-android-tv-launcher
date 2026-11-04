@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.widget.ImageView;
 
 import java.text.Collator;
 import java.util.ArrayList;
@@ -32,9 +34,12 @@ final class Apps {
     static final String[] MORE_FIRST = {
         "com.google.android.youtube.tvmusic", "com.android.vending", "com.tcl.ui_mediaCenter",
         "com.alphainventor.filemanager", "com.sami.salaty_tv"};
-    /** Never listed: this launcher, the previous one, and the TV's own input/Live TV plumbing. */
+    /**
+     * Never listed: this launcher, the previous one, the TV's own input/Live TV plumbing, and TCL's remote pairing
+     * service, whose launcher entry is only a test screen ("TCL_BT_RCU_Service").
+     */
     private static final Set<String> HIDDEN = new HashSet<>(Arrays.asList(
-        "tv.afnon.home", "com.gathin.tvhome", "com.tcl.suspension", "com.tcl.tv"));
+        "tv.afnon.home", "com.gathin.tvhome", "com.tcl.suspension", "com.tcl.tv", "com.tcl.tcl_bt_rcu_service"));
 
     private static final Map<String, String> AR_NAMES = new HashMap<>();
     private static final Map<String, String> EN_NAMES = new HashMap<>();
@@ -58,21 +63,47 @@ final class Apps {
     /**
      * Every app that has a TV or a phone-style launcher entry, one per package, not hidden. Cached for two
      * seconds: one screen build asks several times, and each query is slow on this TV.
+     *
+     * A phone-style entry alone does not count for a preinstalled, never-updated system app, unless Afnon knows it
+     * by name or it is a saved favourite: on a Xiaomi MiTV-MOOQ0 those are Clock, MediaTek's Netflix watcher and a
+     * vendor disclaimer screen, which showed up on Home as "com.mediatek.tv.serv…". Sideloaded phone apps still count.
      */
     static synchronized List<String> installed(Context c) {
         long now = android.os.SystemClock.uptimeMillis();
         if (cached != null && now - cachedAt < 2000) return new ArrayList<>(cached);
         PackageManager pm = c.getPackageManager();
         Set<String> found = new LinkedHashSet<>();
-        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-            for (ResolveInfo r : pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(category), 0)) {
-                String p = r.activityInfo.packageName;
-                if (!HIDDEN.contains(p)) found.add(p);
+        Set<String> known = null;
+        for (ResolveInfo r : pm.queryIntentActivities(
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0)) {
+            String p = r.activityInfo.packageName;
+            if (!HIDDEN.contains(p)) found.add(p);
+        }
+        for (ResolveInfo r : pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)) {
+            String p = r.activityInfo.packageName;
+            if (HIDDEN.contains(p) || found.contains(p)) continue;
+            int flags = r.activityInfo.applicationInfo.flags;
+            boolean stock = (flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+                && (flags & android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0;
+            if (stock) {
+                if (known == null) known = known(c);
+                if (!known.contains(p)) continue;
             }
+            found.add(p);
         }
         cached = new ArrayList<>(found);
         cachedAt = now;
         return new ArrayList<>(cached);
+    }
+
+    /** Packages Afnon names, suggests or was told to keep on Home: always listed when installed. */
+    private static Set<String> known(Context c) {
+        Set<String> out = new HashSet<>(Arrays.asList(DEFAULT_FAVOURITES));
+        out.addAll(Arrays.asList(MORE_FIRST));
+        out.addAll(AR_NAMES.keySet());
+        out.addAll(EN_NAMES.keySet());
+        out.addAll(favourites(c));
+        return out;
     }
 
     /** Favourites first, in their saved order; then the rest by name in the screen's language. */
@@ -91,9 +122,13 @@ final class Apps {
         return out;
     }
 
-    /** Home's "More" row: the preferred picks that are installed and not favourites, filled up from the rest. */
+    /**
+     * Home's "More" row: the preferred picks that are installed and not on the favourites row, filled up from the
+     * rest. The row is what Home shows (slots), not only the saved favourites: when a saved one isn't installed,
+     * another app fills its slot and would otherwise show twice.
+     */
     static List<String> more(Context c, Text t, int count) {
-        List<String> favs = favourites(c);
+        List<String> favs = slots(c, t);
         List<String> all = installed(c);
         List<String> out = new ArrayList<>();
         for (String p : MORE_FIRST) if (out.size() < count && all.contains(p) && !favs.contains(p)) out.add(p);
@@ -152,6 +187,17 @@ final class Apps {
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Shows an app's icon. In night mode it is multiplied by color.app-icon-tint: one colour filter on the
+     * drawable (ImageView mutates it first, so the icon elsewhere is untouched), dimmer and a little warm, so a
+     * bright logo doesn't glare. No extra view or layer. By day there is no filter.
+     */
+    static void showIcon(ImageView v, Drawable d) {
+        if (d == null) return;
+        v.setImageDrawable(d);
+        if (Tokens.night) v.setColorFilter(Tokens.APP_ICON_TINT, PorterDuff.Mode.MULTIPLY);
     }
 
     /** Opens the app's TV entry, or its phone-style one; back at its main screen, not wherever it was left. */
