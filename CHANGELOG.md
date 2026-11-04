@@ -31,15 +31,6 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
   the way back.
 
 ### Changed
-- Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
-  is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
-  Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
-  digits, which Marcellus doesn't have, they stay in Amiri, and so they do before Android 9 (the mixed fonts
-  need its `TypefaceSpan`).
-- The arch countdown holds still. Marcellus's digits differ in width (a 0 is nearly three 1s) and it has no
-  tabular figures, so the centred countdown slid sideways every second, in English too. It now starts at a
-  fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
-  changing never moves. The view also no longer asks for a new layout every second.
 - Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
   card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
   OK on the panel fills the screen.
@@ -64,17 +55,60 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
   `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
   silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:
   `--es test say --ei prayer 0..5 [--ez before true]`.
-- The arch countdown no longer changes size every second when ten hours or more are left: it is measured with
-  every digit a 0, the widest in Marcellus.
 - Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
   (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
-- Opening Settings (and Prayer day or All apps) no longer flashes a plain blue screen first. That was Android's
-  starting window in the theme's ground colour, shown for the quarter second the screen takes to draw, and blue
-  even in night mode. Afnon's screens now have none (`windowDisablePreview`), and open and close with no
-  transition: the screen in front stays until the next one is ready.
-- The arch countdown no longer wraps onto a second line when a wide count (10:00:00 in Marcellus) is wider than the
-  arch: it stays on one line and gets a little smaller until it fits.
 
+## egyjs's main, not released yet
+
+Afnon updates is left out of the TCL build: it would install egyjs's release over this one, without these features.
+
+### Added
+- Settings → Device → **Afnon updates**: OK checks GitHub for the latest release, and OK again downloads and
+  installs it, with the progress on the row. Android 12+ installs it without a dialog; Android 10/11 show
+  Android's confirm. Afnon contacts GitHub only when that row is pressed, never on its own (README, Privacy).
+- Setup step "Afnon can install its updates" (`appops set tv.afnon.home REQUEST_INSTALL_PACKAGES allow`), in
+  `tools/setup-steps.txt` and the phone installer's fallback. Until it has run, the row says to run setup again.
+- `docs/tested-tvs.md`: the TVs Afnon has run on (TCL, Super General, Xiaomi, a Toptech/HiSilicon set from #35,
+  and the ones a fork reported), and what works on each. README's Xiaomi note on the Input button is brought up to date.
+
+### Changed
+- Settings → Device: OK on the section now goes into its rows (TV settings, Afnon updates) instead of opening the
+  TV's settings at once.
+
+### Fixed
+- No blue screen before Settings, Prayer day and All apps. Android showed a starting window in Theme.Afnon's ground
+  (day lapis, also in night mode) while the screen drew: on the TCL 55P7K a `Splash Screen tv.afnon.home` layer
+  appears each time Settings opens. Theme.Afnon sets `windowDisablePreview` and Afnon's own screens open and close
+  with no transition, so the screen in front stays until the next one has drawn.
+
+## [0.8.2] - 2026-11-03
+
+### Fixed
+- Inputs panel (Home's Inputs button, and the remote's Input button on the Xiaomi MiTV): it listed only HDMI and
+  AV, so someone looking for the channels picked AV, and Live TV, which reopens on the last input, then showed
+  "No signal" with no way back from the panel. It now starts with **TV channels**, the built-in receiver (opened
+  on its channel list), and leaves AV out. HDMI ports with a device plugged in come first.
+
+## [0.8.1] - 2026-11-03
+
+### Changed
+- Arabic with Western digits: the big numbers are in Marcellus, English's display font, instead of Amiri. That
+  is Home's clock, the arch countdown (Home and Prayer day), the call screen's time, the screensaver clock,
+  Prayer day's prayer times and the Qibla degrees. Their ص/م and every Arabic word stay in Amiri. With Eastern
+  digits, which Marcellus doesn't have, they stay in Amiri, and so they do before Android 9 (the mixed fonts
+  need its `TypefaceSpan`).
+- The arch countdown holds still. Marcellus's digits differ in width (a 0 is nearly three 1s) and it has no
+  tabular figures, so the centred countdown slid sideways every second, in English too. It now starts at a
+  fixed point, centred for average seconds and set again only when the minutes change, so a digit that isn't
+  changing never moves. The view also no longer asks for a new layout every second.
+
+### Fixed
+- The arch countdown stays on one line: a wide count (10:00:00 in Marcellus) was wider than the arch and wrapped.
+  It gets a little smaller until it fits, measured as if every digit were a 0 (the widest), so its size changes
+  only with the count's shape (h:mm:ss to hh:mm:ss), never from one second to the next.
+- Xiaomi MiTV: the remote's Input button did nothing. It sends Source (178), and the firmware opens the stock
+  launcher's inputs panel, which setup disables. Where the TV has no inputs screen of its own, Source and TV now
+  open Afnon's Inputs panel (Home's), as the Inputs button on Home does. TCL and CVTE are unchanged.
 
 ## [0.8] - 2026-10-31
 
@@ -394,7 +428,9 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8.1...v0.8.2
+[0.8.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8...v0.8.1
 [0.8]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.7...v0.8
 [0.7]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6.1...v0.7
 [0.6.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.6...v0.6.1
