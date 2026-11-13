@@ -35,16 +35,7 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
   seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
   the way back.
 
-### Changed
-- Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
-  card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
-  OK on the panel fills the screen.
-
 ### Fixed
-- Live's quality bar can be seen at 1080p. At that quality the TCL puts the video on a hardware plane above the app's
-  drawing, so the bar over full screen opened but stayed hidden, and 1080p could not be changed back. The bar now
-  sits under the panel: asked for in full screen, the video steps back to the panel while it is open and fills the
-  screen again when it closes.
 - A list left open (a calculation method, a station…) closes when its screen goes behind Home or another app.
   Coming back later used to show the old list, where the next OK would pick from it.
 - Settings → Reminders → Spoken reminder says it plays «حان الآن موعد صلاة …», as it does in this build.
@@ -60,8 +51,6 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
   `announce/<name>.mp3`, then `.wav`, and the build keeps .wav assets uncompressed so they open. They had been
   silent on the TCL: its build carried old .wav TTS clips while Announce only looked for .mp3. Test hook:
   `--es test say --ei prayer 0..5 [--ez before true]`.
-- Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
-  (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
 
 ## egyjs's main, not released yet
 
