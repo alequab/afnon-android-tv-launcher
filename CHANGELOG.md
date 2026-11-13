@@ -7,6 +7,11 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 Only in the TCL build (`tcl-features`); everything else is in 0.8.
 
 ### Added
+- Settings → Reminders → Fasting reminders: a banner after Maghrib, the evening before a voluntary fast, once for that
+  date: the White Days (13, 14, 15), 1 to 8 Dhul-Hijjah, Arafah, Tasu'a, Ashura, the start of Six of Shawwal, and
+  Mondays and Thursdays (off by default). Never for Eid, the Days of Tashriq, Ramadan or the day of doubt (`Fasts`), so
+  in Dhul-Hijjah the White Days are the 14th and 15th. It uses the Hijri date with its adjustment. `--es test fast:N` shows a
+  banner; `--es test fast-at:<epoch ms>` runs the real check as of that moment.
 - Settings → Display → Open Afnon when the TV turns on (on by default): the TCL goes back to the last app when it
   leaves standby; Home now comes to the front 2.5 s later instead, as cleanyourtv's Open on wake add-on does. Run by
   the remote buttons service (`HomeOnWake`, a SCREEN_ON receiver and its Home action); never over the call to

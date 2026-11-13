@@ -93,8 +93,90 @@ final class Text {
     }
     String apSub(CharSequence time) { return d((ar ? "الأذان " : "Adhan at ") + time + (ar ? " · رجوع للإغلاق" : " · Back to dismiss")); }
     String apOk() { return ar ? "حسنًا" : "Got it"; }
+    /** The prayer banner's gold pill, as the fast banner's suhoor pill; its gold bar shows how long it stays. */
+    String adhanPill(CharSequence time) { return d((ar ? "الأذان " : "Adhan ") + time); }
     String bannerSub(CharSequence time, int seconds) {
         return d((ar ? "الأذان " : "Adhan ") + time + (ar ? " · يختفي خلال " + seconds + " ث" : " · hides in " + seconds + " s"));
+    }
+    // A voluntary fast tomorrow (Fasts), said the evening before.
+    String fastLabel() { return ar ? "تذكير بالصيام" : "FASTING REMINDER"; }
+    /** hijriDay is the fast's: the White Days are named first, second and last. */
+    String fastTitle(int kind, int hijriDay) {
+        switch (kind) {
+            case Fasts.WHITE_DAYS:
+                if (hijriDay == 13) return ar ? "غدًا أول الأيام البيض" : "First White Day tomorrow";
+                if (hijriDay == 14) return ar ? "غدًا ثاني الأيام البيض" : "Second White Day tomorrow";
+                return ar ? "غدًا آخر الأيام البيض" : "Last White Day tomorrow";
+            case Fasts.DHUL_HIJJAH: return ar ? "غدًا من أيام ذي الحجة" : "Dhul-Hijjah fast tomorrow";
+            case Fasts.ARAFAH: return ar ? "غدًا يوم عرفة" : "Arafah fast tomorrow";
+            case Fasts.TASUA: return ar ? "غدًا يوم تاسوعاء" : "Tasu'a fast tomorrow";
+            case Fasts.ASHURA: return ar ? "غدًا يوم عاشوراء" : "Ashura fast tomorrow";
+            case Fasts.SHAWWAL: return ar ? "تبدأ غدًا ست من شوال" : "Six of Shawwal tomorrow";
+            case Fasts.MONDAY: return ar ? "غدًا صيام الاثنين" : "Monday's fast tomorrow";
+            default: return ar ? "غدًا صيام الخميس" : "Thursday's fast tomorrow";
+        }
+    }
+    /** A line under the title, beside the dots; null for none. */
+    String fastDetail(int kind, int hijriDay) {
+        switch (kind) {
+            case Fasts.DHUL_HIJJAH: return d(ar ? "اليوم " + hijriDay + " من 9، وآخرها يوم عرفة" : "Day " + hijriDay + " of 9, ending with Arafah");
+            case Fasts.ARAFAH: return ar ? "لغير الحاج" : "For those not on Hajj";
+            case Fasts.TASUA: return ar ? "وبعده يوم عاشوراء" : "Ashura the day after";
+            case Fasts.SHAWWAL: return ar ? "ستة أيام، متتابعة أو متفرقة، حتى آخر شوال" : "Six days, together or apart, by the end of Shawwal";
+            default: return null;
+        }
+    }
+    /**
+     * The hadith on the fast's virtue, checked word for word in the Shamela library (Humaidi's al-Jam' bayna
+     * al-Sahihayn, Sunan al-Tirmidhi), and its source; English gives the meaning. Null for Monday and Thursday.
+     */
+    String fastVirtue(int kind) {
+        switch (kind) {
+            case Fasts.WHITE_DAYS: return ar ? "«إذا صمت من الشهر ثلاثة أيام فصم ثلاث عشرة وأربع عشرة وخمس عشرة»"
+                : "“If you fast three days of the month, fast the 13th, 14th and 15th.”";
+            case Fasts.DHUL_HIJJAH: return ar ? "«ما العمل في أيام أفضل منها في هذه»"
+                : "“No deeds on other days are better than deeds on these.”";
+            case Fasts.ARAFAH: return ar ? "«صيام يوم عرفة، أحتسب على الله أن يكفر السنة التي قبله، والسنة التي بعده»"
+                : "“Fasting the day of Arafah, I hope from Allah, expiates the year before it and the year after it.”";
+            case Fasts.TASUA: return ar ? "«لئن بقيت إلى قابل لأصومن التاسع»"
+                : "“If I live until next year, I will fast the ninth.”";
+            case Fasts.ASHURA: return ar ? "«صيام يوم عاشوراء، أحتسب على الله أن يكفر السنة التي قبله»"
+                : "“Fasting the day of Ashura, I hope from Allah, expiates the year before it.”";
+            case Fasts.SHAWWAL: return ar ? "«من صام رمضان ثم أتبعه ستا من شوال، كان كصيام الدهر»"
+                : "“Whoever fasts Ramadan and follows it with six of Shawwal, it is as fasting the whole year.”";
+            default: return null;
+        }
+    }
+    String fastSource(int kind) {
+        switch (kind) {
+            case Fasts.WHITE_DAYS: return ar ? "رواه الترمذي" : "al-Tirmidhi";
+            case Fasts.DHUL_HIJJAH: return ar ? "رواه البخاري" : "al-Bukhari";
+            default: return ar ? "رواه مسلم" : "Muslim";
+        }
+    }
+    /** The fast's Hijri date, at the start of the banner's last row. */
+    String fastDate(int hijriDay, int hijriMonth) {
+        return d(hijriDay + " " + hijriMonths()[hijriMonth]);
+    }
+    /** Home's date line, from the evening before until Fajr. */
+    String fastHome(int kind, boolean tomorrow) {
+        String[] ar = {"الأيام البيض", "أيام ذي الحجة", "يوم عرفة", "يوم تاسوعاء", "يوم عاشوراء", "ست من شوال", "صيام الاثنين", "صيام الخميس"};
+        String[] en = {"White Day", "Dhul-Hijjah", "Arafah", "Tasu'a", "Ashura", "Six of Shawwal", "Monday's", "Thursday's"};
+        if (this.ar) return (tomorrow ? "غدًا: " : "اليوم: ") + ar[kind];
+        return en[kind] + " fast " + (tomorrow ? "tomorrow" : "today");
+    }
+    String fastRow() { return ar ? "تذكير الصيام" : "Fasting reminders"; }
+    String fastHelp() { return ar ? "بعد المغرب، في الليلة التي تسبق الصيام" : "After Maghrib, the evening before the fast"; }
+    /** The row's list, in the order of Fasts' switches. */
+    String[] fastSwitches() {
+        return ar ? new String[] {d("الأيام البيض (13 و14 و15)"), d("أيام ذي الحجة (1 إلى 8)"), "يوم عرفة", "تاسوعاء", "عاشوراء", "ست من شوال", "الاثنين والخميس"}
+                  : new String[] {"White Days (13, 14, 15)", "Days of Dhul-Hijjah (1 to 8)", "Day of Arafah", "Tasu'a", "Ashura", "Six of Shawwal", "Mondays and Thursdays"};
+    }
+    /** How many are on, as the row's value. */
+    String fastValue(int on, int all) {
+        if (on == 0) return wakeOff();
+        if (on == all) return ar ? "الكل" : "All";
+        return d(ar ? on + " من " + all : on + " of " + all);
     }
     String nowLabel() { return ar ? "حان الآن وقت صلاة" : "IT'S TIME FOR"; }
     String play() { return ar ? "تشغيل الأذان" : "Play adhan"; }

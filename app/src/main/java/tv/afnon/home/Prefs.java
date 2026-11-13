@@ -506,6 +506,16 @@ final class Prefs {
         Wake.schedule(c);
     }
 
+    /** Which voluntary fasts remind the evening before: one bit per switch in {@link Fasts}. */
+    static int fastBits(Context c) {
+        return of(c).getInt("fasts", Fasts.DEFAULT_BITS);
+    }
+
+    static void setFast(Context c, int fastSwitch, boolean on) {
+        int bits = fastBits(c);
+        of(c).edit().putInt("fasts", on ? bits | (1 << fastSwitch) : bits & ~(1 << fastSwitch)).apply();
+    }
+
     /** Each prayer's own adhan bell (Prayer day); on by default except Sunrise, which has no adhan. */
     static boolean bell(Context c, int prayer) {
         return of(c).getBoolean("bell_" + prayer, prayer != PrayerDay.SUNRISE);

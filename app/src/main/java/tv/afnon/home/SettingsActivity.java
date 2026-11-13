@@ -397,6 +397,20 @@ public class SettingsActivity extends Screen {
                         }, null, on);
                     }
                 },
+                new Row(VALUE) {
+                    String label() { return t.fastRow(); }
+                    String help() { return t.fastHelp(); }
+                    String value() { return t.fastValue(Integer.bitCount(Prefs.fastBits(c)), Fasts.SWITCHES); }
+                    void open() {
+                        boolean[] on = new boolean[Fasts.SWITCHES];
+                        for (int i = 0; i < on.length; i++) on[i] = (Prefs.fastBits(c) & (1 << i)) != 0;
+                        openChooser(label(), t.fastSwitches(), -1, i -> {
+                            on[i] = !on[i];
+                            Prefs.setFast(c, i, on[i]);
+                            showSaved();
+                        }, null, on);
+                    }
+                },
                 voiceRow(false),
                 voiceRow(true));
             case RADIO: return Arrays.asList(
