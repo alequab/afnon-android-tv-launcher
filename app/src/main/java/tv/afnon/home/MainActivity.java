@@ -26,8 +26,6 @@ import android.text.style.RelativeSizeSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -58,12 +56,7 @@ public class MainActivity extends Screen {
     private static final int LABEL_ABOVE_FAV = 468, LABEL_ABOVE_MORE = 712;
 
     private static final int ARCH = 0, WIFI = 1, SETTINGS = 2, F0 = 3, M0 = 7, ALL = 12, RADIO = 13, NIGHT = 14, INPUTS = 15,
-        LIVE = 16, PANEL = 17, FULL = 18, OTHER = 19, STOP = 20, NODES = 21;
-    /**
-     * The live panel (local only): the courtyard's whole width at 16:9, from the prayer strip's top, over the
-     * strip and the favourites and More rows; the clock and dates stay above it.
-     */
-    private static final float PANEL_Y = 290, PANEL_W = Tokens.COURT_W, PANEL_H = Tokens.COURT_W * 9 / 16;
+        NODES = 16;
 
     private final View[] nodes = new View[NODES];
     private final TextView[] cellTag = new TextView[6], cellName = new TextView[6], cellTime = new TextView[6];
@@ -102,29 +95,6 @@ public class MainActivity extends Screen {
     private FrameLayout inputsPanel;
     private final List<FocusTile> inputRows = new ArrayList<>();
     private final Radio.Listener onRadio = state -> styleRadio();
-    /**
-     * Live from Makkah and Madinah (local only): the player, the header pill, its card while open, and the panel
-     * (nodes[PANEL]) with the place and its state beside it while one is on.
-     */
-    private final Live live = new Live(state -> styleLive());
-    private Icon liveIcon;
-    private TextView liveLabel, panelName, panelStatus, otherLabel;
-    /** Under the panel's end corner: Full screen, the other mosque and Stop (nodes FULL, OTHER, STOP). */
-    private LinearLayout panelSide, panelButtons;
-    private View favLabel, moreLabel;
-    /** The panel filling the screen (nodes[FULL] toggles it), where it sits otherwise, and the fading hint. */
-    private boolean fullScreen;
-    private ViewGroup.LayoutParams panelPlace;
-    private TextView fullHint;
-    /** Full screen's quality bar while it shows: its buttons, lowest first, and their picture heights. */
-    private LinearLayout qualityBar;
-    /** The bar's holder under the panel, and whether it was asked for in full screen (it goes back there after). */
-    private FrameLayout qualityBox;
-    private boolean qualityFromFull;
-    private FocusTile[] qualityButtons;
-    private int[] qualityHeights;
-    /** Test only (--ez bar true): the quality bar once the video plays. */
-    private boolean barWhenPlaying;
     /** Test only (shiftTo): how far Home's clock is moved. */
     private long shift;
 
@@ -147,14 +117,14 @@ public class MainActivity extends Screen {
 
     /**
      * Checking reminders on the TV without waiting for a prayer: `--es test reminder` shows Home's card now, with
-     * the spoken reminder if it is on; `banner`, `call`, `announce` and `standby` come from the remote buttons
-     * service 8 s later, time enough to open another app. `wake` (with `--ei seconds N`, 120 by default) turns the
-     * TV on for the coming prayer N seconds from now, after it has been put in standby (Wake.test). `inputs` presses
-     * the Inputs button; `inputs-panel` opens Afnon's panel even where the TV has its own inputs screen.
+     * the spoken reminder if it is on; `banner`, `call` and `announce` come from the remote buttons service 8 s
+     * later, time enough to open another app (`banner-silent`: the banner without the spoken reminder). `wake`
+     * (with `--ei seconds N`, 120 by default) turns the TV on for the coming prayer N seconds from now, after it
+     * has been put in standby (Wake.test). `say` speaks one line now (below). `at:<epoch ms>` moves Home's clock
+     * (and the screensaver's) to that moment, as `friday` and `ramadan` do. `inputs` presses the Inputs button;
+     * `inputs-panel` opens Afnon's
+     * panel even where the TV has its own inputs screen.
      * `--es station <id>` (ids in Radio.STATIONS) picks a radio station as Settings does, before any test runs.
-     * `--es live makkah|madinah|off` starts or stops the live panel as its card does; with `--ei quality 1080`
-     * (360, 480…) it saves that quality first, as the quality bar does; `--ez full true` fills the screen, and
-     * `--ez bar true` also opens the quality bar once the video plays.
      */
     private void runTest(Intent i) {
         // Source on a TV without its own inputs screen (RemoteKeys): Afnon's panel. After onNewIntent's focus post.
@@ -166,23 +136,6 @@ public class MainActivity extends Screen {
         if (station != null) {
             i.removeExtra("station");
             for (int k = 0; k < Radio.STATIONS.length; k++) if (Radio.STATIONS[k].id.equals(station)) Radio.switchTo(this, k);
-        }
-        String place = i == null ? null : i.getStringExtra("live");
-        if (place != null) {
-            int quality = i.getIntExtra("quality", 0);
-            boolean bar = i.getBooleanExtra("bar", false), full = bar || i.getBooleanExtra("full", false);
-            for (String x : new String[] {"live", "quality", "bar", "full"}) i.removeExtra(x);
-            // Posted: it plays once Home is resumed (an intent pauses Home for a moment, and onPause stops it).
-            root.post(() -> {
-                if ("off".equals(place)) {
-                    live.stop();
-                    return;
-                }
-                if (quality > 0) Prefs.setLiveQuality(this, quality);
-                startLive("madinah".equals(place) ? Live.MADINAH : Live.MAKKAH);
-                if (full) enterFullScreen();
-                barWhenPlaying = bar;
-            });
         }
         String kind = i == null ? null : i.getStringExtra("test");
         if (kind == null) return;
@@ -259,16 +212,11 @@ public class MainActivity extends Screen {
     protected void onPause() {
         Reminders.home = null;
         Radio.unlisten(onRadio);
-        // The live video plays only on Home and only while chosen: leaving Home (an app, the call, the
-        // screensaver) stops it and releases everything.
-        live.stop();
         super.onPause();
     }
 
     @Override
     void onTick() {
-        // In case a screensaver ever starts over Home without pausing it.
-        if (AfnonDream.running && live.state() != Live.OFF) live.stop();
         render(false);
         // The prayer the card was about has arrived (the call takes over) or the card outlived its prayer.
         if (card != null && day != null && !day.nextTime.equals(cardFor)) dismissReminder();
@@ -281,13 +229,6 @@ public class MainActivity extends Screen {
         newRoot();
         card = null;   // a reminder card went with the old root
         radioCard = null;
-        nodes[PANEL] = null;   // and the live panel, put back at the end while it plays
-        nodes[FULL] = null;
-        nodes[OTHER] = null;
-        nodes[STOP] = null;
-        panelButtons = null;
-        fullScreen = false;
-        fullHint = null;
         // The package manager is slow on this TV; a palette switch keeps the apps (and icons) it already has.
         if (!sameApps || favApps == null) {
             favApps = Apps.slots(this, t);
@@ -322,21 +263,18 @@ public class MainActivity extends Screen {
         when.setClipChildren(false);
         place(when, Tokens.COURT_X, 56, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        // Live, Radio and Wi-Fi side by side, ending 20px before the Inputs button (or the night button, on a TV
-        // without inputs); then the night button and Settings, 20px apart.
-        nodes[LIVE] = livePill();
+        // Radio and Wi-Fi side by side, ending 20px before the Inputs button (or the night button, on a TV without
+        // inputs); then the night button and Settings, 20px apart.
         nodes[INPUTS] = inputsButton();
         nodes[RADIO] = radioPill();
         nodes[WIFI] = wifiPill();
         LinearLayout pills = new LinearLayout(this);
         pills.setClipChildren(false);
         float reach = FocusTile.REACH;
-        pills.addView(nodes[LIVE], new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach)));
-        for (View pill : new View[] {nodes[RADIO], nodes[WIFI]}) {
-            LinearLayout.LayoutParams plp2 = new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach));
-            plp2.setMarginStart(Ui.ipx(20 - 2 * reach));
-            pills.addView(pill, plp2);
-        }
+        pills.addView(nodes[RADIO], new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach)));
+        LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach));
+        wlp.setMarginStart(Ui.ipx(20 - 2 * reach));
+        pills.addView(nodes[WIFI], wlp);
         FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
         plp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W) + (nodes[INPUTS] != null ? 3 : 2) * (72 + 20) - reach));
         plp.topMargin = Ui.ipx(56 - reach);
@@ -370,7 +308,6 @@ public class MainActivity extends Screen {
         TextView fav = caps(text(ui400, 22, Tokens.MIST_400));
         fav.setText(t.fav());
         place(fav, Tokens.COURT_X, LABEL_ABOVE_FAV, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        favLabel = fav;
         float fw = (Tokens.COURT_W - 3 * 24) / 4f;
         for (int i = 0; i < 4; i++) {
             nodes[F0 + i] = favouriteTile(i < favApps.size() ? favApps.get(i) : null, F0 + i, Tokens.COURT_X + i * (fw + 24), 520, fw);
@@ -379,7 +316,6 @@ public class MainActivity extends Screen {
         TextView more = caps(text(ui400, 22, Tokens.MIST_400));
         more.setText(t.more());
         place(more, Tokens.COURT_X, LABEL_ABOVE_MORE, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        moreLabel = more;
         float mw = (Tokens.COURT_W - 5 * 20) / 6f;
         for (int i = 0; i < 5; i++) {
             nodes[M0 + i] = moreTile(i < moreApps.size() ? moreApps.get(i) : null, M0 + i, Tokens.COURT_X + i * (mw + 20), 764, mw);
@@ -392,7 +328,7 @@ public class MainActivity extends Screen {
 
         for (int i = 0; i < NODES; i++) {
             final int n = i;
-            if (nodes[i] == null) continue;   // the live panel, made when it shows
+            if (nodes[i] == null) continue;
             nodes[i].setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(n); else if (n == ARCH) setArchFocused(false); });
         }
 
@@ -401,8 +337,6 @@ public class MainActivity extends Screen {
         render(true);
         // A rebuild in front (night mode, language) gets no onResume to fill in the network's name.
         updateWifi();
-        // The live video carries on through a rebuild in front (night mode): a new panel, the same player.
-        styleLive();
         nodes[ARCH].requestFocus();
     }
 
@@ -439,10 +373,6 @@ public class MainActivity extends Screen {
         Icon icon = new Icon(this, Icon.WIFI, 2f);
         wifiName = text(ui400, 24, Tokens.PLASTER_100);
         wifiName.setTextDirection(View.TEXT_DIRECTION_LTR);
-        // The header row also holds the Live pill now: a long network name is cut short, clear of the clock.
-        wifiName.setSingleLine(true);
-        wifiName.setEllipsize(TextUtils.TruncateAt.END);
-        wifiName.setMaxWidth(Ui.ipx(200));
         row.addView(icon, new LinearLayout.LayoutParams(Ui.ipx(30), Ui.ipx(30)));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
         lp.setMarginStart(Ui.ipx(14));
@@ -691,13 +621,8 @@ public class MainActivity extends Screen {
         if (n == ARCH) {
             h.add(t.hintOk(t.today()));
             h.add(t.hintApps());
-        } else if (n == RADIO || n == NIGHT || n == INPUTS || n == LIVE) {
+        } else if (n == RADIO || n == NIGHT || n == INPUTS) {
             h.add(t.hintOk(nodeLabel[n]));
-        } else if (n == PANEL || n == FULL || n == OTHER) {
-            h.add(t.hintOk(n == OTHER ? otherLabel.getText().toString() : t.fullScreen()));
-            h.add(t.hintStop());
-        } else if (n == STOP) {
-            h.add(t.hintOk(t.radioStop()));
         } else if (n >= F0 && n < M0) {
             h.add(t.hintOk(t.open(nodeLabel[n])));
             h.add(t.hintMore());
@@ -851,9 +776,8 @@ public class MainActivity extends Screen {
         cardHints(cardPlay);
     }
 
-    /** The hints for the radio card's focused button. */
     private void cardHints(View focused) {
-        if (hints == null) return;
+        if (radioCard == null || hints == null) return;
         List<String> h = new ArrayList<>();
         h.add(t.hintOk(focused == cardDark ? t.screenOff() : focused == cardStation ? t.stationRow()
             : (Radio.on() ? t.radioStop() : t.radioPlay())));
@@ -903,401 +827,6 @@ public class MainActivity extends Screen {
         radioCard = null;
         for (View n : nodes) if (n != null) n.setFocusable(true);
         if (focusPill) nodes[RADIO].requestFocus();
-    }
-
-    // ---------------------------------------------------------------- live from Makkah and Madinah (local only)
-
-    /** The header pill: «مباشر» with a screen icon; a gold outline while the video is on. OK plays Makkah, or goes to the buttons under the panel. */
-    private View livePill() {
-        FocusTile b = new FocusTile(this, 36);
-        b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
-        LinearLayout row = new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(Ui.ipx(28), 0, Ui.ipx(28), 0);
-        liveIcon = new Icon(this, Icon.LIVE, 2f);
-        liveLabel = text(ui400, 24, Tokens.PLASTER_100);
-        liveLabel.setText(t.live());
-        liveLabel.setSingleLine(true);
-        row.addView(liveIcon, new LinearLayout.LayoutParams(Ui.ipx(30), Ui.ipx(30)));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-        lp.setMarginStart(Ui.ipx(14));
-        row.addView(liveLabel, lp);
-        b.addView(row, new FrameLayout.LayoutParams(-2, -1));
-        b.setLook(f -> {
-            int c = f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100;
-            liveLabel.setTextColor(c);
-            liveIcon.setColor(c);
-        });
-        b.setOnClickListener(v -> onLivePill());
-        nodeLabel[LIVE] = t.live();
-        return b;
-    }
-
-    /**
-     * The pill's OK: Makkah on the panel when nothing plays (the other mosque and Stop are under it); while one
-     * plays, focus goes down to the other mosque's button. The radio stops.
-     */
-    private void onLivePill() {
-        if (card != null || radioCard != null) return;
-        if (live.state() == Live.OFF) live.start(this, Live.MAKKAH);
-        else if (nodes[OTHER] != null) nodes[OTHER].requestFocus();
-    }
-
-    /** Makkah or Madinah on the panel (the radio stops); focus goes to the panel. */
-    private void startLive(int which) {
-        if (card != null || radioCard != null) return;
-        live.start(this, which);
-        if (nodes[PANEL] != null) nodes[PANEL].requestFocus();
-    }
-    /** Puts the pill and the panel in step with the live video: OFF takes the panel away. */
-    private void styleLive() {
-        int s = live.state();
-        if (nodes[LIVE] != null) {
-            ((FocusTile) nodes[LIVE]).setRest(Tokens.LAPIS_800, s == Live.OFF ? Tokens.LINE_SOFT : Tokens.GOLD_400_60, 2);
-        }
-        if (s == Live.OFF) {
-            closeLivePanel();
-            return;
-        }
-        if (nodes[PANEL] == null) showLivePanel();
-        panelName.setText(t.livePlaces()[live.place()]);
-        otherLabel.setText(t.livePlaces()[1 - live.place()]);
-        if (nodes[OTHER].isFocused()) onNodeFocused(OTHER);   // its hint names the other mosque too
-        panelStatus.setText(t.liveStatus(s));
-        panelStatus.setTextColor(s == Live.FAILED ? Tokens.PLASTER_100 : Tokens.MIST_400);
-        // Couldn't play: the message shows on the panel, and there is nothing to fill the screen with.
-        if (s == Live.FAILED) {
-            exitFullScreen();
-            if (nodes[FULL].isFocused()) nodes[PANEL].requestFocus();
-        }
-        nodes[FULL].setVisibility(s == Live.FAILED || fullScreen ? View.INVISIBLE : View.VISIBLE);
-        if (s == Live.PLAYING && barWhenPlaying && fullScreen) {
-            barWhenPlaying = false;
-            showQualityBar();
-        }
-    }
-
-    /**
-     * The panel: the video at 16:9 across the courtyard, where the prayer strip and the favourites and More rows
-     * are (hidden while it shows), and under it «مباشر», the place and its state on one line. The arch (with the
-     * next prayer and its countdown), the clock and the dates stay. It is the focus node for the rows it covers;
-     * OK opens the live card, Back stops it. A SurfaceView, so the TV's video plane draws it; the view itself
-     * doesn't scale on focus.
-     */
-    private void showLivePanel() {
-        FocusTile b = new FocusTile(this, Tokens.RADIUS_BADGE);
-        b.setFocusScale(1f);
-        b.setRest(0, 0, 0);
-        SurfaceView video = new SurfaceView(this);
-        video.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder h) {
-                live.setSurface(h);
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder h, int format, int width, int height) {
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder h) {
-                live.surfaceGone(h);
-            }
-        });
-        b.addView(video, new FrameLayout.LayoutParams(-1, -1));
-        b.setOnClickListener(v -> enterFullScreen());
-        b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(PANEL); });
-        b.setFocusable(radioCard == null && card == null && chooser == null);
-        nodes[PANEL] = b;
-        placeTile(b, Tokens.COURT_X, PANEL_Y, PANEL_W, PANEL_H);
-
-        panelSide = new LinearLayout(this);
-        panelSide.setGravity(Gravity.CENTER_VERTICAL);
-        TextView label = caps(text(ui500, 22, Tokens.GOLD_400));
-        label.setText(t.live());
-        panelName = text(ui500, 26, Tokens.PLASTER_100);
-        panelStatus = text(ui400, 22, Tokens.MIST_400);
-        panelSide.addView(label);
-        for (TextView v : new TextView[] {panelName, panelStatus}) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-            lp.setMarginStart(Ui.ipx(20));
-            panelSide.addView(v, lp);
-        }
-        // Under the panel: the words at its start corner, Full screen at its end corner, centred on one line.
-        float under = PANEL_Y + PANEL_H + 14;
-        place(panelSide, Tokens.COURT_X, under, ViewGroup.LayoutParams.WRAP_CONTENT, 56);
-
-        // Under the panel's end corner, as on LG: Full screen, the other mosque (switched here, without the card)
-        // and Stop, a round button.
-        otherLabel = text(ui400, 22, Tokens.PLASTER_100);
-        TextView fullLabel = text(ui400, 22, Tokens.PLASTER_100);
-        fullLabel.setText(t.fullScreen());
-        nodes[FULL] = panelPill(FULL, Icon.EXPAND, fullLabel, v -> enterFullScreen());
-        nodes[OTHER] = panelPill(OTHER, Icon.LIVE, otherLabel, v -> {
-            if (live.place() >= 0) live.start(this, 1 - live.place());
-        });
-        nodes[STOP] = panelPill(STOP, Icon.STOP, null, v -> live.stop());
-        nodes[STOP].setContentDescription(t.radioStop());
-        panelButtons = new LinearLayout(this);
-        panelButtons.setClipChildren(false);
-        for (int n : new int[] {FULL, OTHER, STOP}) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(n == STOP ? Ui.ipx(56) : -2, -1);
-            if (n != FULL) lp.setMarginStart(Ui.ipx(16));
-            panelButtons.addView(nodes[n], lp);
-        }
-        placeEnd(panelButtons, 1920 - (Tokens.COURT_X + Tokens.COURT_W), under, ViewGroup.LayoutParams.WRAP_CONTENT, 56);
-
-        rowsShown(false);
-    }
-
-    /** A 56px pill like the header's under the panel: its icon, and its words unless label is null (round). */
-    private FocusTile panelPill(int node, int glyph, TextView label, View.OnClickListener ok) {
-        FocusTile b = new FocusTile(this, 28);
-        b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
-        LinearLayout row = new LinearLayout(this);
-        row.setGravity(Gravity.CENTER);
-        if (label != null) row.setPadding(Ui.ipx(24), 0, Ui.ipx(28), 0);
-        Icon icon = new Icon(this, glyph, 2f);
-        row.addView(icon, new LinearLayout.LayoutParams(Ui.ipx(24), Ui.ipx(24)));
-        if (label != null) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-            lp.setMarginStart(Ui.ipx(12));
-            row.addView(label, lp);
-        }
-        b.addView(row, new FrameLayout.LayoutParams(label != null ? -2 : -1, -1));
-        b.setLook(f -> {
-            int c = f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100;
-            if (label != null) label.setTextColor(c);
-            icon.setColor(c);
-        });
-        b.setOnClickListener(ok);
-        b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(node); });
-        b.setFocusable(nodes[PANEL].isFocusable());
-        return b;
-    }
-
-    /**
-     * The video fills the screen: the same player and surface, its panel laid out over everything and drawn last
-     * (translationZ), with nothing else showing but a hint that fades after a few seconds. Back or OK returns.
-     */
-    private void enterFullScreen() {
-        View panel = nodes[PANEL];
-        if (panel == null || fullScreen || live.state() == Live.FAILED) return;
-        fullScreen = true;
-        panelPlace = panel.getLayoutParams();
-        panel.setPadding(0, 0, 0, 0);
-        panel.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
-        // Its video covers whatever was drawn before it; the two views added after it step aside, so only the
-        // hint and the quality bar (added after these) draw over the video.
-        panelButtons.setVisibility(View.INVISIBLE);
-        panelSide.setVisibility(View.INVISIBLE);
-        fullHint = text(ui400, 24, Tokens.PLASTER_100);
-        fullHint.setPadding(Ui.ipx(28), Ui.ipx(12), Ui.ipx(28), Ui.ipx(12));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Tokens.SCRIM_PANEL);
-        bg.setCornerRadius(Ui.px(36));
-        fullHint.setBackground(bg);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        lp.bottomMargin = Ui.ipx(Tokens.SPACE_SAFE_BLOCK);
-        root.addView(fullHint, lp);
-        flash(t.fullScreenHint(), 4000);
-    }
-
-    /** Full screen's hint, or the quality just picked, for a moment (a post waits, as for the quality bar). */
-    private void flash(String s, long ms) {
-        if (fullHint == null) return;
-        fullHint.setText(s);
-        fullHint.removeCallbacks(fadeHint);
-        fullHint.animate().cancel();
-        fullHint.setAlpha(1);
-        fullHint.postDelayed(fadeHint, ms);
-    }
-
-    private final Runnable fadeHint = () -> {
-        if (fullHint != null) fullHint.animate().alpha(0).setDuration(Tokens.MOTION_OVERLAY_FADE_MS);
-    };
-
-    /**
-     * The quality bar: «الجودة», then each rendition the stream's master playlist offers (lowest first) with what an
-     * hour of it costs in data; the one playing is outlined in gold and focused. ◀▶ move, OK picks it (saved for next
-     * time, also for the panel), Back closes the bar. It fades away after a few seconds without a key.
-     *
-     * It sits under the panel, never over the video: at 1080p the TCL puts the video on a hardware plane above the
-     * app's own drawing, so a bar over full screen was there but couldn't be seen. Asked for in full screen, the video
-     * steps back to the panel while the bar is open and fills the screen again when it closes.
-     */
-    private void showQualityBar() {
-        List<Live.Rendition> list = live.renditions();
-        if (qualityBar != null || list.isEmpty() || nodes[PANEL] == null) return;
-        qualityFromFull = fullScreen;
-        if (fullScreen) exitFullScreen();
-        qualityBar = new LinearLayout(this);
-        qualityBar.setGravity(Gravity.CENTER_VERTICAL);
-        qualityBar.setPadding(Ui.ipx(32), Ui.ipx(14), Ui.ipx(24), Ui.ipx(14));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Tokens.SCRIM_PANEL);
-        bg.setCornerRadius(Ui.px(Tokens.RADIUS_PANEL));
-        qualityBar.setBackground(bg);
-        qualityBar.setClipChildren(false);
-        qualityBar.setClipToPadding(false);
-        TextView label = text(ui500, 24, Tokens.GOLD_400);
-        label.setText(t.quality());
-        qualityBar.addView(label);
-        qualityButtons = new FocusTile[list.size()];
-        qualityHeights = new int[list.size()];
-        float r = FocusTile.REACH;
-        FocusTile current = null;
-        for (int i = 0; i < list.size(); i++) {
-            Live.Rendition q = list.get(i);
-            boolean on = q.height == live.height();
-            FocusTile b = new FocusTile(this, 18);
-            b.setRest(on ? Tokens.LAPIS_900 : Tokens.LAPIS_800, on ? Tokens.GOLD_400 : Tokens.LINE_SOFT, 2);
-            LinearLayout col = new LinearLayout(this);
-            col.setOrientation(LinearLayout.VERTICAL);
-            col.setGravity(Gravity.CENTER_HORIZONTAL);
-            col.setPadding(Ui.ipx(24), Ui.ipx(8), Ui.ipx(24), Ui.ipx(8));
-            TextView name = text(ui500, 26, Tokens.PLASTER_100);
-            name.setText(t.quality(q.height));
-            TextView cost = text(ui400, 20, Tokens.MIST_400);
-            cost.setText(t.perHour(q.bandwidth));
-            col.addView(name);
-            col.addView(cost);
-            b.addView(col, new FrameLayout.LayoutParams(-2, -2));
-            b.setLook(f -> {
-                name.setTextColor(f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100);
-                cost.setTextColor(f ? Tokens.FOCUS_TEXT : Tokens.MIST_400);
-            });
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
-            lp.setMarginStart(Ui.ipx(i == 0 ? 24 - r : 12 - 2 * r));
-            qualityBar.addView(b, lp);
-            qualityButtons[i] = b;
-            qualityHeights[i] = q.height;
-            if (on) current = b;
-        }
-        // Centred under the panel, where its words and buttons were (they and the key hints step aside meanwhile).
-        qualityBox = new FrameLayout(this);
-        qualityBox.setClipChildren(false);
-        qualityBox.addView(qualityBar, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_HORIZONTAL));
-        place(qualityBox, Tokens.COURT_X, PANEL_Y + PANEL_H + 4, PANEL_W, ViewGroup.LayoutParams.WRAP_CONTENT);
-        panelSide.setVisibility(View.INVISIBLE);
-        panelButtons.setVisibility(View.INVISIBLE);
-        if (hints != null) hints.setVisibility(View.INVISIBLE);
-        (current != null ? current : qualityButtons[0]).requestFocus();
-        keepQualityBar();
-    }
-
-    /**
-     * The bar fades away after a few seconds without a key; each key starts the wait again. The wait is a post, not
-     * the fade's start delay: with the TV's animations off (animator duration scale 0) a delay is skipped too, and
-     * the bar closed as it opened.
-     */
-    private void keepQualityBar() {
-        LinearLayout bar = qualityBar;
-        if (bar == null) return;
-        bar.removeCallbacks(fadeQualityBar);
-        bar.animate().cancel();
-        bar.setAlpha(1);
-        bar.postDelayed(fadeQualityBar, 5000);
-    }
-
-    private final Runnable fadeQualityBar = () -> {
-        LinearLayout bar = qualityBar;
-        if (bar == null) return;
-        bar.animate().alpha(0).setDuration(Tokens.MOTION_OVERLAY_FADE_MS)
-            .withEndAction(() -> { if (qualityBar == bar) closeQualityBar(); });
-    };
-
-    private void closeQualityBar() {
-        if (qualityBar == null) return;
-        qualityBar.removeCallbacks(fadeQualityBar);
-        qualityBar.animate().cancel();
-        root.removeView(qualityBox);
-        qualityBox = null;
-        qualityBar = null;
-        qualityButtons = null;
-        qualityHeights = null;
-        if (hints != null) hints.setVisibility(View.VISIBLE);
-        if (panelSide != null) panelSide.setVisibility(View.VISIBLE);
-        if (panelButtons != null) panelButtons.setVisibility(View.VISIBLE);
-        if (nodes[FULL] != null) nodes[FULL].requestFocus();
-        if (qualityFromFull) {
-            qualityFromFull = false;
-            enterFullScreen();
-        }
-    }
-
-    /** That rendition on the same player (a short pause), saved; its height shows for a moment. */
-    private void pickQuality(int i) {
-        int h = qualityHeights[i];
-        closeQualityBar();
-        live.setQuality(this, h);
-        flash(t.quality(live.height()), 2500);
-    }
-
-    /** Back to the panel on Home, still playing, with focus on Full screen. */
-    private void exitFullScreen() {
-        if (!fullScreen) return;
-        closeQualityBar();
-        fullScreen = false;
-        if (fullHint != null) {
-            fullHint.animate().cancel();
-            root.removeView(fullHint);
-            fullHint = null;
-        }
-        View panel = nodes[PANEL];
-        if (panel == null) return;
-        int r = Ui.ipx(FocusTile.REACH);
-        panel.setPadding(r, r, r, r);
-        panel.setLayoutParams(panelPlace);
-        panelSide.setVisibility(View.VISIBLE);
-        panelButtons.setVisibility(View.VISIBLE);
-        boolean failed = live.state() == Live.FAILED;
-        nodes[FULL].setVisibility(failed ? View.INVISIBLE : View.VISIBLE);
-        nodes[failed ? PANEL : FULL].requestFocus();
-    }
-
-    /** The prayer strip and the favourites and More rows: hidden under the live panel, back as they were after. */
-    private void rowsShown(boolean shown) {
-        int v = shown ? View.VISIBLE : View.INVISIBLE;
-        for (View c : cell) c.setVisibility(v);
-        for (int i = F0; i <= ALL; i++) nodes[i].setVisibility(v);
-        favLabel.setVisibility(v);
-        moreLabel.setVisibility(v);
-    }
-
-    /** The panel goes and the strip and rows it covered come back; focus on it moves to the Live pill. */
-    private void closeLivePanel() {
-        View panel = nodes[PANEL];
-        if (panel == null) return;
-        boolean focused = panel.isFocused() || nodes[FULL].isFocused() || nodes[OTHER].isFocused()
-            || nodes[STOP].isFocused() || (qualityButtons != null && java.util.Arrays.asList(qualityButtons).contains(getCurrentFocus()));
-        if (fullScreen) {
-            fullScreen = false;
-            if (fullHint != null) root.removeView(fullHint);
-            fullHint = null;
-        }
-        if (qualityBar != null) {
-            qualityBar.removeCallbacks(fadeQualityBar);
-            qualityBar.animate().cancel();
-            root.removeView(qualityBox);
-            if (hints != null) hints.setVisibility(View.VISIBLE);
-        }
-        qualityBox = null;
-        qualityBar = null;
-        qualityButtons = null;
-        qualityHeights = null;
-        qualityFromFull = false;
-        root.removeView(panelButtons);
-        panelButtons = null;
-        nodes[FULL] = null;
-        nodes[OTHER] = null;
-        nodes[STOP] = null;
-        nodes[PANEL] = null;
-        rowsShown(true);
-        root.removeView(panel);
-        root.removeView(panelSide);
-        panelSide = null;
-        if (focused) nodes[LIVE].requestFocus();
     }
 
     // ---------------------------------------------------------------- inputs
@@ -1460,7 +989,6 @@ public class MainActivity extends Screen {
     /** "Asr in 13 minutes" at the bottom end, over the apps; it takes focus until Got it, Today's prayers or Back. */
     private void showReminder() {
         if (card != null) dismissReminder();
-        exitFullScreen();
         closeRadioCard(false);
         closeInputsPanel(false);
         Date now = new Date();
@@ -1562,39 +1090,6 @@ public class MainActivity extends Screen {
                 return true;
             }
         }
-        // The live video: Back or OK in full screen returns to the panel, ▲▼ or Menu open the quality bar (under the
-        // panel). With the bar open: ◀▶ move along it (mirrored in Arabic), OK picks, Back closes it first.
-        boolean ok = k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER || k == KeyEvent.KEYCODE_NUMPAD_ENTER;
-        boolean down = e.getAction() == KeyEvent.ACTION_DOWN, up = e.getAction() == KeyEvent.ACTION_UP;
-        boolean sideways = k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT;
-        boolean upDown = k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN;
-        if (qualityBar != null) {
-            keepQualityBar();
-            int i = java.util.Arrays.asList(qualityButtons).indexOf(getCurrentFocus());
-            if (k == KeyEvent.KEYCODE_BACK) {
-                if (up) closeQualityBar();
-            } else if (ok) {
-                if (up && i >= 0) pickQuality(i);
-            } else if (sideways) {
-                boolean toEnd = (k == KeyEvent.KEYCODE_DPAD_RIGHT) != rtl;
-                if (down) qualityButtons[i < 0 ? 0 : Math.max(0, Math.min(qualityButtons.length - 1, i + (toEnd ? 1 : -1)))].requestFocus();
-            } else if (!upDown) {
-                return super.dispatchKeyEvent(e);
-            }
-            return true;
-        }
-        if (fullScreen) {
-            if (k == KeyEvent.KEYCODE_BACK || ok) {
-                if (up) exitFullScreen();
-                return true;
-            }
-            if (upDown || k == KeyEvent.KEYCODE_MENU) {
-                if (down) showQualityBar();
-                return true;
-            }
-            if (sideways) return true;
-            return super.dispatchKeyEvent(e);
-        }
         // The station list (from the radio card): Back steps back, Up/Down move through it.
         if (chooser != null) return chooserKey(e);
         if (inputsPanel != null) {
@@ -1644,12 +1139,8 @@ public class MainActivity extends Screen {
             return super.dispatchKeyEvent(e);
         }
         if (k == KeyEvent.KEYCODE_BACK) {
-            // Back on Home stops the live video if it is on; otherwise it returns focus to the arch. It never
-            // leaves Home.
-            if (e.getAction() == KeyEvent.ACTION_UP) {
-                if (nodes[PANEL] != null) live.stop();
-                else nodes[ARCH].requestFocus();
-            }
+            // Back on Home returns focus to the arch and never leaves Home.
+            if (e.getAction() == KeyEvent.ACTION_UP) nodes[ARCH].requestFocus();
             return true;
         }
         if (k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT
@@ -1669,29 +1160,19 @@ public class MainActivity extends Screen {
         boolean left = key == KeyEvent.KEYCODE_DPAD_LEFT, right = key == KeyEvent.KEYCODE_DPAD_RIGHT;
         boolean up = key == KeyEvent.KEYCODE_DPAD_UP, down = key == KeyEvent.KEYCODE_DPAD_DOWN;
         int to = -1;
-        // While the live panel shows it stands for the favourites and More rows it covers.
-        boolean panel = nodes[PANEL] != null;
-        boolean fullShown = panel && nodes[FULL].getVisibility() == View.VISIBLE;
         switch (from) {
-            case ARCH: to = right ? (panel ? PANEL : F0) : up ? LIVE : -1; break;
-            case LIVE: to = left ? ARCH : right ? RADIO : down ? (panel ? PANEL : F0) : -1; break;
-            case RADIO: to = left ? LIVE : right ? WIFI : down ? (panel ? PANEL : F0 + 1) : -1; break;
-            case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? (panel ? PANEL : F0 + 2) : -1; break;
-            case INPUTS: to = left ? WIFI : right ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case SETTINGS: to = left ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case PANEL: to = left ? ARCH : up ? LIVE : down ? (fullShown ? FULL : OTHER) : -1; break;
-            // Full screen, the other mosque and Stop sit under the panel's end corner, in the row of the arch's
-            // foot button. Full screen is hidden while the video couldn't play.
-            case FULL: to = left ? ARCH : right ? OTHER : up ? PANEL : -1; break;
-            case OTHER: to = left ? (fullShown ? FULL : ARCH) : right ? STOP : up ? PANEL : -1; break;
-            case STOP: to = left ? OTHER : up ? PANEL : -1; break;
+            case ARCH: to = right ? F0 : up ? RADIO : -1; break;
+            case RADIO: to = left ? ARCH : right ? WIFI : down ? F0 + 1 : -1; break;
+            case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? F0 + 2 : -1; break;
+            case INPUTS: to = left ? WIFI : right ? NIGHT : down ? F0 + 3 : -1; break;
+            case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? F0 + 3 : -1; break;
+            case SETTINGS: to = left ? NIGHT : down ? F0 + 3 : -1; break;
             default:
                 if (from >= F0 && from < M0) {
                     int i = from - F0;
                     if (left) to = i == 0 ? ARCH : from - 1;
                     else if (right) to = i == 3 ? -1 : from + 1;
-                    else if (up) to = i == 3 ? SETTINGS : i == 2 ? WIFI : i == 1 ? RADIO : LIVE;
+                    else if (up) to = i == 3 ? SETTINGS : i == 2 ? WIFI : RADIO;
                     else to = M0 + new int[] {0, 1, 3, 4}[i];
                 } else {
                     int i = from - M0;
