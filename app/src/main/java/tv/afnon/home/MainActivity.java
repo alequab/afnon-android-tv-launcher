@@ -191,7 +191,7 @@ public class MainActivity extends Screen {
             showReminder();
             if (Prefs.remindVoice(this)) Announce.before(this, day.nextIndex, day.friday);
         });
-        else if ("friday".equals(kind) || "ramadan".equals(kind) || "now".equals(kind)) shiftTo(kind);
+        else if ("friday".equals(kind) || "ramadan".equals(kind) || "now".equals(kind) || kind.startsWith("at:")) shiftTo(kind);
         else if ("radio".equals(kind)) Radio.toggle(this);
         // One spoken line now, to hear a clip: --ei prayer 0..5 (Fajr..Isha); --ez end true for «أوشك…» (its time
         // is ending), --ez before true for «اقترب…»; else «حان الآن…».
@@ -231,7 +231,10 @@ public class MainActivity extends Screen {
             c.set(Calendar.HOUR_OF_DAY, 16);
             c.set(Calendar.MINUTE, 30);
         }
+        // "at:<epoch ms>": any moment, to see Home's fast note on the evening before a fast.
+        else if (kind.startsWith("at:")) c.setTimeInMillis(Long.parseLong(kind.substring(3)));
         shift = "now".equals(kind) ? 0 : c.getTimeInMillis() - System.currentTimeMillis();
+        AfnonDream.testShift = kind.startsWith("at:") ? shift : 0;
         lastMinute = -1;
         day = null;
     }
@@ -606,7 +609,16 @@ public class MainActivity extends Screen {
     private void renderMinute(Date now) {
         readClockFormat();
         clock.setText(displayTime(now, 0.4f));
-        gdate.setText(gregorian(now));
+        // From a fast's evening until its Fajr, its name in gold after the date, in case its banner was missed.
+        int[] fast = Fasts.upcoming(this, day, now);
+        if (fast == null) gdate.setText(gregorian(now));
+        else {
+            android.text.SpannableStringBuilder s = new android.text.SpannableStringBuilder(gregorian(now) + t.sep());
+            int from = s.length();
+            s.append(t.fastHome(fast[0], fast[1] == 1));
+            s.setSpan(new android.text.style.ForegroundColorSpan(Tokens.GOLD_400), from, s.length(), 0);
+            gdate.setText(s);
+        }
         hdate.setText(hijri(day) + t.sep() + t.city());
 
         String[] names = t.prayerNames();

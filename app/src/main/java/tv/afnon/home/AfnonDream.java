@@ -31,6 +31,8 @@ public class AfnonDream extends DreamService {
 
     /** True while the screensaver is showing; the reminders wait for it, and it steps aside for the call. */
     static boolean running;
+    /** Test only: Home's `--es test at:<ms>` moves the screensaver's clock with it; 0 otherwise. */
+    static long testShift;
 
     private final Handler tick = new Handler(Looper.getMainLooper());
     private final Random random = new Random();
@@ -45,6 +47,10 @@ public class AfnonDream extends DreamService {
     private LinearLayout radioRow;
     private RadioBars radioBars;
     private TextView radioText;
+    /** From a fast's evening until its Fajr: its icon and «غدًا: يوم عرفة», then «السحور حتى …» (Fasts.upcoming). */
+    private LinearLayout fastRow;
+    private Icon fastIcon;
+    private TextView fastText, fastSuhoor;
     private long dreamStart;
     private boolean dark;
 
@@ -111,6 +117,20 @@ public class AfnonDream extends DreamService {
         tlp.setMarginStart(Ui.ipx(12));
         radioRow.addView(radioText, tlp);
         col.addView(radioRow, wrap(22));
+        fastRow = new LinearLayout(this);
+        fastRow.setGravity(Gravity.CENTER_VERTICAL);
+        fastIcon = new Icon(this, Icon.MOON, 1.4f);
+        fastIcon.setColor(gold);
+        fastRow.addView(fastIcon, new LinearLayout.LayoutParams(Ui.ipx(24), Ui.ipx(24)));
+        fastText = text(ui, 22, gold);
+        LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(-2, -2);
+        flp.setMarginStart(Ui.ipx(10));
+        fastRow.addView(fastText, flp);
+        fastRow.setVisibility(View.GONE);
+        col.addView(fastRow, wrap(22));
+        fastSuhoor = text(ui, 22, dim);
+        fastSuhoor.setVisibility(View.GONE);
+        col.addView(fastSuhoor, wrap(6));
         Screen.lineHeight(clock, 1f);
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
         clp.leftMargin = Ui.ipx(20);
@@ -155,7 +175,7 @@ public class AfnonDream extends DreamService {
     }
 
     private void render() {
-        Date now = new Date();
+        Date now = new Date(System.currentTimeMillis() + testShift);
         // The call to prayer: wake the TV out of the screensaver so the call screen can open over what was on.
         if (day != null && Reminders.dueCall(this, day, now) >= 0) {
             running = false;
@@ -173,6 +193,14 @@ public class AfnonDream extends DreamService {
             String[] names = t.prayerNames();
             if (day.friday) names[PrayerDay.DHUHR] = t.jumuah();
             next.setText(names[day.nextIndex] + " " + Screen.clock(t, day.nextTime, h24, 1f));
+            int[] fast = Fasts.upcoming(this, day, now);
+            fastRow.setVisibility(fast == null ? View.GONE : View.VISIBLE);
+            fastSuhoor.setVisibility(fast == null ? View.GONE : View.VISIBLE);
+            if (fast != null) {
+                fastIcon.setKind(Fasts.icon(fast[0]));
+                fastText.setText(t.fastHome(fast[0], fast[1] == 1));
+                fastSuhoor.setText(t.suhoorEnds(Screen.clock(t, day.suhoorEnd, h24, 1f).toString()));
+            }
         }
         long secs = Screen.secondsUntil(day.nextTime, now);
         left.setText(t.inMinutes((secs + 59) / 60, Screen.duration(secs, false)));

@@ -9,7 +9,8 @@ import android.view.View;
 /** Stroke icons on a 24px grid in the current colour, so they follow focus (README: Iconography). */
 final class Icon extends View {
     static final int WIFI = 0, GEAR = 1, COMPASS = 2, BELL = 3, BACK = 4, STAR = 5, MIHRAB = 6, RADIO = 7, PLAY = 8, STOP = 9, MOON = 10,
-        INPUT = 11, NIGHT = 12, SUN = 13, LIVE = 14, EXPAND = 15, CHECK = 16;
+        INPUT = 11, NIGHT = 12, SUN = 13, LIVE = 14, EXPAND = 15, CHECK = 16,
+        FULL_MOON = 17, KAABA = 18, MOUNTAIN = 19, CALENDAR = 20;
 
     private int kind;
     private final float strokeOn24;
@@ -164,6 +165,40 @@ final class Icon extends View {
             // The current choice in a list: M5 12.5l4.5 4.5L19 7.5
             c.drawLine(5 * k, 12.5f * k, 9.5f * k, 17 * k, p);
             c.drawLine(9.5f * k, 17 * k, 19 * k, 7.5f * k, p);
+        } else if (kind == FULL_MOON) {
+            // The White Days are the nights of the full moon: a filled disc inside a faint halo.
+            c.drawCircle(12 * k, 12 * k, 10 * k, p);
+            p.setStyle(Paint.Style.FILL);
+            c.drawCircle(12 * k, 12 * k, 7 * k, p);
+        } else if (kind == KAABA) {
+            // The Kaaba: a cube seen from the front, its door and the band (kiswah) near the top.
+            r.set(4 * k, 5 * k, 20 * k, 21 * k);
+            c.drawRoundRect(r, 1 * k, 1 * k, p);
+            p.setStyle(Paint.Style.FILL);
+            r.set(4 * k, 8.5f * k, 20 * k, 10.5f * k);
+            c.drawRect(r, p);
+            p.setStyle(Paint.Style.STROKE);
+            c.drawLine(15 * k, 14 * k, 15 * k, 21 * k, p);
+            c.drawLine(18 * k, 14 * k, 18 * k, 21 * k, p);
+            c.drawLine(15 * k, 14 * k, 18 * k, 14 * k, p);
+        } else if (kind == MOUNTAIN) {
+            // Jabal al-Rahmah at Arafah: a hill with the pillar on its top.
+            path.reset();
+            path.moveTo(2 * k, 20 * k);
+            path.cubicTo(6 * k, 19 * k, 8 * k, 11 * k, 12 * k, 11 * k);
+            path.cubicTo(16 * k, 11 * k, 18 * k, 19 * k, 22 * k, 20 * k);
+            c.drawPath(path, p);
+            c.drawLine(12 * k, 11 * k, 12 * k, 4 * k, p);
+            c.drawLine(2 * k, 20 * k, 22 * k, 20 * k, p);
+        } else if (kind == CALENDAR) {
+            // A page of the calendar with its two rings and one day marked.
+            r.set(3.5f * k, 5 * k, 20.5f * k, 20.5f * k);
+            c.drawRoundRect(r, 2 * k, 2 * k, p);
+            c.drawLine(3.5f * k, 9.5f * k, 20.5f * k, 9.5f * k, p);
+            c.drawLine(8 * k, 3 * k, 8 * k, 6.5f * k, p);
+            c.drawLine(16 * k, 3 * k, 16 * k, 6.5f * k, p);
+            p.setStyle(Paint.Style.FILL);
+            c.drawCircle(15.5f * k, 15 * k, 1.8f * k, p);
         } else if (kind == BACK) {
             // M15 5l-7 7 7 7: points to the start side, so it mirrors in Arabic.
             boolean flip = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
