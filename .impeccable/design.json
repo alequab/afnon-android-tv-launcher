@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T00:30:00+02:00",
+  "title": "Design System: Afnon",
+  "extensions": {
+    "colorMeta": {
+      "night-lapis": { "role": "neutral", "displayName": "Night Lapis", "canonical": "#0C1B33", "tonalRamp": ["#0A1730", "#0C1B33", "#12264A", "#1A3360"] },
+      "lamp-gold": { "role": "primary", "displayName": "Lamp Gold", "canonical": "#D8B46A", "tonalRamp": ["#84703F", "#D8B46A", "#F0D79C"] },
+      "dawn-gold": { "role": "primary", "displayName": "Dawn Gold", "canonical": "#F0D79C" },
+      "plaster": { "role": "neutral", "displayName": "Plaster", "canonical": "#EFE7D6" },
+      "mist": { "role": "neutral", "displayName": "Mist", "canonical": "#9FB0CC" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The arch's countdown (150px, 120px with hours); the clock at 96px." },
+      "headline": { "displayName": "Headline", "purpose": "The next prayer's name in the arch." },
+      "sacred": { "displayName": "Sacred", "purpose": "Qur'an and hadith, exact, in Lamp Gold, with the source under it." },
+      "caption": { "displayName": "Caption", "purpose": "The smallest text allowed on any screen." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Focus and panel moves." },
+      { "name": "focus", "value": "120ms", "purpose": "Focus fill, ring and scale." },
+      { "name": "panel-slide", "value": "240ms", "purpose": "Side panels and cards." },
+      { "name": "overlay-fade", "value": "200ms linear", "purpose": "Banners and scrims." },
+      { "name": "screensaver-fade", "value": "800ms", "purpose": "The screensaver's drift, every 60 s." }
+    ],
+    "breakpoints": [
+      { "name": "tv-1080p", "value": "1920px" },
+      { "name": "tv-720p", "value": "1280px" }
+    ],
+    "nightMode": "afnon-mihrab/tokens.night.json: near-black lapis (#0B0A08 ground), gold at about half brightness (#84703F), focus a dim amber fill with light text."
+  },
+  "components": [
+    {
+      "name": "Header pill",
+      "kind": "chip",
+      "refersTo": "header-pill",
+      "description": "Radio, Wi-Fi, Live: a round lapis pill with an icon and a word; gold fill when focused.",
+      "html": "<button class=\"ds-pill\"><svg width=\"30\" height=\"30\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4\"/></svg>الإذاعة</button>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 14px; height: 72px; padding: 0 28px; border-radius: 999px; background: #12264A; color: #EFE7D6; border: 2px solid rgba(239,231,214,0.25); font: 400 24px Alexandria, sans-serif; transition: transform 120ms cubic-bezier(0.2,0.8,0.2,1), background 120ms; } .ds-pill:focus-visible { background: #D8B46A; color: #0C1B33; outline: 4px solid #EFE7D6; outline-offset: 6px; transform: scale(1.06); }"
+    },
+    {
+      "name": "Fast chip (unread)",
+      "kind": "chip",
+      "refersTo": "chip-unread",
+      "description": "The coming fast, on the Gregorian date's line: gold outline and words until opened.",
+      "html": "<button class=\"ds-chip ds-chip-unread\">غدًا الأربعاء: آخر الأيام البيض</button>",
+      "css": ".ds-chip { height: 48px; padding: 0 26px 0 22px; border-radius: 999px; background: #12264A; color: #EFE7D6; border: 2px solid rgba(239,231,214,0.25); font: 400 24px Alexandria, sans-serif; } .ds-chip-unread { border: 3px solid #D8B46A; color: #D8B46A; } .ds-chip:focus-visible { background: #D8B46A; color: #0C1B33; outline: 4px solid #EFE7D6; outline-offset: 6px; transform: scale(1.06); }"
+    },
+    {
+      "name": "Favourite tile",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "An app on Home: lapis surface, 18px corners; gold fill and plaster ring when focused.",
+      "html": "<button class=\"ds-tile\">يوتيوب</button>",
+      "css": ".ds-tile { width: 248px; height: 150px; border-radius: 18px; background: #12264A; color: #EFE7D6; border: none; font: 400 30px Alexandria, sans-serif; text-align: start; padding: 22px 24px; transition: transform 120ms cubic-bezier(0.2,0.8,0.2,1); } .ds-tile:focus-visible { background: #D8B46A; color: #0C1B33; outline: 4px solid #EFE7D6; outline-offset: 6px; transform: scale(1.06); }"
+    },
+    {
+      "name": "Prayer cell (current)",
+      "kind": "custom",
+      "refersTo": "prayer-cell-current",
+      "description": "The prayer whose time it is: a plaster cell with night lapis words. Never focusable.",
+      "html": "<div class=\"ds-cell\"><small>الآن</small><b>العشاء</b><span>6:02 م</span></div>",
+      "css": ".ds-cell { display: flex; flex-direction: column; width: 167px; height: 146px; padding: 16px 20px; border-radius: 14px; background: #EFE7D6; color: #0C1B33; font: 400 26px Alexandria, sans-serif; } .ds-cell small { font-size: 20px; } .ds-cell span { font-size: 34px; }"
+    },
+    {
+      "name": "Banner",
+      "kind": "custom",
+      "refersTo": "banner",
+      "description": "Over any app, top end: night lapis, gold border, Amiri title, a gold bar emptying while it waits.",
+      "html": "<div class=\"ds-banner\"><small>تذكير بالصيام</small><b>غدًا الأربعاء: آخر الأيام البيض</b><i></i></div>",
+      "css": ".ds-banner { width: 640px; padding: 24px 28px 0; border-radius: 24px; background: #0C1B33; border: 2px solid #D8B46A; color: #EFE7D6; overflow: hidden; } .ds-banner small { display: block; color: #9FB0CC; font: 400 20px Alexandria, sans-serif; } .ds-banner b { display: block; font: 700 44px/1.1 Amiri, serif; margin-top: 8px; } .ds-banner i { display: block; height: 6px; margin: 18px -28px 0; background: #D8B46A; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lit Mihrab",
+    "overview": "Afnon is a prayer niche lit in the evening. The screen is night lapis; one lamp of gold marks what matters now: the next prayer, its countdown, the focused choice. Everything else sits back in mist and plaster until the remote reaches it. The mood is calm, reverent and quiet: watched from a sofa by a family through the day, so nothing shouts, blinks or competes; only the prayer time rises. It must never become kitsch religious decor.",
+    "keyCharacteristics": [
+      "Night lapis ground, one gold accent, plaster for what is current.",
+      "An arch that always shows the next prayer, never covered or focusable at its crown.",
+      "Arabic first (RTL), English second; Western or Eastern digits independent of language.",
+      "Flat: depth from lapis steps and rings, never shadows or blur.",
+      "Transform and opacity only, and the TV may have animations off."
+    ],
+    "rules": [
+      { "name": "The One Lamp Rule", "body": "Gold marks what matters now: the next prayer, the focused control, the sacred text. If a second thing on the screen glows gold without being one of these, it is wrong.", "section": "colors" },
+      { "name": "The Plaster Is Now Rule", "body": "A plaster fill means current: the prayer whose time it is, the chosen segment, the reminder card. It is never used for decoration.", "section": "colors" },
+      { "name": "The Twenty Pixel Floor", "body": "Nothing on screen is smaller than 20px at 1080p (about 13px on a 720p panel); it is read from a sofa.", "section": "typography" },
+      { "name": "The Unspaced Arabic Rule", "body": "Arabic is never letter-spaced; English caps labels alone take 0.2em.", "section": "typography" },
+      { "name": "The Exact Text Rule", "body": "Qur'an and hadith are quoted word for word (checked in the Shamela library), with their source; a paraphrase is never set in the sacred style.", "section": "typography" },
+      { "name": "The Solid Ring Rule", "body": "The only thing that lifts an element is focus: a gold fill, a plaster ring and a small scale. Nothing is lifted by a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do take every colour, size and timing from tokens.json (night mode from tokens.night.json).",
+      "Do keep text at 20px or more at 1080p, and check both 1080p and the 720p TCL.",
+      "Do check every screen in Arabic (RTL) and English (LTR), with Western and Eastern digits.",
+      "Do quote Qur'an and hadith exactly, in Amiri 400 gold, with the source under it.",
+      "Do spell out the D-pad focus for each screen, with Left and Right swapped in Arabic."
+    ],
+    "donts": [
+      "Don't add kitsch religious decor: glitter, clip-art domes or minarets, green gradients, calligraphy as wallpaper.",
+      "Don't use shadows, blur or glass; depth is lapis steps and the focus ring.",
+      "Don't fill anything gold at rest: a gold fill means focus.",
+      "Don't letter-space Arabic.",
+      "Don't animate anything but transform and opacity, or rely on an animation the TV may have turned off.",
+      "Don't cover the arch's crown, or make it focusable."
+    ]
+  }
+}
