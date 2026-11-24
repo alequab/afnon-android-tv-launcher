@@ -58,7 +58,7 @@ public class MainActivity extends Screen {
     private static final int LABEL_ABOVE_FAV = 468, LABEL_ABOVE_MORE = 712;
 
     private static final int ARCH = 0, WIFI = 1, SETTINGS = 2, F0 = 3, M0 = 7, ALL = 12, RADIO = 13, NIGHT = 14, INPUTS = 15,
-        LIVE = 16, PANEL = 17, FULL = 18, OTHER = 19, STOP = 20, NODES = 21;
+        LIVE = 16, PANEL = 17, FULL = 18, OTHER = 19, STOP = 20, FAST = 21, UPDATE = 22, NODES = 23;
     /**
      * The live panel (local only): the courtyard's whole width at 16:9, from the prayer strip's top, over the
      * strip and the favourites and More rows; the clock and dates stay above it.
@@ -91,6 +91,11 @@ public class MainActivity extends Screen {
     private LinearLayout card;
     private FocusTile cardOk, cardDay;
     private Date cardFor;
+    /** The chips under the header's end: a coming fast (its banner again on OK) and a newer release of this fork. */
+    private Icon fastChipIcon;
+    private TextView fastChipText, updateChipText;
+    private View fastChipDot, updateChipDot;
+    private Fasts.Due chipFast;
     /** The radio's header pill and, while open, its card. */
     private Icon radioIcon, playIcon;
     private RadioBars pillBars, cardBars;
@@ -343,6 +348,23 @@ public class MainActivity extends Screen {
         root.addView(pills, plp);
         nodes[NIGHT] = nightButton();
         nodes[SETTINGS] = settingsButton();
+
+        // Under the header's end, beside the dates: a coming fast and a newer release, while there are
+        // (renderChips). Stacked, so a long fast name never runs into the dates.
+        nodes[FAST] = fastChip();
+        nodes[UPDATE] = updateChip();
+        LinearLayout chips = new LinearLayout(this);
+        chips.setOrientation(LinearLayout.VERTICAL);
+        chips.setGravity(Gravity.END);
+        chips.setClipChildren(false);
+        chips.addView(nodes[FAST], new LinearLayout.LayoutParams(-2, Ui.ipx(56 + 2 * reach)));
+        LinearLayout.LayoutParams ulp = new LinearLayout.LayoutParams(-2, Ui.ipx(56 + 2 * reach));
+        ulp.topMargin = Ui.ipx(12 - 2 * reach);
+        chips.addView(nodes[UPDATE], ulp);
+        FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
+        clp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W) - reach));
+        clp.topMargin = Ui.ipx(56 + 72 + 20 - reach);
+        root.addView(chips, clp);
 
         // The prayer strip: information only, never focusable.
         float cw = (Tokens.COURT_W - 5 * 12) / 6f;
@@ -604,21 +626,16 @@ public class MainActivity extends Screen {
             renderMinute(now);
         }
         renderCountdown(day, now, archFocused);
+        // The update chip's percentage while it downloads.
+        int st = Updates.state();
+        if (st == Updates.DOWNLOADING || st == Updates.INSTALLING) renderChips(now);
     }
 
     private void renderMinute(Date now) {
         readClockFormat();
         clock.setText(displayTime(now, 0.4f));
-        // From a fast's evening until its Fajr, its name in gold after the date, in case its banner was missed.
-        int[] fast = Fasts.upcoming(this, day, now);
-        if (fast == null) gdate.setText(gregorian(now));
-        else {
-            android.text.SpannableStringBuilder s = new android.text.SpannableStringBuilder(gregorian(now) + t.sep());
-            int from = s.length();
-            s.append(t.fastHome(fast[0], fast[1] == 1));
-            s.setSpan(new android.text.style.ForegroundColorSpan(Tokens.GOLD_400), from, s.length(), 0);
-            gdate.setText(s);
-        }
+        gdate.setText(gregorian(now));
+        renderChips(now);
         hdate.setText(hijri(day) + t.sep() + t.city());
 
         String[] names = t.prayerNames();
@@ -680,6 +697,167 @@ public class MainActivity extends Screen {
         if (wifiName == null) return;
         String ssid = ssid();
         wifiName.setText(ssid == null ? "Wi-Fi" : ssid);
+    }
+
+    // ---------------------------------------------------------------- chips
+
+    /** A chip under the header: icon and words, gold-outlined, with a gold dot at its start corner until opened. */
+    private FocusTile chip(Icon icon, TextView label, View dot) {
+        FocusTile b = new FocusTile(this, 28);
+        b.setRest(Tokens.LAPIS_800, Tokens.GOLD_400_60, 2);
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Ui.ipx(22), 0, Ui.ipx(26), 0);
+        row.addView(icon, new LinearLayout.LayoutParams(Ui.ipx(30), Ui.ipx(30)));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
+        lp.setMarginStart(Ui.ipx(12));
+        label.setSingleLine(true);
+        row.addView(label, lp);
+        b.addView(row, new FrameLayout.LayoutParams(-2, -1));
+        GradientDrawable d = new GradientDrawable();
+        d.setShape(GradientDrawable.OVAL);
+        d.setColor(Tokens.GOLD_400);
+        d.setStroke(Ui.ipx(3), Tokens.LAPIS_900);
+        dot.setBackground(d);
+        b.addView(dot, new FrameLayout.LayoutParams(Ui.ipx(16), Ui.ipx(16), Gravity.TOP | Gravity.START));
+        b.setLook(f -> {
+            label.setTextColor(f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100);
+            icon.setColor(f ? Tokens.FOCUS_TEXT : Tokens.GOLD_400);
+        });
+        b.setVisibility(View.GONE);
+        return b;
+    }
+
+    /** The coming fast («غدًا الاثنين: ثاني الأيام البيض»): OK shows its banner again, until Back. */
+    private View fastChip() {
+        fastChipIcon = new Icon(this, Icon.MOON, 1.8f);
+        fastChipText = text(ui400, 22, Tokens.PLASTER_100);
+        fastChipDot = new View(this);
+        FocusTile b = chip(fastChipIcon, fastChipText, fastChipDot);
+        b.setContentDescription(t.fastChip());
+        b.setOnClickListener(v -> {
+            if (chipFast == null || RemoteKeys.watch == null) return;
+            Prefs.of(this).edit().putString("fast_opened", chipFast.key).apply();
+            fastChipDot.setVisibility(View.GONE);
+            RemoteKeys.watch.showFast(t, chipFast, true);
+        });
+        nodeLabel[FAST] = t.fastChip();
+        return b;
+    }
+
+    /** A newer release of this fork («تحديث 0.9.0.2»): OK opens a card with what's new, Update now and Later. */
+    private View updateChip() {
+        Icon icon = new Icon(this, Icon.STAR, 1.8f);
+        updateChipText = text(ui400, 22, Tokens.PLASTER_100);
+        updateChipDot = new View(this);
+        FocusTile b = chip(icon, updateChipText, updateChipDot);
+        b.setContentDescription(t.updateRow());
+        b.setOnClickListener(v -> showUpdateCard());
+        nodeLabel[UPDATE] = t.updateRow();
+        return b;
+    }
+
+    /** Each minute (each second while an update downloads): which chips show, and their words and dots. */
+    private void renderChips(Date now) {
+        if (nodes[FAST] == null || day == null) return;
+        chipFast = Fasts.upcoming(this, day, now);
+        if (chipFast != null) {
+            fastChipIcon.setKind(Fasts.icon(chipFast.kind));
+            fastChipText.setText(t.fastHome(chipFast.kind, chipFast.hijriDay, weekday(t, chipFast.weekday), chipFast.tomorrow));
+            boolean opened = chipFast.key.equals(Prefs.of(this).getString("fast_opened", ""));
+            fastChipDot.setVisibility(opened ? View.GONE : View.VISIBLE);
+        }
+        showChip(FAST, chipFast != null);
+        String v = Updates.offered(this);
+        if (v != null) {
+            int st = Updates.state();
+            boolean busy = st == Updates.DOWNLOADING || st == Updates.INSTALLING || st == Updates.FAILED || st == Updates.NOT_ALLOWED;
+            updateChipText.setText(busy ? t.updateValue(st, Updates.percent(), v) : t.updateChip(v));
+            boolean seen = v.equals(Prefs.of(this).getString("update_seen", ""));
+            updateChipDot.setVisibility(seen ? View.GONE : View.VISIBLE);
+        }
+        showChip(UPDATE, v != null);
+    }
+
+    private void showChip(int n, boolean on) {
+        View c = nodes[n];
+        if (on == (c.getVisibility() == View.VISIBLE)) return;
+        if (!on && c.isFocused()) nodes[ARCH].requestFocus();
+        c.setVisibility(on ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean shown(int n) {
+        return nodes[n] != null && nodes[n].getVisibility() == View.VISIBLE;
+    }
+
+    /** The update's card at the bottom end, like the reminder's: what's new, Update now (focused) and Later. */
+    private void showUpdateCard() {
+        String v = Updates.offered(this);
+        if (v == null) return;
+        if (card != null) dismissReminder();
+        closeRadioCard(false);
+        closeInputsPanel(false);
+        Prefs.of(this).edit().putString("update_seen", v).apply();
+        updateChipDot.setVisibility(View.GONE);
+        cardFor = day.nextTime;
+
+        card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(Ui.ipx(36), Ui.ipx(32), Ui.ipx(36), Ui.ipx(32));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Tokens.CARD_FILL);
+        bg.setCornerRadius(Ui.px(24));
+        bg.setStroke(Ui.ipx(6), Tokens.ON_PLASTER_BORDER);
+        card.setBackground(bg);
+        card.setClipChildren(false);
+        card.setClipToPadding(false);
+        TextView label = caps(text(ui400, 20, Tokens.ON_PLASTER_LABEL));
+        label.setText(t.updateRow());
+        TextView title = text(displayBold, 48, Tokens.CARD_TEXT);
+        title.setText(t.updateOffer(v));
+        String notes = Updates.notes(this, t.ar);
+        TextView sub = text(ui400, 22, Tokens.ON_PLASTER_SECONDARY);
+        sub.setText(notes != null ? notes : t.updateWhere());
+        card.addView(label);
+        card.addView(title);
+        card.addView(sub);
+        lineHeight(title, 1.15f);
+        ((LinearLayout.LayoutParams) sub.getLayoutParams()).topMargin += Ui.ipx(6);
+
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setClipChildren(false);
+        cardOk = cardButton(t.updateNow(), true);
+        cardOk.setOnClickListener(x -> {
+            dismissReminder();
+            Updates.installOffered(this);
+            renderChips(now());
+        });
+        cardDay = cardButton(t.updateLater(), false);
+        cardDay.setOnClickListener(x -> {
+            Updates.later(this);
+            dismissReminder();
+            renderChips(now());
+        });
+        float r = FocusTile.REACH;
+        buttons.addView(cardOk, new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r)));
+        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(-2, Ui.ipx(68 + 2 * r));
+        dlp.setMarginStart(Ui.ipx(16 - 2 * r));
+        buttons.addView(cardDay, dlp);
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, -2);
+        blp.topMargin = Ui.ipx(24 - r);
+        blp.setMarginStart(-Ui.ipx(r));
+        card.addView(buttons, blp);
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.ipx(680), -2, Gravity.BOTTOM | Gravity.END);
+        lp.setMarginEnd(Ui.ipx(96));
+        lp.bottomMargin = Ui.ipx(56);
+        root.addView(card, lp);
+        for (View n : nodes) if (n != null) n.setFocusable(false);
+        cardOk.requestFocus();
+        List<String> h = new ArrayList<>();
+        h.add(t.hintOk(t.updateNow()));
+        h.add(t.hintBackHome().replace(t.home(), t.dismiss()));
+        setHints(hints, h);
     }
 
     // ---------------------------------------------------------------- focus
@@ -1562,6 +1740,11 @@ public class MainActivity extends Screen {
                 return true;
             }
         }
+        // A fast's banner opened from its chip stays until Back.
+        if (k == KeyEvent.KEYCODE_BACK && RemoteKeys.watch != null && RemoteKeys.watch.pinnedFast()) {
+            if (e.getAction() == KeyEvent.ACTION_UP) RemoteKeys.watch.hideBanner();
+            return true;
+        }
         // The live video: Back or OK in full screen returns to the panel, ▲▼ or Menu open the quality bar (under the
         // panel). With the bar open: ◀▶ move along it (mirrored in Arabic), OK picks, Back closes it first.
         boolean ok = k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER || k == KeyEvent.KEYCODE_NUMPAD_ENTER;
@@ -1677,21 +1860,24 @@ public class MainActivity extends Screen {
             case LIVE: to = left ? ARCH : right ? RADIO : down ? (panel ? PANEL : F0) : -1; break;
             case RADIO: to = left ? LIVE : right ? WIFI : down ? (panel ? PANEL : F0 + 1) : -1; break;
             case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? (panel ? PANEL : F0 + 2) : -1; break;
-            case INPUTS: to = left ? WIFI : right ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? (panel ? PANEL : F0 + 3) : -1; break;
-            case SETTINGS: to = left ? NIGHT : down ? (panel ? PANEL : F0 + 3) : -1; break;
+            case INPUTS: to = left ? WIFI : right ? NIGHT : down ? belowHeader(panel) : -1; break;
+            case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? belowHeader(panel) : -1; break;
+            case SETTINGS: to = left ? NIGHT : down ? belowHeader(panel) : -1; break;
             case PANEL: to = left ? ARCH : up ? LIVE : down ? (fullShown ? FULL : OTHER) : -1; break;
             // Full screen, the other mosque and Stop sit under the panel's end corner, in the row of the arch's
             // foot button. Full screen is hidden while the video couldn't play.
             case FULL: to = left ? ARCH : right ? OTHER : up ? PANEL : -1; break;
             case OTHER: to = left ? (fullShown ? FULL : ARCH) : right ? STOP : up ? PANEL : -1; break;
             case STOP: to = left ? OTHER : up ? PANEL : -1; break;
+            // The chips, stacked under the header's end: the fast, then the update; then the panel or the favourites.
+            case FAST: to = up ? SETTINGS : down ? (shown(UPDATE) ? UPDATE : panel ? PANEL : F0 + 3) : -1; break;
+            case UPDATE: to = up ? (shown(FAST) ? FAST : SETTINGS) : down ? (panel ? PANEL : F0 + 3) : -1; break;
             default:
                 if (from >= F0 && from < M0) {
                     int i = from - F0;
                     if (left) to = i == 0 ? ARCH : from - 1;
                     else if (right) to = i == 3 ? -1 : from + 1;
-                    else if (up) to = i == 3 ? SETTINGS : i == 2 ? WIFI : i == 1 ? RADIO : LIVE;
+                    else if (up) to = i == 3 ? (shown(UPDATE) ? UPDATE : shown(FAST) ? FAST : SETTINGS) : i == 2 ? WIFI : i == 1 ? RADIO : LIVE;
                     else to = M0 + new int[] {0, 1, 3, 4}[i];
                 } else {
                     int i = from - M0;
@@ -1700,7 +1886,12 @@ public class MainActivity extends Screen {
                     else if (up) to = lastFav;
                 }
         }
-        if (to >= 0 && nodes[to] != null) nodes[to].requestFocus();
+        if (to >= 0 && nodes[to] != null && nodes[to].getVisibility() == View.VISIBLE) nodes[to].requestFocus();
+    }
+
+    /** Down from the header's end: the first chip showing, else the live panel or the last favourite. */
+    private int belowHeader(boolean panel) {
+        return shown(FAST) ? FAST : shown(UPDATE) ? UPDATE : panel ? PANEL : F0 + 3;
     }
 
     private int currentNode() {

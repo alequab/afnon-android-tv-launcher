@@ -343,7 +343,12 @@ abstract class Screen extends Activity {
 
     /** The Hijri day's weekday name ("السبت" from Friday's Maghrib). */
     static String weekday(Text t, PrayerDay day) {
-        return new java.text.DateFormatSymbols(dateLocale(t)).getWeekdays()[day.weekday];
+        return weekday(t, day.weekday);
+    }
+
+    /** A weekday's name (Calendar.SUNDAY…SATURDAY) in the screen's language. */
+    static String weekday(Text t, int weekday) {
+        return new java.text.DateFormatSymbols(dateLocale(t)).getWeekdays()[weekday];
     }
 
     private static Locale dateLocale(Text t) {

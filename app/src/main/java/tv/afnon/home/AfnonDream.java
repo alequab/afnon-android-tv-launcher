@@ -27,6 +27,8 @@ import java.util.Random;
 public class AfnonDream extends DreamService {
 
     private static final float W = 440, H = 640;
+    /** The whole group drawn 20% larger than the design (text read small from the sofa); transform only. */
+    private static final float SCALE = 1.2f;
     private static final long DRIFT_MS = 60_000, FADE_MS = 800;
 
     /** True while the screensaver is showing; the reminders wait for it, and it steps aside for the call. */
@@ -47,7 +49,7 @@ public class AfnonDream extends DreamService {
     private LinearLayout radioRow;
     private RadioBars radioBars;
     private TextView radioText;
-    /** From a fast's evening until its Fajr: its icon and «غدًا: يوم عرفة», then «السحور حتى …» (Fasts.upcoming). */
+    /** From a fast's first reminder until its Fajr: its icon and «غدًا الاثنين: يوم عرفة», then «السحور حتى …» (Fasts.upcoming). */
     private LinearLayout fastRow;
     private Icon fastIcon;
     private TextView fastText, fastSuhoor;
@@ -141,10 +143,14 @@ public class AfnonDream extends DreamService {
         root.setClipChildren(false);
         // Pinned to the physical top-left, so the drift's translation means the same in Arabic and English.
         root.addView(group, new FrameLayout.LayoutParams(Ui.ipx(W), Ui.ipx(H), Gravity.TOP | Gravity.LEFT));
+        group.setPivotX(0);
+        group.setPivotY(0);
+        group.setScaleX(SCALE);
+        group.setScaleY(SCALE);
         setContentView(root);
 
-        // The design's own spot first; drifting starts a minute later.
-        place(1140, 250);
+        // The design's own spot first (moved up for the larger size); drifting starts a minute later.
+        place(1140, 1080 - 56 - H * SCALE);
         lastDrift = System.currentTimeMillis();
     }
 
@@ -193,13 +199,13 @@ public class AfnonDream extends DreamService {
             String[] names = t.prayerNames();
             if (day.friday) names[PrayerDay.DHUHR] = t.jumuah();
             next.setText(names[day.nextIndex] + " " + Screen.clock(t, day.nextTime, h24, 1f));
-            int[] fast = Fasts.upcoming(this, day, now);
+            Fasts.Due fast = Fasts.upcoming(this, day, now);
             fastRow.setVisibility(fast == null ? View.GONE : View.VISIBLE);
             fastSuhoor.setVisibility(fast == null ? View.GONE : View.VISIBLE);
             if (fast != null) {
-                fastIcon.setKind(Fasts.icon(fast[0]));
-                fastText.setText(t.fastHome(fast[0], fast[1] == 1));
-                fastSuhoor.setText(t.suhoorEnds(Screen.clock(t, day.suhoorEnd, h24, 1f).toString()));
+                fastIcon.setKind(Fasts.icon(fast.kind));
+                fastText.setText(t.fastHome(fast.kind, fast.hijriDay, Screen.weekday(t, fast.weekday), fast.tomorrow));
+                fastSuhoor.setText(t.suhoorEnds(Screen.clock(t, fast.suhoor, h24, 1f).toString()));
             }
         }
         long secs = Screen.secondsUntil(day.nextTime, now);
@@ -240,8 +246,8 @@ public class AfnonDream extends DreamService {
     /** Fades the group out, moves it to a random spot inside the safe area (96 inline, 56 block), fades it in. */
     private void drift(boolean animate) {
         lastDrift = System.currentTimeMillis();
-        float x = 96 + random.nextFloat() * (1920 - 2 * 96 - W);
-        float y = 56 + random.nextFloat() * (1080 - 2 * 56 - H);
+        float x = 96 + random.nextFloat() * (1920 - 2 * 96 - W * SCALE);
+        float y = 56 + random.nextFloat() * (1080 - 2 * 56 - H * SCALE);
         if (!animate) {
             place(x, y);
             return;
