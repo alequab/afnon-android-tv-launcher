@@ -4,7 +4,7 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 
 ## [Unreleased]
 
-Only in the TCL build (`tcl-features`); everything else is in 0.8.
+Only in the TCL build (`tcl-features`); everything else is in 0.9.
 
 ### Added
 - Settings → Reminders → Fasting reminders: a banner after Maghrib, the evening before a voluntary fast, once for that
@@ -63,7 +63,7 @@ Only in the TCL build (`tcl-features`); everything else is in 0.8.
 - Live's quality bar (and the full-screen hint) closed as soon as it opened when the TV's animations are off
   (animator duration scale 0): its 5 s wait was the fade's start delay, which that skips. The wait is a post now.
 
-## egyjs's main, not released yet
+## [0.9] - 2026-11-15
 
 Afnon updates is left out of the TCL build: it would install egyjs's release over this one, without these features.
 
@@ -433,7 +433,8 @@ First public release.
 - Screensaver, on-TV settings and remote button mapping.
 - Arabic (RTL) first, with English.
 
-[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.9...HEAD
+[0.9]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8.2...v0.9
 [0.8.2]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.8...v0.8.1
 [0.8]: https://github.com/egyjs/afnon-android-tv-launcher/compare/v0.7...v0.8
