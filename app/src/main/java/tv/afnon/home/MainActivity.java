@@ -87,8 +87,11 @@ public class MainActivity extends Screen {
     /** The chips under the header's end: a coming fast (its banner again on OK) and a newer release of this fork. */
     private Icon fastChipIcon;
     private TextView fastChipText, updateChipText;
-    private View fastChipDot, updateChipDot;
+    /** Unread: gold outline and gold words until the chip is opened (not a fill: a gold fill means focus). */
+    private boolean fastUnread, updateUnread;
     private Fasts.Due chipFast;
+    /** The hints show Close while a fast's banner opened from its chip is up; put back when it goes. */
+    private boolean pinnedHints;
     /** The radio's header pill and, while open, its card. */
     private Icon radioIcon, playIcon;
     private RadioBars pillBars, cardBars;
@@ -112,6 +115,8 @@ public class MainActivity extends Screen {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        // The Home key closes a fast's banner opened from its chip.
+        closePinnedFast();
         boolean changed = loadSettings(intent);
         if (changed) build();
         // Home key from anywhere: back to Home with focus on the arch (FocusMap: Home key). Posted, because the
@@ -215,6 +220,8 @@ public class MainActivity extends Screen {
 
     @Override
     protected void onPause() {
+        // Never left over another app.
+        closePinnedFast();
         Reminders.home = null;
         Radio.unlisten(onRadio);
         super.onPause();
@@ -261,9 +268,19 @@ public class MainActivity extends Screen {
         gdate = text(ui400, 24, Tokens.MIST_400);
         when.addView(clock);
         when.addView(hdate);
-        when.addView(gdate);
+        // The Gregorian date's line also holds the coming fast's chip, after the date it is about (renderChips).
+        float reach = FocusTile.REACH;
+        LinearLayout dateLine = new LinearLayout(this);
+        dateLine.setGravity(Gravity.CENTER_VERTICAL);
+        dateLine.setClipChildren(false);
+        dateLine.addView(gdate);
+        nodes[FAST] = fastChip();
+        LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(-2, Ui.ipx(48 + 2 * reach));
+        flp.setMarginStart(Ui.ipx(24 - reach));
+        dateLine.addView(nodes[FAST], flp);
+        when.addView(dateLine);
         ((LinearLayout.LayoutParams) hdate.getLayoutParams()).topMargin = Ui.ipx(6);
-        ((LinearLayout.LayoutParams) gdate.getLayoutParams()).topMargin = Ui.ipx(6);
+        ((LinearLayout.LayoutParams) dateLine.getLayoutParams()).topMargin = Ui.ipx(6 - reach);
         lineHeight(clock, 1f);
         when.setClipChildren(false);
         place(when, Tokens.COURT_X, 56, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -275,7 +292,6 @@ public class MainActivity extends Screen {
         nodes[WIFI] = wifiPill();
         LinearLayout pills = new LinearLayout(this);
         pills.setClipChildren(false);
-        float reach = FocusTile.REACH;
         pills.addView(nodes[RADIO], new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach)));
         LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(-2, Ui.ipx(72 + 2 * reach));
         wlp.setMarginStart(Ui.ipx(20 - 2 * reach));
@@ -287,22 +303,12 @@ public class MainActivity extends Screen {
         nodes[NIGHT] = nightButton();
         nodes[SETTINGS] = settingsButton();
 
-        // Under the header's end, beside the dates: a coming fast and a newer release, while there are
-        // (renderChips). Stacked, so a long fast name never runs into the dates.
-        nodes[FAST] = fastChip();
+        // Under the header's end, below Settings: a newer release of this fork, while there is one (renderChips).
         nodes[UPDATE] = updateChip();
-        LinearLayout chips = new LinearLayout(this);
-        chips.setOrientation(LinearLayout.VERTICAL);
-        chips.setGravity(Gravity.END);
-        chips.setClipChildren(false);
-        chips.addView(nodes[FAST], new LinearLayout.LayoutParams(-2, Ui.ipx(56 + 2 * reach)));
-        LinearLayout.LayoutParams ulp = new LinearLayout.LayoutParams(-2, Ui.ipx(56 + 2 * reach));
-        ulp.topMargin = Ui.ipx(12 - 2 * reach);
-        chips.addView(nodes[UPDATE], ulp);
-        FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
+        FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-2, Ui.ipx(48 + 2 * reach), Gravity.TOP | Gravity.END);
         clp.setMarginEnd(Ui.ipx(1920 - (Tokens.COURT_X + Tokens.COURT_W) - reach));
         clp.topMargin = Ui.ipx(56 + 72 + 20 - reach);
-        root.addView(chips, clp);
+        root.addView(nodes[UPDATE], clp);
 
         // The prayer strip: information only, never focusable.
         float cw = (Tokens.COURT_W - 5 * 12) / 6f;
@@ -556,6 +562,8 @@ public class MainActivity extends Screen {
             renderMinute(now);
         }
         renderCountdown(day, now, archFocused);
+        // The pinned banner's two minutes ran out: the hints go back to normal.
+        if (pinnedHints && (RemoteKeys.watch == null || !RemoteKeys.watch.pinnedFast())) pinnedGone();
         // The update chip's percentage while it downloads.
         int st = Updates.state();
         if (st == Updates.DOWNLOADING || st == Updates.INSTALLING) renderChips(now);
@@ -631,10 +639,10 @@ public class MainActivity extends Screen {
 
     // ---------------------------------------------------------------- chips
 
-    /** A chip under the header: icon and words, gold-outlined, with a gold dot at its start corner until opened. */
-    private FocusTile chip(Icon icon, TextView label, View dot) {
-        FocusTile b = new FocusTile(this, 28);
-        b.setRest(Tokens.LAPIS_800, Tokens.GOLD_400_60, 2);
+    /** A chip: icon and words in a pill, as the header's; unread ones (styleChip) in gold. */
+    private FocusTile chip(Icon icon, TextView label, java.util.function.BooleanSupplier unread) {
+        FocusTile b = new FocusTile(this, 24);
+        b.setRest(Tokens.LAPIS_800, Tokens.LINE_SOFT, 2);
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(Ui.ipx(22), 0, Ui.ipx(26), 0);
@@ -644,32 +652,34 @@ public class MainActivity extends Screen {
         label.setSingleLine(true);
         row.addView(label, lp);
         b.addView(row, new FrameLayout.LayoutParams(-2, -1));
-        GradientDrawable d = new GradientDrawable();
-        d.setShape(GradientDrawable.OVAL);
-        d.setColor(Tokens.GOLD_400);
-        d.setStroke(Ui.ipx(3), Tokens.LAPIS_900);
-        dot.setBackground(d);
-        b.addView(dot, new FrameLayout.LayoutParams(Ui.ipx(16), Ui.ipx(16), Gravity.TOP | Gravity.START));
         b.setLook(f -> {
-            label.setTextColor(f ? Tokens.FOCUS_TEXT : Tokens.PLASTER_100);
+            label.setTextColor(f ? Tokens.FOCUS_TEXT : unread.getAsBoolean() ? Tokens.GOLD_400 : Tokens.PLASTER_100);
             icon.setColor(f ? Tokens.FOCUS_TEXT : Tokens.GOLD_400);
         });
         b.setVisibility(View.GONE);
         return b;
     }
 
-    /** The coming fast («غدًا الاثنين: ثاني الأيام البيض»): OK shows its banner again, until Back. */
+    /**
+     * The coming fast («غدًا الاثنين: ثاني الأيام البيض»): OK shows its full banner again, until OK or Back closes
+     * it (dispatchKeyEvent), Home is pressed or Home goes behind another app.
+     */
     private View fastChip() {
         fastChipIcon = new Icon(this, Icon.MOON, 1.8f);
-        fastChipText = text(ui400, 22, Tokens.PLASTER_100);
-        fastChipDot = new View(this);
-        FocusTile b = chip(fastChipIcon, fastChipText, fastChipDot);
+        fastChipText = text(ui400, 24, Tokens.PLASTER_100);
+        FocusTile b = chip(fastChipIcon, fastChipText, () -> fastUnread);
         b.setContentDescription(t.fastChip());
         b.setOnClickListener(v -> {
             if (chipFast == null || RemoteKeys.watch == null) return;
             Prefs.of(this).edit().putString("fast_opened", chipFast.key).apply();
-            fastChipDot.setVisibility(View.GONE);
-            RemoteKeys.watch.showFast(t, chipFast, true);
+            fastUnread = false;
+            styleChip(FAST, false);
+            RemoteKeys.watch.showFast(t, chipFast, true, false);
+            pinnedHints = true;
+            List<String> h = new ArrayList<>();
+            h.add(t.hintOkClose());
+            h.add(t.hintClose());
+            setHints(hints, h);
         });
         nodeLabel[FAST] = t.fastChip();
         return b;
@@ -678,24 +688,23 @@ public class MainActivity extends Screen {
     /** A newer release of this fork («تحديث 0.9.0.2»): OK opens a card with what's new, Update now and Later. */
     private View updateChip() {
         Icon icon = new Icon(this, Icon.STAR, 1.8f);
-        updateChipText = text(ui400, 22, Tokens.PLASTER_100);
-        updateChipDot = new View(this);
-        FocusTile b = chip(icon, updateChipText, updateChipDot);
+        updateChipText = text(ui400, 24, Tokens.PLASTER_100);
+        FocusTile b = chip(icon, updateChipText, () -> updateUnread);
         b.setContentDescription(t.updateRow());
         b.setOnClickListener(v -> showUpdateCard());
         nodeLabel[UPDATE] = t.updateRow();
         return b;
     }
 
-    /** Each minute (each second while an update downloads): which chips show, and their words and dots. */
+    /** Each minute (each second while an update downloads): which chips show, their words, and read or not. */
     private void renderChips(Date now) {
         if (nodes[FAST] == null || day == null) return;
         chipFast = Fasts.upcoming(this, day, now);
         if (chipFast != null) {
             fastChipIcon.setKind(Fasts.icon(chipFast.kind));
             fastChipText.setText(t.fastHome(chipFast.kind, chipFast.hijriDay, weekday(t, chipFast.weekday), chipFast.tomorrow));
-            boolean opened = chipFast.key.equals(Prefs.of(this).getString("fast_opened", ""));
-            fastChipDot.setVisibility(opened ? View.GONE : View.VISIBLE);
+            fastUnread = !chipFast.key.equals(Prefs.of(this).getString("fast_opened", ""));
+            styleChip(FAST, fastUnread);
         }
         showChip(FAST, chipFast != null);
         String v = Updates.offered(this);
@@ -703,10 +712,33 @@ public class MainActivity extends Screen {
             int st = Updates.state();
             boolean busy = st == Updates.DOWNLOADING || st == Updates.INSTALLING || st == Updates.FAILED || st == Updates.NOT_ALLOWED;
             updateChipText.setText(busy ? t.updateValue(st, Updates.percent(), v) : t.updateChip(v));
-            boolean seen = v.equals(Prefs.of(this).getString("update_seen", ""));
-            updateChipDot.setVisibility(seen ? View.GONE : View.VISIBLE);
+            updateUnread = !v.equals(Prefs.of(this).getString("update_seen", ""));
+            styleChip(UPDATE, updateUnread);
         }
         showChip(UPDATE, v != null);
+    }
+
+    /** Unread: a gold outline (and gold words, in the chip's look); read: the header pills' soft line. */
+    private void styleChip(int n, boolean unread) {
+        FocusTile c = (FocusTile) nodes[n];
+        c.setRest(Tokens.LAPIS_800, unread ? Tokens.GOLD_400 : Tokens.LINE_SOFT, unread ? 3 : 2);
+        if (!c.isFocused()) {
+            TextView label = n == FAST ? fastChipText : updateChipText;
+            label.setTextColor(unread ? Tokens.GOLD_400 : Tokens.PLASTER_100);
+        }
+    }
+
+    /** The fast's banner opened from the chip has gone (OK, Back, Home, or its two minutes): normal hints again. */
+    private void pinnedGone() {
+        if (!pinnedHints) return;
+        pinnedHints = false;
+        int n = currentNode();
+        if (n >= 0) onNodeFocused(n);
+    }
+
+    private void closePinnedFast() {
+        if (RemoteKeys.watch != null && RemoteKeys.watch.pinnedFast()) RemoteKeys.watch.hideBanner();
+        pinnedGone();
     }
 
     private void showChip(int n, boolean on) {
@@ -728,7 +760,8 @@ public class MainActivity extends Screen {
         closeRadioCard(false);
         closeInputsPanel(false);
         Prefs.of(this).edit().putString("update_seen", v).apply();
-        updateChipDot.setVisibility(View.GONE);
+        updateUnread = false;
+        styleChip(UPDATE, false);
         cardFor = day.nextTime;
 
         card = new LinearLayout(this);
@@ -1269,9 +1302,10 @@ public class MainActivity extends Screen {
                 return true;
             }
         }
-        // A fast's banner opened from its chip stays until Back.
-        if (k == KeyEvent.KEYCODE_BACK && RemoteKeys.watch != null && RemoteKeys.watch.pinnedFast()) {
-            if (e.getAction() == KeyEvent.ACTION_UP) RemoteKeys.watch.hideBanner();
+        // A fast's banner opened from its chip stays until OK (pressed again) or Back closes it.
+        boolean okKey = k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER || k == KeyEvent.KEYCODE_NUMPAD_ENTER;
+        if ((k == KeyEvent.KEYCODE_BACK || okKey) && RemoteKeys.watch != null && RemoteKeys.watch.pinnedFast()) {
+            if (e.getAction() == KeyEvent.ACTION_UP) closePinnedFast();
             return true;
         }
         // The station list (from the radio card): Back steps back, Up/Down move through it.
@@ -1346,20 +1380,20 @@ public class MainActivity extends Screen {
         int to = -1;
         switch (from) {
             case ARCH: to = right ? F0 : up ? RADIO : -1; break;
-            case RADIO: to = left ? ARCH : right ? WIFI : down ? F0 + 1 : -1; break;
+            case RADIO: to = left ? ARCH : right ? WIFI : down ? (shown(FAST) ? FAST : F0 + 1) : -1; break;
             case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? F0 + 2 : -1; break;
             case INPUTS: to = left ? WIFI : right ? NIGHT : down ? belowHeader() : -1; break;
             case NIGHT: to = left ? (nodes[INPUTS] != null ? INPUTS : WIFI) : right ? SETTINGS : down ? belowHeader() : -1; break;
             case SETTINGS: to = left ? NIGHT : down ? belowHeader() : -1; break;
-            // The chips, stacked under the header's end: the fast, then the update.
-            case FAST: to = up ? SETTINGS : down ? (shown(UPDATE) ? UPDATE : F0 + 3) : -1; break;
-            case UPDATE: to = up ? (shown(FAST) ? FAST : SETTINGS) : down ? F0 + 3 : -1; break;
+            // The fast chip on the date's line, at the courtyard's start; the update chip under Settings.
+            case FAST: to = left ? ARCH : up ? RADIO : down ? F0 : -1; break;
+            case UPDATE: to = up ? SETTINGS : down ? F0 + 3 : -1; break;
             default:
                 if (from >= F0 && from < M0) {
                     int i = from - F0;
                     if (left) to = i == 0 ? ARCH : from - 1;
                     else if (right) to = i == 3 ? -1 : from + 1;
-                    else if (up) to = i == 3 ? (shown(UPDATE) ? UPDATE : shown(FAST) ? FAST : SETTINGS) : i == 2 ? WIFI : RADIO;
+                    else if (up) to = i == 3 ? (shown(UPDATE) ? UPDATE : SETTINGS) : i == 2 ? WIFI : i == 0 && shown(FAST) ? FAST : RADIO;
                     else to = M0 + new int[] {0, 1, 3, 4}[i];
                 } else {
                     int i = from - M0;
@@ -1371,9 +1405,9 @@ public class MainActivity extends Screen {
         if (to >= 0 && nodes[to] != null && nodes[to].getVisibility() == View.VISIBLE) nodes[to].requestFocus();
     }
 
-    /** Down from the header's end: the first chip showing, else the last favourite. */
+    /** Down from the header's end: the update chip if it shows, else the last favourite. */
     private int belowHeader() {
-        return shown(FAST) ? FAST : shown(UPDATE) ? UPDATE : F0 + 3;
+        return shown(UPDATE) ? UPDATE : F0 + 3;
     }
 
     private int currentNode() {
