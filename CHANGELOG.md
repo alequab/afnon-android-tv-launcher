@@ -55,6 +55,12 @@ Released from this fork as 0.9.0.1 (`afnon.apk` and `afnon-live.apk`).
 - Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
   card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
   OK on the panel fills the screen.
+- Home, from a design review (DESIGN.md, "The Lit Mihrab"): tiles only for real apps (an empty favourite slot is not
+  drawn, More shows only its apps and All apps comes right after them, so focus never stops on an empty box); the arch's
+  countdown is h:mm, rounded up, until the last 15 minutes, then m:ss (Prayer day keeps its seconds); when the next
+  prayer's adhan is off, the line under it says «الأذان متوقف» instead of «الأذان 4:53»; the Inputs icon is a screen with
+  an arrow coming in from the side and the Night icon an outlined crescent with its star; night Mist is #847E73 (4.9:1
+  on the night ground, was 3.4:1).
 - The screensaver is drawn a fifth larger (the whole group scaled, so the arch and its drift keep their shape).
 
 ### Fixed

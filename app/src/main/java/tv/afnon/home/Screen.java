@@ -282,9 +282,20 @@ abstract class Screen extends Activity {
      * @return seconds left
      */
     long renderCountdown(PrayerDay day, Date now, boolean archFocused) {
+        return renderCountdown(day, now, archFocused, false);
+    }
+
+    /**
+     * {@code calm} (Home, an always-on screen in the room): the seconds show only in the last
+     * {@link Tokens#APPROACH_MIN} minutes, when the arch turns to its approaching gold; before that the count is
+     * h:mm, rounded up, so nothing on the screen moves every second.
+     */
+    long renderCountdown(PrayerDay day, Date now, boolean archFocused, boolean calm) {
         long left = secondsUntil(day.nextTime, now);
-        long h = left / 3600;
-        String count = t.d(duration(left, true));
+        boolean seconds = !calm || left <= Tokens.APPROACH_MIN * 60L;
+        long shown = seconds ? left : (left + 59) / 60 * 60;
+        long h = shown / 3600;
+        String count = t.d(seconds ? duration(left, true) : hoursMinutes(shown));
         archCount.setText(count);
         float countSize = Ui.px(h > 0 ? Tokens.FONT_SIZE_DISPLAY_XL_HOURS : Tokens.FONT_SIZE_DISPLAY_XL);
         // Marcellus digits are proportional: wide counts (10:00:00) can overflow the column, so it shrinks until it
@@ -321,6 +332,11 @@ abstract class Screen extends Activity {
 
     static long secondsUntil(Date when, Date now) {
         return Math.max(0, (when.getTime() - now.getTime() + 999) / 1000);
+    }
+
+    /** h:mm, also under an hour (0:39), for a count shown without seconds. Western digits; pass through t.d(). */
+    static String hoursMinutes(long seconds) {
+        return String.format(Locale.US, "%d:%02d", seconds / 3600, (seconds % 3600) / 60);
     }
 
     /** mm:ss under an hour; above it h:mm:ss, or h:mm without seconds. Western digits; pass through t.d(). */

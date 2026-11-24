@@ -122,13 +122,15 @@ final class Icon extends View {
             p.setStyle(Paint.Style.FILL);
             c.drawPath(path, p);
         } else if (kind == NIGHT) {
-            // Night mode is off: a full moon with three craters and a small four-point star, unlike MOON's
-            // filled crescent (screen off). Circle at 13.5,13.5 r7.2; star M4.8 2 L5.6 4.4 L8 5.2 … Z.
-            c.drawCircle(13.5f * k, 13.5f * k, 7.2f * k, p);
+            // Night mode is off: an outlined crescent with a small four-point star, unlike MOON's filled crescent
+            // (screen off) and FULL_MOON's craters (the White Days). (A cratered moon read as a face at this size.)
+            path.reset();
+            path.addCircle(13.5f * k, 13.5f * k, 7.5f * k, android.graphics.Path.Direction.CW);
+            android.graphics.Path bite = new android.graphics.Path();
+            bite.addCircle(17.5f * k, 10f * k, 6.5f * k, android.graphics.Path.Direction.CW);
+            path.op(bite, android.graphics.Path.Op.DIFFERENCE);
+            c.drawPath(path, p);
             p.setStyle(Paint.Style.FILL);
-            c.drawCircle(11.2f * k, 11.8f * k, 1.4f * k, p);
-            c.drawCircle(15.6f * k, 16.2f * k, 1f * k, p);
-            c.drawCircle(16.3f * k, 11f * k, 0.7f * k, p);
             float[] pts = {4.8f, 2, 5.6f, 4.4f, 8, 5.2f, 5.6f, 6, 4.8f, 8.4f, 4, 6, 1.6f, 5.2f, 4, 4.4f};
             path.reset();
             path.moveTo(pts[0] * k, pts[1] * k);
@@ -154,13 +156,15 @@ final class Icon extends View {
                     {20, 15, 20, 20}, {20, 20, 15, 20}, {9, 20, 4, 20}, {4, 20, 4, 15}};
             for (float[] s : lines) c.drawLine(s[0] * k, s[1] * k, s[2] * k, s[3] * k, p);
         } else if (kind == INPUT) {
-            // A screen on its stand with an arrow coming down into it: a source to switch to.
-            r.set(3 * k, 4 * k, 21 * k, 17 * k);
+            // A screen on its stand with an arrow coming in from the side: a source to switch to. (An arrow
+            // coming down into a box read as "download".)
+            r.set(7 * k, 4 * k, 22 * k, 16 * k);
             c.drawRoundRect(r, 2 * k, 2 * k, p);
-            c.drawLine(8 * k, 21 * k, 16 * k, 21 * k, p);
-            c.drawLine(12 * k, 7 * k, 12 * k, 13.5f * k, p);
-            c.drawLine(9 * k, 10.5f * k, 12 * k, 13.5f * k, p);
-            c.drawLine(15 * k, 10.5f * k, 12 * k, 13.5f * k, p);
+            c.drawLine(14.5f * k, 16 * k, 14.5f * k, 20 * k, p);
+            c.drawLine(10.5f * k, 20.5f * k, 18.5f * k, 20.5f * k, p);
+            c.drawLine(2 * k, 10 * k, 13 * k, 10 * k, p);
+            c.drawLine(9.5f * k, 6.5f * k, 13 * k, 10 * k, p);
+            c.drawLine(9.5f * k, 13.5f * k, 13 * k, 10 * k, p);
         } else if (kind == CHECK) {
             // The current choice in a list: M5 12.5l4.5 4.5L19 7.5
             c.drawLine(5 * k, 12.5f * k, 9.5f * k, 17 * k, p);
