@@ -799,7 +799,8 @@ public class MainActivity extends Screen {
         if (n == ARCH) {
             h.add(t.hintOk(t.today()));
             h.add(t.hintApps());
-        } else if (n == RADIO || n == NIGHT || n == INPUTS) {
+        } else if (n == RADIO || n == NIGHT || n == INPUTS || n == FAST || n == UPDATE) {
+            // Header buttons and the chips: OK and what it does, nothing about the favourites.
             h.add(t.hintOk(nodeLabel[n]));
         } else if (n >= F0 && n < M0) {
             h.add(t.hintOk(t.open(nodeLabel[n])));

@@ -193,7 +193,7 @@ final class Text {
         return ar ? "«وافق خيرًا على خير» ابن باز، فتاوى نور على الدرب" : "“Good upon good”: Ibn Baz, Fatawa Nur ala al-Darb";
     }
     /** Home's chip, read aloud by TalkBack: what OK on it does. */
-    String fastChip() { return ar ? "عرض تذكير الصيام" : "Show the fasting reminder"; }
+    String fastChip() { return ar ? "تذكير الصيام" : "Fasting reminder"; }
     String fastRow() { return ar ? "تذكير الصيام" : "Fasting reminders"; }
     String fastHelp() { return ar ? "بعد كل صلاة قبل الصيام، والاثنين والخميس بعد المغرب" : "After each prayer before it; Mon and Thu after Maghrib"; }
     /** The row's list, in the order of Fasts' switches. */
