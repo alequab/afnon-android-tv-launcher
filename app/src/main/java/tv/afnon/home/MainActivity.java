@@ -1183,7 +1183,7 @@ public class MainActivity extends Screen {
         panelName.setText(t.livePlaces()[live.place()]);
         otherLabel.setText(t.livePlaces()[1 - live.place()]);
         if (nodes[OTHER].isFocused()) onNodeFocused(OTHER);   // its hint names the other mosque too
-        panelStatus.setText(t.liveStatus(s));
+        panelStatus.setText(t.liveStatus(s, live.retrying()));
         panelStatus.setTextColor(s == Live.FAILED ? Tokens.PLASTER_100 : Tokens.MIST_400);
         // Couldn't play: the message shows on the panel, and there is nothing to fill the screen with.
         if (s == Live.FAILED) {
@@ -1225,7 +1225,11 @@ public class MainActivity extends Screen {
             }
         });
         b.addView(video, new FrameLayout.LayoutParams(-1, -1));
-        b.setOnClickListener(v -> enterFullScreen());
+        // OK fills the screen; on a stream that couldn't play, it tries again.
+        b.setOnClickListener(v -> {
+            if (live.state() == Live.FAILED && live.place() >= 0) live.start(this, live.place());
+            else enterFullScreen();
+        });
         b.setOnFocusChangeListener((v, has) -> { if (has) onNodeFocused(PANEL); });
         b.setFocusable(radioCard == null && card == null && chooser == null);
         nodes[PANEL] = b;
@@ -1317,8 +1321,9 @@ public class MainActivity extends Screen {
         bg.setColor(Tokens.SCRIM_PANEL);
         bg.setCornerRadius(Ui.px(36));
         fullHint.setBackground(bg);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        lp.bottomMargin = Ui.ipx(Tokens.SPACE_SAFE_BLOCK);
+        // At the top: the channels put their captions (the reciter, the surah) along the bottom.
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        lp.topMargin = Ui.ipx(Tokens.SPACE_SAFE_BLOCK);
         root.addView(fullHint, lp);
         flash(t.fullScreenHint(), 4000);
     }
@@ -1411,13 +1416,16 @@ public class MainActivity extends Screen {
      * the fade's start delay: with the TV's animations off (animator duration scale 0) a delay is skipped too, and
      * the bar closed as it opened.
      */
+    /** How long the quality bar waits for a key before it goes (and full screen comes back). */
+    private static final long QUALITY_BAR_MS = 10_000;
+
     private void keepQualityBar() {
         LinearLayout bar = qualityBar;
         if (bar == null) return;
         bar.removeCallbacks(fadeQualityBar);
         bar.animate().cancel();
         bar.setAlpha(1);
-        bar.postDelayed(fadeQualityBar, 5000);
+        bar.postDelayed(fadeQualityBar, QUALITY_BAR_MS);
     }
 
     private final Runnable fadeQualityBar = () -> {
@@ -1480,7 +1488,8 @@ public class MainActivity extends Screen {
     private void rowsShown(boolean shown) {
         int v = shown ? View.VISIBLE : View.INVISIBLE;
         for (View c : cell) c.setVisibility(v);
-        for (int i = F0; i <= ALL; i++) nodes[i].setVisibility(v);
+        // Tiles with no app (nodeLabel "") stay gone (no empty boxes, as when Home is built).
+        for (int i = F0; i <= ALL; i++) nodes[i].setVisibility(i != ALL && nodeLabel[i].isEmpty() ? View.GONE : v);
         favLabel.setVisibility(v);
         moreLabel.setVisibility(v);
     }
@@ -1900,7 +1909,8 @@ public class MainActivity extends Screen {
         boolean fullShown = panel && nodes[FULL].getVisibility() == View.VISIBLE;
         switch (from) {
             case ARCH: to = right ? (panel ? PANEL : F0) : up ? LIVE : -1; break;
-            case LIVE: to = left ? ARCH : right ? RADIO : down ? (shown(FAST) ? FAST : panel ? PANEL : F0) : -1; break;
+            // With the live panel, Down from Live goes straight to it; the fast chip is Up from the panel.
+            case LIVE: to = left ? ARCH : right ? RADIO : down ? (panel ? PANEL : shown(FAST) ? FAST : F0) : -1; break;
             case RADIO: to = left ? LIVE : right ? WIFI : down ? (shown(FAST) ? FAST : panel ? PANEL : F0 + 1) : -1; break;
             case WIFI: to = left ? RADIO : right ? (nodes[INPUTS] != null ? INPUTS : NIGHT) : down ? (panel ? PANEL : F0 + 2) : -1; break;
             case INPUTS: to = left ? WIFI : right ? NIGHT : down ? belowHeader(panel) : -1; break;

@@ -35,9 +35,13 @@ import java.util.regex.Pattern;
  * <p>Each start asks Aloula's player API for a fresh address (its token is good for seconds, so it is never
  * kept), reads the renditions its master playlist offers, takes the saved quality (Prefs.liveQuality, 480 at
  * first, else the nearest below) and plays it with MediaPlayer on the panel's surface. The requests run on one
- * short-lived thread. One try: a failure says so and stops. Another quality plays on the same player from the
- * rendition list already read; only if that fails is a fresh master fetched, once. Playing takes the audio focus
- * and stops the radio; losing the focus (the radio, the adhan, another app) stops it. Stopping releases everything.
+ * short-lived thread. Another quality plays on the same player from the rendition list already read.
+ *
+ * <p>Reconnecting: an error, the stream ending, a connection that doesn't play within {@link #CONNECT_MS} or a
+ * picture stuck buffering for {@link #STALL_MS} starts again from a fresh master (the token may have run out), after
+ * 2, 5 and 10 s; only when all three fail does it say so and stop. Playing again resets the count. Playing takes
+ * the audio focus and stops the radio; losing the focus (the radio, the adhan, another app) stops it. Stopping
+ * releases everything.
  */
 final class Live {
     static final int MAKKAH = 0, MADINAH = 1;
@@ -47,6 +51,12 @@ final class Live {
     private static final int[] CHANNELS = {7, 6};
     private static final String API = "https://aloula.faulio.com/api/v1.1/channels/";
     private static final String TAG = "AfnonLive";
+    /** Waits before each new try, in order; then it fails. */
+    private static final long[] RETRY_MS = {2000, 5000, 10000};
+    /** A connection that hasn't started playing by then is tried again. */
+    private static final long CONNECT_MS = 20_000;
+    /** Buffering this long while playing counts as a dropped connection. */
+    private static final long STALL_MS = 15_000;
     private static final Pattern BANDWIDTH = Pattern.compile("(?:^|[:,])BANDWIDTH=(\\d+)");
     private static final Pattern RESOLUTION = Pattern.compile("RESOLUTION=\\d+x(\\d+)");
     /**
@@ -84,8 +94,12 @@ final class Live {
     /** The renditions of this start's master playlist, by height, and the one playing. */
     private List<Rendition> renditions = Collections.emptyList();
     private int height;
-    /** A quality switch is loading, and whether its one fresh master fetch was used. */
-    private boolean switching, refetched;
+    /** A quality switch is loading. */
+    private boolean switching;
+    /** Tries made since it last played (0 on a first connection). */
+    private int retries;
+    /** The connecting or buffering check now waiting; one at a time. */
+    private Runnable watchdog;
 
     Live(Listener l) {
         listener = l;
@@ -110,6 +124,11 @@ final class Live {
         return height;
     }
 
+    /** Connecting again after a dropped connection (the panel says «جارٍ إعادة الاتصال…»). */
+    boolean retrying() {
+        return state == CONNECTING && retries > 0;
+    }
+
     /** Stops whatever plays (the radio too) and starts the chosen one; the panel stays through a switch. */
     void start(Context c, int which) {
         release();
@@ -119,7 +138,7 @@ final class Live {
         renditions = Collections.emptyList();
         height = 0;
         switching = false;
-        refetched = false;
+        retries = 0;
         if (Radio.on()) Radio.stop();
         AudioManager am = app.getSystemService(AudioManager.class);
         focus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
@@ -152,6 +171,7 @@ final class Live {
         switching = true;
         set(CONNECTING);
         load(r.url);
+        watch(CONNECT_MS, "quality switch didn't play");
     }
 
     /** The panel's surface came (or came back after a rebuild). */
@@ -184,7 +204,7 @@ final class Live {
             main.post(() -> {
                 if (gen != generation) return;
                 if (list == null || list.isEmpty()) {
-                    fail();
+                    retryOrFail("no playlist");
                     return;
                 }
                 renditions = list;
@@ -192,6 +212,7 @@ final class Live {
                 height = r.height;
                 Log.i(TAG, "channel " + ch + ": " + (r.height > 0 ? r.height + "p" : "its only rendition"));
                 load(r.url);
+                watch(CONNECT_MS, "didn't start playing");
             });
         }, "live-fetch").start();
     }
@@ -224,27 +245,24 @@ final class Live {
             if (p != player) return;
             p.start();
             switching = false;
+            retries = 0;
+            unwatch();
             set(PLAYING);
         });
         mp.setOnErrorListener((p, what, extra) -> {
-            if (p == player) {
-                Log.w(TAG, "MediaPlayer error " + what + "/" + extra + (switching ? " after a quality switch" : ""));
-                // A rendition's token may have run out: a fresh master, once, for the quality just picked.
-                if (switching && !refetched) {
-                    refetched = true;
-                    fetch(height);
-                } else {
-                    fail();
-                }
-            }
+            if (p == player) retryOrFail("MediaPlayer error " + what + "/" + extra + (switching ? " after a quality switch" : ""));
             return true;
         });
-        // A live stream never completes; if it does, the connection dropped. One try: it stops.
+        // A live stream never completes; if it does, the connection dropped.
         mp.setOnCompletionListener(p -> {
-            if (p == player) {
-                Log.w(TAG, "stream ended");
-                fail();
-            }
+            if (p == player) retryOrFail("stream ended");
+        });
+        // Stuck buffering while playing (the picture frozen): after a while, connect again.
+        mp.setOnInfoListener((p, what, extra) -> {
+            if (p != player) return false;
+            if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START && state == PLAYING) watch(STALL_MS, "stuck buffering");
+            else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END && state == PLAYING) unwatch();
+            return false;
         });
         return mp;
     }
@@ -256,19 +274,69 @@ final class Live {
             p.setDataSource(app, Uri.parse(url), Collections.singletonMap("User-Agent", USER_AGENT));
             p.prepareAsync();
         } catch (Exception e) {
-            Log.w(TAG, "setDataSource: " + e);
-            fail();
+            retryOrFail("setDataSource: " + e);
         }
     }
 
-    /** Couldn't play: everything is released, and the panel says so until it is closed. */
+    /**
+     * The connection dropped or never came: the player goes, and after the next wait in {@link #RETRY_MS} a fresh
+     * master is fetched for the same place and quality (its token may have run out). Past the last wait it fails.
+     * The audio focus is kept meanwhile, so nothing else starts playing in the gap.
+     */
+    private void retryOrFail(String why) {
+        unwatch();
+        if (place < 0) return;
+        if (retries >= RETRY_MS.length) {
+            Log.w(TAG, why + ": giving up after " + retries + " tries");
+            fail();
+            return;
+        }
+        long wait = RETRY_MS[retries++];
+        Log.w(TAG, why + ": trying again in " + wait / 1000 + " s (" + retries + "/" + RETRY_MS.length + ")");
+        int gen = ++generation;
+        releasePlayer();
+        switching = false;
+        set(CONNECTING);
+        int quality = height > 0 ? height : Prefs.liveQuality(app);
+        main.postDelayed(() -> { if (gen == generation && place >= 0) fetch(quality); }, wait);
+    }
+
+    /** After {@code ms}, unless something else happened first, it counts as a dropped connection. */
+    private void watch(long ms, String why) {
+        unwatch();
+        int gen = generation;
+        watchdog = () -> {
+            watchdog = null;
+            if (gen == generation && player != null) retryOrFail(why);
+        };
+        main.postDelayed(watchdog, ms);
+    }
+
+    private void unwatch() {
+        if (watchdog != null) main.removeCallbacks(watchdog);
+        watchdog = null;
+    }
+
+    /** Couldn't play, even after the retries: everything is released, and the panel says so (OK tries again). */
     private void fail() {
+        unwatch();
         generation++;
         release();
         set(FAILED);
     }
 
     private void release() {
+        unwatch();
+        releasePlayer();
+        if (focus != null && app != null) {
+            AudioManager am = app.getSystemService(AudioManager.class);
+            if (am != null) am.abandonAudioFocusRequest(focus);
+        }
+        focus = null;
+    }
+
+    /** The player only (the audio focus stays): for a retry, and as part of release. */
+    private void releasePlayer() {
         if (player != null) {
             MediaPlayer p = player;
             player = null;
@@ -288,11 +356,6 @@ final class Live {
                 }
             }, "live-release").start();
         }
-        if (focus != null && app != null) {
-            AudioManager am = app.getSystemService(AudioManager.class);
-            if (am != null) am.abandonAudioFocusRequest(focus);
-        }
-        focus = null;
     }
 
     /** The radio, the call to prayer or another app took the sound: one audio at a time, so it stops. */

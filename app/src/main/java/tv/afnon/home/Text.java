@@ -251,9 +251,14 @@ final class Text {
     /** In the order of Live.MAKKAH, Live.MADINAH. */
     String[] livePlaces() { return ar ? new String[] {"مكة المكرمة", "المدينة المنورة"} : new String[] {"Makkah", "Madinah"}; }
     String liveStatus(int s) {
+        return liveStatus(s, false);
+    }
+    /** retrying: connecting again after the stream dropped (Live.retrying). */
+    String liveStatus(int s, boolean retrying) {
+        if (s == Live.CONNECTING && retrying) return ar ? "انقطع البث، جارٍ إعادة الاتصال…" : "Dropped, reconnecting…";
         switch (s) {
             case Live.PLAYING: return ar ? "على الهواء" : "On air";
-            case Live.FAILED: return ar ? "تعذّر تشغيل البث" : "Couldn't play the live stream";
+            case Live.FAILED: return ar ? "تعذّر تشغيل البث · OK للمحاولة مجددًا" : "Couldn't play · OK to try again";
             default: return ar ? "جارٍ الاتصال…" : "Connecting…";
         }
     }

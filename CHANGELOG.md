@@ -52,6 +52,12 @@ Released from this fork as 0.9.0.1 (`afnon.apk` and `afnon-live.apk`).
   the way back.
 
 ### Changed
+- Live (local only), reconnecting: an error, the stream ending, no picture within 20 s of connecting, or buffering
+  for 15 s while playing now connects again from a fresh address after 2, 5 and 10 s («انقطع البث، جارٍ إعادة
+  الاتصال…»), instead of stopping at the first problem; only after the third does it say «تعذّر تشغيل البث», and OK on
+  the panel then tries again (before, it did nothing). The quality bar waits 10 s for a key (was 5 s, then full screen
+  came back by itself); full screen's hint is at the top, clear of the channels' captions; Down from «مباشر» goes
+  straight to the panel; closing the panel no longer brings back Home's empty tiles.
 - Live (local only): under the small panel, as on LG, Full screen, the other mosque and a round Stop. The live
   card is gone: the header's «مباشر» plays Makkah when nothing is on, and otherwise goes down to those buttons;
   OK on the panel fills the screen.
