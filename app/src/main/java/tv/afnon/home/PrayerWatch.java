@@ -134,8 +134,11 @@ final class PrayerWatch {
         Fasts.Due d = Fasts.next(service, day, now);
         if (d == null || d.slotKey.equals(fasted)) return;
         fasted = d.slotKey;
-        Prefs.of(service).edit().putString("fasted", fasted).apply();
-        showFast(Screen.loadText(service), d, false);
+        // The first banner for this fast is the full one; the prayers after it get the short one (the chip on Home
+        // opens the full one again).
+        boolean compact = d.key.equals(Prefs.of(service).getString("fast_full", ""));
+        Prefs.of(service).edit().putString("fasted", fasted).putString("fast_full", d.key).apply();
+        showFast(Screen.loadText(service), d, false, compact);
     }
 
     /** A newer release found by the daily check: one banner per version, pointing to Home's chip and Settings. */
@@ -147,7 +150,7 @@ final class PrayerWatch {
         Tokens.use(Prefs.night(service));
         Ui.init(service);
         showCard(t, Icon.STAR, 56, 56, 40, t.updateRow(), t.updateOffer(v), t.updateWhere(), null, Tokens.GOLD_400, 2,
-            Fasts.BANNER_MS);
+            Fasts.BANNER_MS, true);
     }
 
     /**
@@ -241,7 +244,7 @@ final class PrayerWatch {
         View last = lastRow(ui, t.city(), t.adhanPill(Screen.clock(t, day.nextTime, h24, 1f)), 16);
         showCard(t, Icon.MIHRAB, 56, 72, 44, t.apLabel(),
             t.apTitle(names[day.nextIndex], minutes, Screen.duration(Screen.secondsUntil(day.nextTime, now), false)),
-            null, last, Tokens.GOLD_400, 2, BANNER_SECONDS * 1000L);
+            null, last, Tokens.GOLD_400, 2, BANNER_SECONDS * 1000L, true);
     }
 
     /** A banner's last row: quiet words at the start, a gold pill at the end. */
@@ -268,7 +271,7 @@ final class PrayerWatch {
      * virtue with the source, and the fast's date with suhoor's end as a gold pill. Monday and Thursday are quiet:
      * smaller, shorter, title and date only. {@code hijriDay}/{@code hijriMonth} are the fast's; suhoor is its Fajr.
      */
-    void showFast(Text t, Fasts.Due due, boolean pinned) {
+    void showFast(Text t, Fasts.Due due, boolean pinned, boolean compact) {
         hideBanner();
         int kind = due.kind, hijriDay = due.hijriDay;
         String weekday = Screen.weekday(t, due.weekday);
@@ -306,12 +309,12 @@ final class PrayerWatch {
             LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, -2);
             blp.topMargin = Ui.ipx(10);
             extra.addView(text(ui, 22, Tokens.GOLD_400, t.fastBoth(weekday)), blp);
-            extra.addView(text(ui, 18, Tokens.MIST_400, t.fastBothSource()), new LinearLayout.LayoutParams(-2, -2));
+            if (!compact) extra.addView(text(ui, 20, Tokens.MIST_400, t.fastBothSource()), new LinearLayout.LayoutParams(-2, -2));
         }
 
         LinearLayout below = new LinearLayout(service);
         below.setOrientation(LinearLayout.VERTICAL);
-        String virtue = quiet ? null : t.fastVirtue(kind);
+        String virtue = quiet || compact ? null : t.fastVirtue(kind);
         if (virtue != null) {
             // The hadith in Amiri, a hairline above it, its source under it.
             View rule = new View(service);
@@ -325,7 +328,7 @@ final class PrayerWatch {
             LinearLayout.LayoutParams vlp = new LinearLayout.LayoutParams(-1, -2);
             vlp.topMargin = Ui.ipx(14);
             below.addView(v, vlp);
-            TextView src = text(ui, 18, Tokens.MIST_400, t.fastSource(kind));
+            TextView src = text(ui, 20, Tokens.MIST_400, t.fastSource(kind));
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-2, -2);
             slp.topMargin = Ui.ipx(4);
             below.addView(src, slp);
@@ -339,9 +342,10 @@ final class PrayerWatch {
         // Smaller in English, where these titles would wrap and cover the arch; the quiet ones smaller still.
         int titleSize = quiet ? 34 : t.ar ? 44 : 38;
         showCard(t, Fasts.icon(kind), quiet ? 52 : 64, quiet ? 52 : 64, titleSize, t.fastLabel(),
-            t.fastTitle(kind, hijriDay), extra.getChildCount() > 0 ? extra : null, below,
+            quiet ? t.fastTitle(kind, hijriDay) : t.fastHome(kind, hijriDay, weekday, due.tomorrow),
+            extra.getChildCount() > 0 ? extra : null, below,
             arafah ? Tokens.GOLD_200 : Tokens.GOLD_400, arafah ? 3 : 2,
-            pinned ? Fasts.PINNED_MS : quiet ? Fasts.QUIET_BANNER_MS : Fasts.BANNER_MS);
+            pinned ? Fasts.PINNED_MS : quiet || compact ? Fasts.QUIET_BANNER_MS : Fasts.BANNER_MS, !pinned);
         pinnedFast = pinned && banner != null;
     }
 
@@ -354,10 +358,12 @@ final class PrayerWatch {
 
     /**
      * The banner: icon and words in a row (label, title, then {@code sub}, a line of text or views), anything in
-     * {@code below} under that row, and a bar emptying over {@code lifeMs}. It slides down a little as it fades in.
+     * {@code below} under that row, and (with {@code bar}) a bar emptying over {@code lifeMs}; without it, the card
+     * just ends (a banner that waits to be closed). It slides down a little as it fades in.
      */
     private void showCard(Text t, int iconKind, int iconW, int iconH, int titleSize, CharSequence labelText,
-                          CharSequence titleText, Object sub, View below, int border, int borderWidth, long lifeMs) {
+                          CharSequence titleText, Object sub, View below, int border, int borderWidth, long lifeMs,
+                          boolean bar) {
         Typeface ui = service.getResources().getFont(R.font.alexandria_regular);
         Typeface display = service.getResources().getFont(t.ar ? R.font.amiri_bold : R.font.marcellus_regular);
 
@@ -409,8 +415,8 @@ final class PrayerWatch {
         View fill = new View(service);
         fill.setBackgroundColor(Tokens.GOLD_400);
         track.addView(fill, new FrameLayout.LayoutParams(-1, -1));
-        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, Ui.ipx(6));
-        tlp.topMargin = Ui.ipx(18);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, Ui.ipx(bar ? 6 : 0));
+        tlp.topMargin = Ui.ipx(bar ? 18 : 24);
         tlp.setMarginStart(-Ui.ipx(28));
         tlp.setMarginEnd(-Ui.ipx(28));
         card.addView(track, tlp);
@@ -478,7 +484,7 @@ final class PrayerWatch {
      * screen, or the spoken «حان الآن موعد صلاة …» for the next prayer, after a delay to switch to another app
      * first; or standby as after a call that woke the TV. From Home:
      * `am start -n tv.afnon.home/.MainActivity --es test banner|call|announce|standby`; a fast's banner with
-     * `--es test fast:N` (a {@link Fasts} kind), with `:en` for its English, `:both` on a Monday, `:pinned` as Home's chip
+     * `--es test fast:N` (a {@link Fasts} kind), with `:en` for its English, `:both` on a Monday, `:compact` as after a fast's first banner, `:pinned` as Home's chip
      * opens it; or the real check as if it were
      * that moment, `--es test fast-at:<epoch ms>`.
      */
@@ -498,7 +504,7 @@ final class PrayerWatch {
                 // "both": on a Monday, so the line on both intentions shows.
                 int weekday = opts.contains("both") ? java.util.Calendar.MONDAY : java.util.Calendar.WEDNESDAY;
                 showFast(t, new Fasts.Due(fast, day.hijriYear, Fasts.SAMPLE[fast][1], Fasts.SAMPLE[fast][0], weekday,
-                    day.suhoorEnd, true, "test"), opts.contains("pinned"));
+                    day.suhoorEnd, true, "test"), opts.contains("pinned"), opts.contains("compact"));
             } else if ("call".equals(kind)) {
                 openCall(day.nextIndex, day.nextTime, false);
             } else if ("standby".equals(kind)) {

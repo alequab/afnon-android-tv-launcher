@@ -166,10 +166,13 @@ final class Icon extends View {
             c.drawLine(5 * k, 12.5f * k, 9.5f * k, 17 * k, p);
             c.drawLine(9.5f * k, 17 * k, 19 * k, 7.5f * k, p);
         } else if (kind == FULL_MOON) {
-            // The White Days are the nights of the full moon: a filled disc inside a faint halo.
-            c.drawCircle(12 * k, 12 * k, 10 * k, p);
+            // The White Days are the nights of the full moon: its outline with three craters. (A ring around a
+            // filled disc read as a selected radio button at chip size.)
+            c.drawCircle(12 * k, 12 * k, 9.5f * k, p);
+            c.drawCircle(8.8f * k, 9.6f * k, 2.2f * k, p);
+            c.drawCircle(15 * k, 13.6f * k, 1.6f * k, p);
             p.setStyle(Paint.Style.FILL);
-            c.drawCircle(12 * k, 12 * k, 7 * k, p);
+            c.drawCircle(10.4f * k, 16 * k, 1.1f * k, p);
         } else if (kind == KAABA) {
             // The Kaaba: a cube seen from the front, its door and the band (kiswah) near the top.
             r.set(4 * k, 5 * k, 20 * k, 21 * k);

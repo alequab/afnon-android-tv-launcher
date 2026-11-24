@@ -170,7 +170,7 @@ final class Text {
                     : hijriDay == 14 ? (ar ? "ثاني الأيام البيض" : "Second White Day")
                     : (ar ? "آخر الأيام البيض" : "Last White Day");
                 break;
-            case Fasts.DHUL_HIJJAH: name = d(ar ? "صيام " + hijriDay + " ذي الحجة" : hijriDay + " Dhul-Hijjah fast"); break;
+            case Fasts.DHUL_HIJJAH: name = d(ar ? "صيام " + hijriDay + " ذي الحجة" : hijriDay + " Dhul-Hijjah"); break;
             case Fasts.ARAFAH: name = ar ? "يوم عرفة" : "Arafah fast"; break;
             case Fasts.TASUA: name = ar ? "يوم تاسوعاء" : "Tasu'a fast"; break;
             case Fasts.ASHURA: name = ar ? "يوم عاشوراء" : "Ashura fast"; break;
@@ -178,8 +178,12 @@ final class Text {
             case Fasts.MONDAY: name = ar ? "صيام الاثنين" : "Monday's fast"; break;
             default: name = ar ? "صيام الخميس" : "Thursday's fast";
         }
-        if (ar) return (tomorrow ? "غدًا " + weekday + ": " : "اليوم: ") + name;
-        return name + (tomorrow ? ": tomorrow, " + weekday : ": today");
+        // Monday's and Thursday's own fast: the weekday is already its name.
+        boolean weekly = kind == Fasts.MONDAY || kind == Fasts.THURSDAY;
+        if (ar) return (tomorrow ? (weekly ? "غدًا: " : "غدًا " + weekday + ": ") : "اليوم: ") + name;
+        // English abbreviates the weekday, so the banner's title fits one line.
+        String wd = weekday.length() > 3 ? weekday.substring(0, 3) : weekday;
+        return name + (tomorrow ? (weekly ? " tomorrow" : " tomorrow, " + wd) : " today");
     }
     /**
      * A fast that falls on a Monday or Thursday: one fast, both intentions. Ibn Baz, asked whether one may intend the
@@ -273,6 +277,7 @@ final class Text {
         if (eastern) n = n.replace('.', '٫');
         return d("~" + n + (gb ? (ar ? " جيجا/ساعة" : " GB/h") : (ar ? " ميجا/ساعة" : " MB/h")));
     }
+    String hintOkClose() { return ar ? "OK  إغلاق" : "OK  Close"; }
     String sectionRadio() { return ar ? "الإذاعة" : "Radio"; }
     String radioRowHelp(Radio.Station s) { return stationWhere(s) + (ar ? " · تحتاج إلى الإنترنت" : " · needs the internet"); }
     String afterAdhanRow() { return ar ? "بعد الأذان" : "After the adhan"; }
