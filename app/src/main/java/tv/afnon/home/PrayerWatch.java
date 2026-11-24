@@ -342,7 +342,9 @@ final class PrayerWatch {
         // Smaller in English, where these titles would wrap and cover the arch; the quiet ones smaller still.
         int titleSize = quiet ? 34 : t.ar ? 44 : 38;
         showCard(t, Fasts.icon(kind), quiet ? 52 : 64, quiet ? 52 : 64, titleSize, t.fastLabel(),
-            quiet ? t.fastTitle(kind, hijriDay) : t.fastHome(kind, hijriDay, weekday, due.tomorrow),
+            // One wording with the chip; English keeps its short title while the fast is tomorrow (the weekday
+            // would wrap it onto a second line, and the last row names it anyway).
+            quiet || (!t.ar && due.tomorrow) ? t.fastTitle(kind, hijriDay) : t.fastHome(kind, hijriDay, weekday, due.tomorrow),
             extra.getChildCount() > 0 ? extra : null, below,
             arafah ? Tokens.GOLD_200 : Tokens.GOLD_400, arafah ? 3 : 2,
             pinned ? Fasts.PINNED_MS : quiet || compact ? Fasts.QUIET_BANNER_MS : Fasts.BANNER_MS, !pinned);
