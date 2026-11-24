@@ -493,8 +493,14 @@ public class SettingsActivity extends Screen {
                 new Row(VALUE) {
                     String label() { return t.deviceRow(); }
                     String help() { return t.deviceHelp(); }
-                    // No Afnon updates row in the TCL build: it would install egyjs's release over this one.
                     void open() { startSafely(new Intent(Settings.ACTION_SETTINGS)); }
+                },
+                // Updates from this fork's releases (Updates.REPO), never egyjs's: his would replace this build.
+                new Row(VALUE) {
+                    String label() { return t.updateRow(); }
+                    String help() { return t.updateHelp(Updates.state(), Updates.failure(), Updates.current(c), Updates.latest()); }
+                    String value() { return t.updateValue(Updates.state(), Updates.percent(), Updates.latest()); }
+                    void open() { Updates.press(c); refresh(); }
                 });
         }
     }
@@ -803,7 +809,6 @@ public class SettingsActivity extends Screen {
         if (onNav) {
             if (vertical) navTo(section + up);
             else if (ok && section == NETWORK) startSafely(new Intent(Settings.ACTION_WIFI_SETTINGS));
-            else if (ok && section == DEVICE) startSafely(new Intent(Settings.ACTION_SETTINGS));
             else if ((ok || toEnd) && newsPage != null) focusNews();
             else if ((ok || toEnd) && !rows.isEmpty()) focusRow(0);
             return true;

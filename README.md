@@ -14,6 +14,45 @@ Arabic first (RTL) and English · Offline prayer times for 245 cities · 16 adha
 
 </div>
 
+## هذا الفرع: أفنون لتلفاز TCL
+
+<div dir="rtl">
+
+هذا فرع [alequab](https://github.com/alequab/afnon-android-tv-launcher) من أفنون، مبنيّ على إصدار egyjs ‏0.9، وفيه زيادات جُرّبت على تلفاز TCL 55P7K:
+
+- **تذكير الصيام بعد كل صلاة** من الصلوات الخمس التي تسبق سحور يوم الصيام: فجر اليوم السابق وظهره وعصره، ثم مغربه وعشاؤه. يذكر التذكير أيّ يوم هو (أول الأيام البيض وثانيها وآخرها، واليوم من ذي الحجة) واسم يومه من الأسبوع، ووقت انتهاء السحور. الاثنين والخميس تذكير هادئ واحد بعد المغرب.
+- **إذا وافق الصيامُ يومَ الاثنين أو الخميس** ظهر سطر بالجمع بين النيتين، مع قول ابن باز «وافق خيرًا على خير» (فتاوى نور على الدرب ١٦/٤٣٤).
+- **زر تذكير الصيام في الرئيسية** تحت أزرار الأعلى، لمن فاته التذكير: يعيد عرض التذكير حتى يُضغط رجوع، وعليه نقطة ذهبية حتى يُفتح.
+- **التحديث من إصدارات هذا الفرع**: يسأل أفنون GitHub مرة في اليوم عن إصدار أحدث، فيظهر زر «تحديث» في الرئيسية وتذكير واحد، ولا يُثبَّت شيء إلا بعد «تحديث الآن» أو من الإعدادات ← الجهاز ← تحديث أفنون.
+- **شاشة التوقف** أكبر بالخُمس، ولا يغلقها خيار «فتح أفنون عند تشغيل التلفاز».
+- وقبلها: تشغيل التلفاز للأذان، و«أوشك وقت الصلاة على الانتهاء» بصوت لطفي خميس، واسم شبكة الواي فاي دون تشغيل الموقع.
+
+للتنزيل نسختان في [إصدارات هذا الفرع](https://github.com/alequab/afnon-android-tv-launcher/releases/latest): ‏`afnon-live.apk` فيها البث المباشر من مكة والمدينة، و`afnon.apk` من دونه. وكلتاهما تتحدّث من هذا الفرع وحده، ولا تثبّت إصدارات egyjs فوقها.
+
+</div>
+
+**This fork** ([alequab](https://github.com/alequab/afnon-android-tv-launcher)) is Afnon 0.9 from egyjs with these
+additions, tried on a TCL 55P7K:
+
+- **Fasting reminders after each prayer** of the five before a fast's suhoor: Fajr, Dhuhr and Asr of the day before,
+  then its Maghrib and Isha. Each says which day it is (first, second or last White Day, the day of Dhul-Hijjah), its
+  weekday and when suhoor ends. Mondays and Thursdays get one quiet reminder after Maghrib.
+- **A fast that falls on a Monday or Thursday** shows a line on joining both intentions, with Ibn Baz's «وافق خيرًا
+  على خير» (Fatawa Nur ala al-Darb 16/434).
+- **A fasting chip on Home**, under the header, for a reminder you missed: OK shows it again until Back, with a gold
+  dot until it is opened.
+- **Updates from this fork's releases**: once a day Afnon asks GitHub for a newer release; Home then shows an update
+  chip and one banner, and nothing installs until you press Update now (or Settings → Device → Afnon updates).
+- **The screensaver** is a fifth larger, and Open Afnon when the TV turns on no longer closes it.
+- Earlier: turning the TV on for the adhan, the spoken «أوشك» before a prayer's time ends (Lutfi Khamis's voice),
+  and the Wi-Fi name without Location.
+
+Two downloads in [this fork's releases](https://github.com/alequab/afnon-android-tv-launcher/releases/latest):
+`afnon-live.apk` with the live Makkah and Madinah player, and `afnon.apk` without it. Both update from this fork only,
+never from egyjs's releases.
+
+---
+
 > إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا · النساء ١٠٣
 >
 > *Indeed, prayer has been decreed upon the believers at fixed times.* (An-Nisa 4:103)
@@ -103,10 +142,11 @@ Afnon has **no accounts, no analytics and no ads**. The radio is the only featur
 internet, and it connects only to the chosen station's stream, one at a time: `stream.radiojar.com` (Cairo),
 `quran-radio.org` (Nablus), `streaming.zaytonatube.com` (Shabab FM), `live.kwikmotion.com` (Qatar and the Saudi
 Quran stations), `jrtv-live.ercdn.net` (Jordan), `partwota.cdn.mgmlcdn.com` (Oman) or `backup.qurango.net` (the
-reciters). The list is in `Radio.STATIONS`. The only other connection is **Settings → Device → Afnon updates**:
-when you press OK there, Afnon asks `github.com` for the latest release and, if you then choose to update,
-downloads its `afnon.apk` from GitHub (`github.com`, which hands the file over from `*.githubusercontent.com`). It
-never checks on its own and sends nothing about you or the TV. Afnon makes no other network requests, and its
+reciters). The list is in `Radio.STATIONS`. The only other connection is **Afnon updates**, from this
+fork's releases: once a day, while the screen is on, Afnon asks `api.github.com` for the latest release (its version
+and notes), and pressing OK on Settings → Device → Afnon updates asks `github.com` at once. Only when you then choose
+to update does it download the release's APK from GitHub (`github.com`, which hands the file over from
+`*.githubusercontent.com`). It sends nothing about you or the TV. Afnon makes no other network requests, and its
 [network security config](app/src/main/res/xml/network_security.xml) allows plain HTTP for the Cairo stream only.
 Your city and settings stay on the TV.
 

@@ -63,6 +63,9 @@ final class HomeOnWake extends BroadcastReceiver {
     private void home() {
         PowerManager pm = service.getSystemService(PowerManager.class);
         if (pm != null && !pm.isInteractive()) return;
+        // Never over the screensaver: Home would end it, and it would start again at the next idle timeout, over
+        // and over (a TV that sends SCREEN_ON as its screensaver starts).
+        if (AfnonDream.running) return;
         // The call to prayer may be what turned the screen on, or be about to open: leave it the screen.
         Date now = new Date();
         if (Reminders.dueCall(service, new PrayerDay(service, now), now) >= 0) return;

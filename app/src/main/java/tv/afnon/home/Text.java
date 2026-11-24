@@ -154,19 +154,48 @@ final class Text {
             default: return ar ? "رواه مسلم" : "Muslim";
         }
     }
-    /** The fast's Hijri date, at the start of the banner's last row. */
-    String fastDate(int hijriDay, int hijriMonth) {
-        return d(hijriDay + " " + hijriMonths()[hijriMonth]);
+    /** The fast's weekday and Hijri date ("الاثنين 13 جمادى الآخرة"), at the start of the banner's last row. */
+    String fastDate(String weekday, int hijriDay, int hijriMonth) {
+        return d(weekday + " " + hijriDay + " " + hijriMonths()[hijriMonth]);
     }
-    /** Home's date line, from the evening before until Fajr. */
-    String fastHome(int kind, boolean tomorrow) {
-        String[] ar = {"الأيام البيض", "أيام ذي الحجة", "يوم عرفة", "يوم تاسوعاء", "يوم عاشوراء", "ست من شوال", "صيام الاثنين", "صيام الخميس"};
-        String[] en = {"White Day", "Dhul-Hijjah", "Arafah", "Tasu'a", "Ashura", "Six of Shawwal", "Monday's", "Thursday's"};
-        if (this.ar) return (tomorrow ? "غدًا: " : "اليوم: ") + ar[kind];
-        return en[kind] + " fast " + (tomorrow ? "tomorrow" : "today");
+    /**
+     * Home's chip and the screensaver's line: which fast, and which day of it, with its weekday while it is
+     * tomorrow ("غدًا الاثنين: ثاني الأيام البيض"), or "today" from midnight until its Fajr.
+     */
+    String fastHome(int kind, int hijriDay, String weekday, boolean tomorrow) {
+        String name;
+        switch (kind) {
+            case Fasts.WHITE_DAYS:
+                name = hijriDay == 13 ? (ar ? "أول الأيام البيض" : "First White Day")
+                    : hijriDay == 14 ? (ar ? "ثاني الأيام البيض" : "Second White Day")
+                    : (ar ? "آخر الأيام البيض" : "Last White Day");
+                break;
+            case Fasts.DHUL_HIJJAH: name = d(ar ? "صيام " + hijriDay + " ذي الحجة" : hijriDay + " Dhul-Hijjah fast"); break;
+            case Fasts.ARAFAH: name = ar ? "يوم عرفة" : "Arafah fast"; break;
+            case Fasts.TASUA: name = ar ? "يوم تاسوعاء" : "Tasu'a fast"; break;
+            case Fasts.ASHURA: name = ar ? "يوم عاشوراء" : "Ashura fast"; break;
+            case Fasts.SHAWWAL: name = ar ? "ست من شوال" : "Six of Shawwal"; break;
+            case Fasts.MONDAY: name = ar ? "صيام الاثنين" : "Monday's fast"; break;
+            default: name = ar ? "صيام الخميس" : "Thursday's fast";
+        }
+        if (ar) return (tomorrow ? "غدًا " + weekday + ": " : "اليوم: ") + name;
+        return name + (tomorrow ? ": tomorrow, " + weekday : ": today");
     }
+    /**
+     * A fast that falls on a Monday or Thursday: one fast, both intentions. Ibn Baz, asked whether one may intend the
+     * Monday and a White Day together, answered for voluntary fasts «وافق خيرًا على خير» (Fatawa Nur ala al-Darb,
+     * ed. al-Shuway'ir, 16/434-435; checked in the Shamela library).
+     */
+    String fastBoth(String weekday) {
+        return ar ? "يوافق يوم " + weekday + "، فاجمع فيه بين النيتين" : "Also a " + weekday + ": one fast, both intentions";
+    }
+    String fastBothSource() {
+        return ar ? "«وافق خيرًا على خير» ابن باز، فتاوى نور على الدرب" : "“Good upon good”: Ibn Baz, Fatawa Nur ala al-Darb";
+    }
+    /** Home's chip, read aloud by TalkBack: what OK on it does. */
+    String fastChip() { return ar ? "عرض تذكير الصيام" : "Show the fasting reminder"; }
     String fastRow() { return ar ? "تذكير الصيام" : "Fasting reminders"; }
-    String fastHelp() { return ar ? "بعد المغرب، في الليلة التي تسبق الصيام" : "After Maghrib, the evening before the fast"; }
+    String fastHelp() { return ar ? "بعد كل صلاة قبل الصيام، والاثنين والخميس بعد المغرب" : "After each prayer before it; Mon and Thu after Maghrib"; }
     /** The row's list, in the order of Fasts' switches. */
     String[] fastSwitches() {
         return ar ? new String[] {d("الأيام البيض (13 و14 و15)"), d("أيام ذي الحجة (1 إلى 8)"), "يوم عرفة", "تاسوعاء", "عاشوراء", "ست من شوال", "الاثنين والخميس"}
@@ -502,6 +531,14 @@ final class Text {
     String deviceHelp() { return ar ? "الصورة والصوت والتطبيقات والنظام" : "Picture, sound, apps and system"; }
     // Settings → Device → Afnon updates (Updates): Afnon contacts GitHub only when OK is pressed there.
     String updateRow() { return ar ? "تحديث أفنون" : "Afnon updates"; }
+    /** The daily check's banner and Home's chip and card: a newer release, installed only on OK. */
+    String updateOffer(String latest) { return ar ? "الإصدار " + version(latest) + " متاح" : "Version " + version(latest) + " is out"; }
+    String updateWhere() { return ar ? "من زر التحديث في الرئيسية أو من الإعدادات" : "From Home's update button, or Settings"; }
+    String updateChip(String latest) { return ar ? "تحديث " + version(latest) : "Update " + version(latest); }
+    String updateNow() { return ar ? "تحديث الآن" : "Update now"; }
+    String updateLater() { return ar ? "لاحقًا" : "Later"; }
+    String updateDownloading(int percent) { return d((ar ? "جارٍ التنزيل " : "Downloading ") + percent) + (eastern ? "٪" : "%"); }
+    String updateInstalling() { return ar ? "جارٍ التثبيت…" : "Installing…"; }
     String updateHelp(int state, int failure, String current, String latest) {
         String now = version(current);
         switch (state) {

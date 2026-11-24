@@ -39,6 +39,8 @@ final class PrayerWatch {
     /** The reminder minutes the keys above were given with; -1 before the first check. */
     private int remindMinutes = -1;
     private View banner;
+    /** The banner is a fast's, opened from Home's chip. */
+    private boolean pinnedFast;
 
     private final Runnable check = new Runnable() {
         @Override
@@ -94,6 +96,8 @@ final class PrayerWatch {
             }
         }
         if (asleep) return;
+        // Once a day: is there a newer release of this fork? (Nothing installs without OK.)
+        Updates.daily(service);
         // «أوشك…»: the current prayer's time is ending, as long before its end as the reminder comes before a
         // prayer. Fajr ends at sunrise; Dhuhr, Asr and Maghrib at the next prayer; Isha at Fajr.
         int current = day.nowIndex;
@@ -109,7 +113,10 @@ final class PrayerWatch {
             }
         }
         // A prayer's own reminder comes first; the fast's waits for the next check.
-        if (!Reminders.dueReminder(service, day, now)) checkFast(day, now);
+        if (!Reminders.dueReminder(service, day, now)) {
+            checkFast(day, now);
+            checkUpdate();
+        }
         if (Reminders.dueReminder(service, day, now)) {
             String key = day.nextIndex + ":" + day.nextTime.getTime();
             if (key.equals(reminded) || AfnonDream.running) return;
@@ -121,16 +128,26 @@ final class PrayerWatch {
         }
     }
 
-    /** The evening before a voluntary fast (see {@link Fasts}): the banner, once for that Hijri date. */
+    /** Before a voluntary fast (see {@link Fasts}): the banner, once after each prayer whose slot it is. */
     private void checkFast(PrayerDay day, Date now) {
         if (banner != null || AfnonDream.running) return;
-        int kind = Fasts.due(service, day, now);
-        if (kind < 0) return;
-        String key = day.hijriYear + "-" + day.hijriMonth + "-" + day.hijriDay;
-        if (key.equals(fasted)) return;
-        fasted = key;
-        Prefs.of(service).edit().putString("fasted", key).apply();
-        showFast(Screen.loadText(service), kind, day.hijriDay, day.hijriMonth, day.suhoorEnd);
+        Fasts.Due d = Fasts.next(service, day, now);
+        if (d == null || d.slotKey.equals(fasted)) return;
+        fasted = d.slotKey;
+        Prefs.of(service).edit().putString("fasted", fasted).apply();
+        showFast(Screen.loadText(service), d, false);
+    }
+
+    /** A newer release found by the daily check: one banner per version, pointing to Home's chip and Settings. */
+    private void checkUpdate() {
+        if (banner != null || AfnonDream.running) return;
+        String v = Updates.bannerDue(service);
+        if (v == null) return;
+        Text t = Screen.loadText(service);
+        Tokens.use(Prefs.night(service));
+        Ui.init(service);
+        showCard(t, Icon.STAR, 56, 56, 40, t.updateRow(), t.updateOffer(v), t.updateWhere(), null, Tokens.GOLD_400, 2,
+            Fasts.BANNER_MS);
     }
 
     /**
@@ -251,8 +268,10 @@ final class PrayerWatch {
      * virtue with the source, and the fast's date with suhoor's end as a gold pill. Monday and Thursday are quiet:
      * smaller, shorter, title and date only. {@code hijriDay}/{@code hijriMonth} are the fast's; suhoor is its Fajr.
      */
-    void showFast(Text t, int kind, int hijriDay, int hijriMonth, Date suhoor) {
+    void showFast(Text t, Fasts.Due due, boolean pinned) {
         hideBanner();
+        int kind = due.kind, hijriDay = due.hijriDay;
+        String weekday = Screen.weekday(t, due.weekday);
         Ui.init(service);
         Tokens.use(Prefs.night(service));
         boolean quiet = Fasts.quiet(kind);
@@ -282,6 +301,13 @@ final class PrayerWatch {
             rlp.topMargin = Ui.ipx(detail != null ? 10 : 6);
             extra.addView(row, rlp);
         }
+        // On a Monday or Thursday: one fast with both intentions, and Ibn Baz's words on it.
+        if (due.alsoWeekly) {
+            LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(-2, -2);
+            blp.topMargin = Ui.ipx(10);
+            extra.addView(text(ui, 22, Tokens.GOLD_400, t.fastBoth(weekday)), blp);
+            extra.addView(text(ui, 18, Tokens.MIST_400, t.fastBothSource()), new LinearLayout.LayoutParams(-2, -2));
+        }
 
         LinearLayout below = new LinearLayout(service);
         below.setOrientation(LinearLayout.VERTICAL);
@@ -305,8 +331,8 @@ final class PrayerWatch {
             below.addView(src, slp);
         }
         // Last row: the fast's date at the start, suhoor's end as a pill at the end.
-        below.addView(lastRow(ui, t.fastDate(hijriDay, hijriMonth),
-            t.suhoorEnds(Screen.clock(t, suhoor, Prefs.clock24(service), 1f).toString()), virtue != null ? 14 : 16));
+        below.addView(lastRow(ui, t.fastDate(weekday, hijriDay, due.hijriMonth),
+            t.suhoorEnds(Screen.clock(t, due.suhoor, Prefs.clock24(service), 1f).toString()), virtue != null ? 14 : 16));
 
         // Arafah, the day of the year, has a brighter, thicker border.
         boolean arafah = kind == Fasts.ARAFAH;
@@ -315,7 +341,13 @@ final class PrayerWatch {
         showCard(t, Fasts.icon(kind), quiet ? 52 : 64, quiet ? 52 : 64, titleSize, t.fastLabel(),
             t.fastTitle(kind, hijriDay), extra.getChildCount() > 0 ? extra : null, below,
             arafah ? Tokens.GOLD_200 : Tokens.GOLD_400, arafah ? 3 : 2,
-            quiet ? Fasts.QUIET_BANNER_MS : Fasts.BANNER_MS);
+            pinned ? Fasts.PINNED_MS : quiet ? Fasts.QUIET_BANNER_MS : Fasts.BANNER_MS);
+        pinnedFast = pinned && banner != null;
+    }
+
+    /** Whether the banner up now was opened from Home's chip: Home's Back closes it. */
+    boolean pinnedFast() {
+        return pinnedFast;
     }
 
     private final Runnable hide = this::hideBanner;
@@ -420,6 +452,7 @@ final class PrayerWatch {
     }
 
     void hideBanner() {
+        pinnedFast = false;
         if (banner == null) return;
         try {
             service.getSystemService(WindowManager.class).removeView(banner);
@@ -445,7 +478,8 @@ final class PrayerWatch {
      * screen, or the spoken «حان الآن موعد صلاة …» for the next prayer, after a delay to switch to another app
      * first; or standby as after a call that woke the TV. From Home:
      * `am start -n tv.afnon.home/.MainActivity --es test banner|call|announce|standby`; a fast's banner with
-     * `--es test fast:N` (a {@link Fasts} kind), or `fast:N:en` for its English; or the real check as if it were
+     * `--es test fast:N` (a {@link Fasts} kind), with `:en` for its English, `:both` on a Monday, `:pinned` as Home's chip
+     * opens it; or the real check as if it were
      * that moment, `--es test fast-at:<epoch ms>`.
      */
     void test(String kind, long delayMs) {
@@ -459,8 +493,12 @@ final class PrayerWatch {
             } else if (kind.startsWith("fast:")) {
                 String[] p = kind.split(":");
                 int fast = Integer.parseInt(p[1]);
-                Text t = p.length > 2 ? new Text(false, false) : Screen.loadText(service);
-                showFast(t, fast, Fasts.SAMPLE[fast][0], Fasts.SAMPLE[fast][1], day.suhoorEnd);
+                java.util.List<String> opts = java.util.Arrays.asList(p).subList(2, p.length);
+                Text t = opts.contains("en") ? new Text(false, false) : Screen.loadText(service);
+                // "both": on a Monday, so the line on both intentions shows.
+                int weekday = opts.contains("both") ? java.util.Calendar.MONDAY : java.util.Calendar.WEDNESDAY;
+                showFast(t, new Fasts.Due(fast, day.hijriYear, Fasts.SAMPLE[fast][1], Fasts.SAMPLE[fast][0], weekday,
+                    day.suhoorEnd, true, "test"), opts.contains("pinned"));
             } else if ("call".equals(kind)) {
                 openCall(day.nextIndex, day.nextTime, false);
             } else if ("standby".equals(kind)) {

@@ -28,3 +28,5 @@
 # Android shows apps the Wi-Fi name only with Location on for the whole TV; the shell reads it anyway and hands it
 # to Afnon (SetupProvider "wifi_name", kept for this network). Nothing to do off Wi-Fi or on an older Afnon.
 0|Wi-Fi name on Home|اسم الواي فاي في الرئيسية|n=$(cmd wifi status 2>/dev/null | sed -n 's/^Wifi is connected to "\(.*\)"$/\1/p' | head -n 1); [ -z "$n" ] || content insert --uri content://tv.afnon.home.setup/settings --bind name:s:wifi_name --bind "value:s:$n" >/dev/null 2>&1; true
+0|Afnon can install its updates|أفنون يثبّت تحديثاته|appops set tv.afnon.home REQUEST_INSTALL_PACKAGES allow
+?|appops get tv.afnon.home REQUEST_INSTALL_PACKAGES | grep -q allow

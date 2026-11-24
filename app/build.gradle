@@ -10,8 +10,10 @@ android {
         applicationId 'tv.afnon.home'
         minSdk 26
         targetSdk 34
-        versionCode 15
-        versionName '0.9'
+        // This fork's own releases: egyjs's version with a fourth part (0.9.0.1, 0.9.0.2…), so Updates sees each
+        // as newer than the release it is built on; the code leaves room for 99 of ours per egyjs release.
+        versionCode 1501
+        versionName '0.9.0.1'
     }
 
     compileOptions {

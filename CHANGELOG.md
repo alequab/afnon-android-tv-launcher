@@ -4,14 +4,30 @@ All notable changes to Afnon. Versions match `versionName` in `app/build.gradle`
 
 ## [Unreleased]
 
-Only in the TCL build (`tcl-features`); everything else is in 0.9.
+Only in this fork's TCL build (`tcl-features`, and `tcl-live` with the live player); everything else is in 0.9.
+Released from this fork as 0.9.0.1 (`afnon.apk` and `afnon-live.apk`).
 
 ### Added
-- Settings → Reminders → Fasting reminders: a banner after Maghrib, the evening before a voluntary fast, once for that
-  date: the White Days (13, 14, 15), 1 to 8 Dhul-Hijjah, Arafah, Tasu'a, Ashura, the start of Six of Shawwal, and
-  Mondays and Thursdays (off by default). Never for Eid, the Days of Tashriq, Ramadan or the day of doubt (`Fasts`), so
-  in Dhul-Hijjah the White Days are the 14th and 15th. It uses the Hijri date with its adjustment. `--es test fast:N` shows a
-  banner; `--es test fast-at:<epoch ms>` runs the real check as of that moment.
+- Settings → Reminders → Fasting reminders, for the White Days (13, 14, 15), 1 to 8 Dhul-Hijjah, Arafah, Tasu'a,
+  Ashura, the start of Six of Shawwal, and Mondays and Thursdays (off by default). Never for Eid, the Days of Tashriq,
+  Ramadan or the day of doubt (`Fasts`), so in Dhul-Hijjah the White Days are the 14th and 15th. It uses the Hijri date
+  with its adjustment. A banner comes 10 minutes after each of the five prayers before the fast's suhoor: Fajr, Dhuhr
+  and Asr of the day before, then Maghrib and Isha of its evening, when the Hijri day is already the fast's; so the
+  second White Day's start after Fajr of the first. Mondays and Thursdays: one quiet banner, after Maghrib. The banner
+  says which day (first, second or last White Day; the day of Dhul-Hijjah), and its last row the fast's weekday and
+  Hijri date with suhoor's end. A fast on a Monday or Thursday adds «يوافق يوم الاثنين، فاجمع فيه بين النيتين» and Ibn
+  Baz's «وافق خيرًا على خير» (Fatawa Nur ala al-Darb 16/434-435, checked in Shamela), whatever the Monday and Thursday
+  switch says. `--es test fast:N[:en][:both][:pinned]` shows a banner; `--es test fast-at:<epoch ms>` runs the real
+  check as of that moment.
+- Home: a chip under the header's end for the coming fast («غدًا الاثنين: ثاني الأيام البيض»), from its first reminder
+  until its Fajr, in place of the gold note after the date. A gold dot until it is opened; OK shows the fast's banner
+  again, until Back (2 minutes at most). The screensaver's line says which day too.
+- Afnon updates from this fork's releases (`Updates.REPO`), never egyjs's: once a day, with the screen on, Afnon reads
+  the latest release from GitHub's API; a newer one gets one banner and a chip on Home («تحديث 0.9.0.2», gold dot until
+  opened). Its card shows the release's notes with Update now and Later (Later hides it until a newer one). Nothing
+  installs without OK. Settings → Device → Afnon updates is back, and OK on the Device section enters its rows. Each
+  build downloads its own file: `afnon.apk` (`tcl-features`) or `afnon-live.apk` (`tcl-live`). Setup step "Afnon can
+  install its updates" is back.
 - Settings → Display → Open Afnon when the TV turns on (on by default): the TCL goes back to the last app when it
   leaves standby; Home now comes to the front 2.5 s later instead, as cleanyourtv's Open on wake add-on does. Run by
   the remote buttons service (`HomeOnWake`, a SCREEN_ON receiver and its Home action); never over the call to
@@ -35,7 +51,12 @@ Only in the TCL build (`tcl-features`); everything else is in 0.9.
   seconds 120` picks the coming prayer and rings its alarm that many seconds later; `--es test standby` tries
   the way back.
 
+### Changed
+- The screensaver is drawn a fifth larger (the whole group scaled, so the arch and its drift keep their shape).
+
 ### Fixed
+- Open Afnon when the TV turns on no longer sends the TV Home while the screensaver shows. On a TV that reports the
+  screen on as its screensaver starts, Home ended it and it came back at the next idle timeout, over and over.
 - A list left open (a calculation method, a station…) closes when its screen goes behind Home or another app.
   Coming back later used to show the old list, where the next OK would pick from it.
 - Settings → Reminders → Spoken reminder says it plays «حان الآن موعد صلاة …», as it does in this build.
@@ -54,7 +75,7 @@ Only in the TCL build (`tcl-features`); everything else is in 0.9.
 
 ## [0.9] - 2026-11-15
 
-Afnon updates is left out of the TCL build: it would install egyjs's release over this one, without these features.
+In this fork, Afnon updates reads this fork's releases instead (see Unreleased above).
 
 ### Added
 - Settings → Device → **Afnon updates**: OK checks GitHub for the latest release, and OK again downloads and
