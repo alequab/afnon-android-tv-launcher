@@ -184,10 +184,14 @@ A narrow night palette: four lapis steps, two golds, plaster and mist; the gold 
   nothing burns in.
 
 Night mode (Settings → Display, or the moon button) swaps the lapis for near-black and halves the gold and text
-(tokens.night.json); colours are read when a view is built, so they are never copied into constants.
+(tokens.night.json); colours are read when a view is built, so they are never copied into constants. Night Mist
+(#847E73) still keeps 4.5:1 on the night ground and cells: dim, never unreadable.
 
 ### Named Rules
-**The One Lamp Rule.** Gold marks what matters now: the next prayer, the focused control, the sacred text. If a
+**The Still Room Rule.** Home is always on in a living room: nothing on it changes every second until the last 15
+minutes before a prayer, when the arch turns Dawn Gold and the countdown shows its seconds.
+
+**The One Lamp Rule. Gold marks what matters now: the next prayer, the focused control, the sacred text. If a
 second thing on the screen glows gold without being one of these, it is wrong.
 
 **The Plaster Is Now Rule.** A plaster fill means "current": the prayer whose time it is, the chosen segment, the
@@ -205,6 +209,7 @@ Marcellus and their ص/م in Amiri.
 
 ### Hierarchy
 - **Display** (Amiri 700 / Marcellus, 150px, 120px with hours, line-height 1): the arch's countdown; the clock is 96px.
+  On Home the countdown is h:mm (rounded up) until the last 15 minutes, then m:ss; Prayer day always shows seconds.
 - **Headline** (Amiri 700, 88px, 1): the next prayer's name in the arch.
 - **Title** (Amiri 700 / Marcellus, 52–64px, 1.15): screen titles, the call screen, a banner's title (34–44px).
 - **Sacred** (Amiri 400, 32px, 1.55): Qur'an and hadith, exact, with surah:ayah or the collection under them.
@@ -225,15 +230,19 @@ source; a paraphrase is never set in the sacred style.
 
 A fixed 1920×1080 canvas in two parts: the arch (600×900) at the inline start, 96px in, and the courtyard (1064px
 wide, from 760px) beside it. The courtyard reads top to bottom: clock and the two dates; the header pills (Radio,
-Wi-Fi, Inputs, Night, Settings, and Live on the `tcl-live` build) at its end; the six prayer cells (146px high, 12px apart); Favourites (four
-248×150 tiles, 24px apart); More (five tiles and All apps, 20px apart); the hint line at the bottom. In Arabic the whole
-layout mirrors, and every Left and Right on the remote swaps with it.
+Wi-Fi, Inputs, Night, Settings, and Live on the `tcl-live` build) at its end; the six prayer cells (146px high, 12px
+apart); Favourites (up to four 248×150 tiles, 24px apart); More (up to five apps, then All apps right after the last,
+20px apart); the hint line at the bottom. Tiles exist only for real apps: on a TV with few apps the rows are shorter,
+never padded with empty boxes that take focus. In Arabic the whole layout mirrors, and every Left and Right on the
+remote swaps with it.
 
 Spacing steps are 8, 12, 16, 24, 32, 48, 64 and 96; the safe area is 96px inline and 56px top and bottom. The design is
 drawn at 1080p and scales down whole on a 720p panel.
 
 ### Named Rules
-**The Courtyard Order Rule.** Information that qualifies something sits beside it: the coming fast's chip on the date's
+**The No Empty Box Rule.** Every tile on Home opens something; a slot with nothing to open is not drawn.
+
+**The Courtyard Order Rule. Information that qualifies something sits beside it: the coming fast's chip on the date's
 line, a release's chip under Settings. Nothing floats free of what it is about.
 
 ## Elevation & Depth
@@ -255,7 +264,9 @@ line, its crown kept free for the verse. Outlines are 2px at rest (3px for the n
 ## Components
 
 ### Header pills and round buttons
-- **Shape:** fully round, 72px high (round buttons 72×72).
+- **Shape:** fully round, 72px high (round buttons 72×72). Round buttons carry one clear drawn icon each (Inputs: a
+  screen with an arrow coming in from the side; Night: an outlined crescent and star, a sun when night mode is on;
+  Settings: a gear); the hint line names them when focused.
 - **Rest:** Lapis Surface fill, 2px Soft Line outline, Plaster words and icon. The radio pill's outline turns Gold Line
   while it plays.
 - **Focus:** Lamp Gold fill, Night Lapis words, plaster ring.
@@ -286,7 +297,8 @@ line, its crown kept free for the verse. Outlines are 2px at rest (3px for the n
 ### The Arch (signature)
 The arch is always there: its crown holds Qur'an 4:103 in Amiri, then the next prayer, its countdown and its adhan time.
 At rest its border is 3px Lamp Gold; in the last 15 minutes it is 6px Dawn Gold; focused, 5px Plaster. OK on its foot
-button opens Today's prayers and the Qibla.
+button opens Today's prayers and the Qibla. When the next prayer's adhan is off, the line under the countdown says so
+(«4:53 ص · الأذان متوقف · قلقيلية») instead of promising one.
 
 ## Do's and Don'ts
 

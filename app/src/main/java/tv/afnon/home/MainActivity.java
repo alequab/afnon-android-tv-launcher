@@ -348,7 +348,8 @@ public class MainActivity extends Screen {
         for (int i = 0; i < 5; i++) {
             nodes[M0 + i] = moreTile(i < moreApps.size() ? moreApps.get(i) : null, M0 + i, Tokens.COURT_X + i * (mw + 20), 764, mw);
         }
-        nodes[ALL] = allAppsTile(Tokens.COURT_X + 5 * (mw + 20), 764, mw);
+        // All apps comes right after the last app in More, so the row has no empty tiles before it.
+        nodes[ALL] = allAppsTile(Tokens.COURT_X + Math.min(5, moreApps.size()) * (mw + 20), 764, mw);
 
         hints = new LinearLayout(this);
         hints.setOrientation(LinearLayout.HORIZONTAL);
@@ -503,6 +504,9 @@ public class MainActivity extends Screen {
         b.setOnClickListener(v -> { if (pkg != null) Apps.launch(this, pkg); });
         nodeLabel[node] = name;
         placeTile(b, x, y, w, 150);
+        // Home fills its four slots from the installed apps; a slot is empty only on a TV with fewer apps, where
+        // there is nothing to put in it: no tile at all, rather than an empty box that takes focus.
+        if (pkg == null) b.setVisibility(View.GONE);
         return b;
     }
 
@@ -526,6 +530,7 @@ public class MainActivity extends Screen {
         b.setOnClickListener(v -> { if (pkg != null) Apps.launch(this, pkg); });
         nodeLabel[node] = name;
         placeTile(b, x, y, w, 112);
+        if (pkg == null) b.setVisibility(View.GONE);
         return b;
     }
 
@@ -561,7 +566,7 @@ public class MainActivity extends Screen {
             day = new PrayerDay(this, new Date(now.getTime() + 1000));
             renderMinute(now);
         }
-        renderCountdown(day, now, archFocused);
+        renderCountdown(day, now, archFocused, true);
         // The pinned banner's two minutes ran out: the hints go back to normal.
         if (pinnedHints && (RemoteKeys.watch == null || !RemoteKeys.watch.pinnedFast())) pinnedGone();
         // The update chip's percentage while it downloads.
@@ -580,7 +585,10 @@ public class MainActivity extends Screen {
         if (day.friday) names[PrayerDay.DHUHR] = t.jumuah();
         String nextTime = time(day.nextTime, 1f).toString();
         String label = t.nextPrayer(), name = names[day.nextIndex];
-        String sub = t.adhanAt() + " " + nextTime + t.sep() + t.city(), sub2 = "";
+        // When the next prayer's adhan is off (all of them, or its own bell), the arch says so instead of
+        // promising one: «4:53 ص · الأذان متوقف · قلقيلية».
+        boolean adhanOn = Prefs.adhan(this) && Prefs.bell(this, day.nextIndex);
+        String sub = (adhanOn ? t.adhanAt() + " " + nextTime : nextTime + t.sep() + t.bell(false)) + t.sep() + t.city(), sub2 = "";
         if (day.friday && day.nextIndex == PrayerDay.DHUHR) label = t.jumuahLabel();
         if (day.kahf) sub2 = t.kahf();
         if (day.ramadan) {
@@ -1392,17 +1400,30 @@ public class MainActivity extends Screen {
                 if (from >= F0 && from < M0) {
                     int i = from - F0;
                     if (left) to = i == 0 ? ARCH : from - 1;
-                    else if (right) to = i == 3 ? -1 : from + 1;
+                    else if (right) to = i == 3 || !shown(from + 1) ? -1 : from + 1;
                     else if (up) to = i == 3 ? (shown(UPDATE) ? UPDATE : SETTINGS) : i == 2 ? WIFI : i == 0 && shown(FAST) ? FAST : RADIO;
-                    else to = M0 + new int[] {0, 1, 3, 4}[i];
+                    else to = moreBelow(new int[] {0, 1, 3, 4}[i]);
                 } else {
-                    int i = from - M0;
-                    if (left) to = i == 0 ? ARCH : from - 1;
-                    else if (right) to = from == ALL ? -1 : from + 1;
+                    // More holds only real apps, then All apps: ALL stands right after the last one shown.
+                    int i = from == ALL ? moreCount() : from - M0;
+                    if (left) to = i == 0 ? ARCH : M0 + i - 1;
+                    else if (right) to = from == ALL ? -1 : i + 1 < moreCount() ? from + 1 : ALL;
                     else if (up) to = lastFav;
                 }
         }
         if (to >= 0 && nodes[to] != null && nodes[to].getVisibility() == View.VISIBLE) nodes[to].requestFocus();
+    }
+
+    /** The apps shown in More (its first tiles; the rest are gone). */
+    private int moreCount() {
+        int n = 0;
+        while (n < 5 && shown(M0 + n)) n++;
+        return n;
+    }
+
+    /** The More tile under column {@code col}, or All apps where the apps run out before it. */
+    private int moreBelow(int col) {
+        return col < moreCount() ? M0 + col : ALL;
     }
 
     /** Down from the header's end: the update chip if it shows, else the last favourite. */

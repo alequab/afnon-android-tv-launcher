@@ -14,8 +14,11 @@ export function prayerNames(c: Ctx) {
   return names;
 }
 
-/** Arch label, name, countdown and sub lines (Home), with the approaching state. */
-export function archModel(c: Ctx) {
+/**
+ * Arch label, name, countdown and sub lines (Home), with the approaching state. `calm` (Home, as
+ * Screen.renderCountdown): the seconds show only inside the approach minutes; before that h:mm, rounded up.
+ */
+export function archModel(c: Ctx, calm = true) {
   const { t, day, now, h24 } = c;
   const names = prayerNames(c);
   const nextTime = clock(t, day.nextTime, h24);
@@ -32,10 +35,13 @@ export function archModel(c: Ctx) {
     }
   }
   const left = secondsUntil(day.nextTime, now);
+  const seconds = !calm || left <= APPROACH_MIN * 60;
+  const shown = seconds ? left : Math.ceil(left / 60) * 60;
+  const count = seconds ? duration(left, true) : `${Math.floor(shown / 3600)}:${String(Math.floor((shown % 3600) / 60)).padStart(2, '0')}`;
   return {
     left,
-    html: { archLabel: label, archName: name, archCount: t.d(duration(left, true)), archSub: t.d(sub), archSub2: t.d(sub2) },
-    attr: { arch: { 'data-state': left <= APPROACH_MIN * 60 ? 'approaching' : 'rest' }, archCount: { 'data-long': String(left >= 3600) } },
+    html: { archLabel: label, archName: name, archCount: t.d(count), archSub: t.d(sub), archSub2: t.d(sub2) },
+    attr: { arch: { 'data-state': left <= APPROACH_MIN * 60 ? 'approaching' : 'rest' }, archCount: { 'data-long': String(shown >= 3600) } },
   };
 }
 

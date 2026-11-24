@@ -1,32 +1,101 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-25T00:30:00+02:00",
+  "generatedAt": "2026-11-25T00:45:00+02:00",
   "title": "Design System: Afnon",
   "extensions": {
     "colorMeta": {
-      "night-lapis": { "role": "neutral", "displayName": "Night Lapis", "canonical": "#0C1B33", "tonalRamp": ["#0A1730", "#0C1B33", "#12264A", "#1A3360"] },
-      "lamp-gold": { "role": "primary", "displayName": "Lamp Gold", "canonical": "#D8B46A", "tonalRamp": ["#84703F", "#D8B46A", "#F0D79C"] },
-      "dawn-gold": { "role": "primary", "displayName": "Dawn Gold", "canonical": "#F0D79C" },
-      "plaster": { "role": "neutral", "displayName": "Plaster", "canonical": "#EFE7D6" },
-      "mist": { "role": "neutral", "displayName": "Mist", "canonical": "#9FB0CC" }
+      "night-lapis": {
+        "role": "neutral",
+        "displayName": "Night Lapis",
+        "canonical": "#0C1B33",
+        "tonalRamp": [
+          "#0A1730",
+          "#0C1B33",
+          "#12264A",
+          "#1A3360"
+        ]
+      },
+      "lamp-gold": {
+        "role": "primary",
+        "displayName": "Lamp Gold",
+        "canonical": "#D8B46A",
+        "tonalRamp": [
+          "#84703F",
+          "#D8B46A",
+          "#F0D79C"
+        ]
+      },
+      "dawn-gold": {
+        "role": "primary",
+        "displayName": "Dawn Gold",
+        "canonical": "#F0D79C"
+      },
+      "plaster": {
+        "role": "neutral",
+        "displayName": "Plaster",
+        "canonical": "#EFE7D6"
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "#9FB0CC"
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "The arch's countdown (150px, 120px with hours); the clock at 96px." },
-      "headline": { "displayName": "Headline", "purpose": "The next prayer's name in the arch." },
-      "sacred": { "displayName": "Sacred", "purpose": "Qur'an and hadith, exact, in Lamp Gold, with the source under it." },
-      "caption": { "displayName": "Caption", "purpose": "The smallest text allowed on any screen." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "The arch's countdown (150px, 120px with hours); the clock at 96px."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The next prayer's name in the arch."
+      },
+      "sacred": {
+        "displayName": "Sacred",
+        "purpose": "Qur'an and hadith, exact, in Lamp Gold, with the source under it."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "The smallest text allowed on any screen."
+      }
     },
     "shadows": [],
     "motion": [
-      { "name": "ease-standard", "value": "cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Focus and panel moves." },
-      { "name": "focus", "value": "120ms", "purpose": "Focus fill, ring and scale." },
-      { "name": "panel-slide", "value": "240ms", "purpose": "Side panels and cards." },
-      { "name": "overlay-fade", "value": "200ms linear", "purpose": "Banners and scrims." },
-      { "name": "screensaver-fade", "value": "800ms", "purpose": "The screensaver's drift, every 60 s." }
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Focus and panel moves."
+      },
+      {
+        "name": "focus",
+        "value": "120ms",
+        "purpose": "Focus fill, ring and scale."
+      },
+      {
+        "name": "panel-slide",
+        "value": "240ms",
+        "purpose": "Side panels and cards."
+      },
+      {
+        "name": "overlay-fade",
+        "value": "200ms linear",
+        "purpose": "Banners and scrims."
+      },
+      {
+        "name": "screensaver-fade",
+        "value": "800ms",
+        "purpose": "The screensaver's drift, every 60 s."
+      }
     ],
     "breakpoints": [
-      { "name": "tv-1080p", "value": "1920px" },
-      { "name": "tv-720p", "value": "1280px" }
+      {
+        "name": "tv-1080p",
+        "value": "1920px"
+      },
+      {
+        "name": "tv-720p",
+        "value": "1280px"
+      }
     ],
     "nightMode": "afnon-mihrab/tokens.night.json: near-black lapis (#0B0A08 ground), gold at about half brightness (#84703F), focus a dim amber fill with light text."
   },
@@ -83,12 +152,46 @@
       "Transform and opacity only, and the TV may have animations off."
     ],
     "rules": [
-      { "name": "The One Lamp Rule", "body": "Gold marks what matters now: the next prayer, the focused control, the sacred text. If a second thing on the screen glows gold without being one of these, it is wrong.", "section": "colors" },
-      { "name": "The Plaster Is Now Rule", "body": "A plaster fill means current: the prayer whose time it is, the chosen segment, the reminder card. It is never used for decoration.", "section": "colors" },
-      { "name": "The Twenty Pixel Floor", "body": "Nothing on screen is smaller than 20px at 1080p (about 13px on a 720p panel); it is read from a sofa.", "section": "typography" },
-      { "name": "The Unspaced Arabic Rule", "body": "Arabic is never letter-spaced; English caps labels alone take 0.2em.", "section": "typography" },
-      { "name": "The Exact Text Rule", "body": "Qur'an and hadith are quoted word for word (checked in the Shamela library), with their source; a paraphrase is never set in the sacred style.", "section": "typography" },
-      { "name": "The Solid Ring Rule", "body": "The only thing that lifts an element is focus: a gold fill, a plaster ring and a small scale. Nothing is lifted by a shadow.", "section": "elevation" }
+      {
+        "name": "The Still Room Rule",
+        "body": "Home is always on in a living room: nothing on it changes every second until the last 15 minutes before a prayer, when the arch turns Dawn Gold and the countdown shows its seconds.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Lamp Rule",
+        "body": "Gold marks what matters now: the next prayer, the focused control, the sacred text. If a second thing on the screen glows gold without being one of these, it is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Plaster Is Now Rule",
+        "body": "A plaster fill means current: the prayer whose time it is, the chosen segment, the reminder card. It is never used for decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Twenty Pixel Floor",
+        "body": "Nothing on screen is smaller than 20px at 1080p (about 13px on a 720p panel); it is read from a sofa.",
+        "section": "typography"
+      },
+      {
+        "name": "The Unspaced Arabic Rule",
+        "body": "Arabic is never letter-spaced; English caps labels alone take 0.2em.",
+        "section": "typography"
+      },
+      {
+        "name": "The Exact Text Rule",
+        "body": "Qur'an and hadith are quoted word for word (checked in the Shamela library), with their source; a paraphrase is never set in the sacred style.",
+        "section": "typography"
+      },
+      {
+        "name": "The Solid Ring Rule",
+        "body": "The only thing that lifts an element is focus: a gold fill, a plaster ring and a small scale. Nothing is lifted by a shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Empty Box Rule",
+        "body": "Every tile on Home opens something; a slot with nothing to open is not drawn.",
+        "section": "layout"
+      }
     ],
     "dos": [
       "Do take every colour, size and timing from tokens.json (night mode from tokens.night.json).",

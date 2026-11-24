@@ -287,7 +287,7 @@ final class Tokens {
         GOLD_400 = night ? 0xFF84703F : 0xFFD8B46A;
         GOLD_200 = night ? 0xFF93835C : 0xFFF0D79C;
         PLASTER_100 = night ? 0xFF8F877A : 0xFFEFE7D6;
-        MIST_400 = night ? 0xFF6A655C : 0xFF9FB0CC;
+        MIST_400 = night ? 0xFF847E73 : 0xFF9FB0CC;
         DISABLED_TEXT = night ? 0xFF57524A : 0xFF6F7F9C;
         LAPIS_800_60 = night ? 0x9917140F : 0x9912264A;
         GOLD_400_60 = night ? 0x9984703F : 0x99D8B46A;

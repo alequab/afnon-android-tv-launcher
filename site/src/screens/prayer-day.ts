@@ -55,7 +55,7 @@ export function prayerDayModel(c: Ctx): Model {
   const qibla = qiblaOf(c);
 
   // The arch: Home's countdown, with the method and Asr school below (no Ramadan wording here).
-  const arch = archModel(c);
+  const arch = archModel(c, false);
   arch.html.archLabel = day.friday && day.nextIndex === DHUHR ? t.s('jumuahLabel') : t.s('nextPrayer');
   arch.html.archName = names[day.nextIndex];
   arch.html.archSub = t.methodName(methodOf(prefs));

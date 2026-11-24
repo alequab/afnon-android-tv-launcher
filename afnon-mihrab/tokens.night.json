@@ -8,7 +8,7 @@
     "gold-400": { "$type": "color", "$value": "#84703F" },
     "gold-200": { "$type": "color", "$value": "#93835C" },
     "plaster-100": { "$type": "color", "$value": "#8F877A" },
-    "mist-400": { "$type": "color", "$value": "#6A655C" },
+    "mist-400": { "$type": "color", "$value": "#847E73", "$description": "4.9:1 on the night ground (4.5:1 on cells): secondary text read from a sofa (was #6A655C, 3.4:1)" },
     "disabled-text": { "$type": "color", "$value": "#57524A" },
     "lapis-800-60": { "$type": "color", "$value": "rgba(23,20,15,0.6)" },
     "gold-400-60": { "$type": "color", "$value": "rgba(132,112,63,0.6)" },
