@@ -869,7 +869,8 @@ public class MainActivity extends Screen {
         if (n == ARCH) {
             h.add(t.hintOk(t.today()));
             h.add(t.hintApps());
-        } else if (n == RADIO || n == NIGHT || n == INPUTS || n == LIVE) {
+        } else if (n == RADIO || n == NIGHT || n == INPUTS || n == LIVE || n == FAST || n == UPDATE) {
+            // Header buttons and the chips: OK and what it does, nothing about the favourites.
             h.add(t.hintOk(nodeLabel[n]));
         } else if (n == PANEL || n == FULL || n == OTHER) {
             h.add(t.hintOk(n == OTHER ? otherLabel.getText().toString() : t.fullScreen()));
